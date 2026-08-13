@@ -257,16 +257,23 @@ printed "Clean", and the set contained a question asking which number ending
 in 4 is *not* a perfect square, offering 4, 14, 64, 144, marking 64 — with a
 solution line that said 14. Structure was perfect. Mathematics was wrong.
 
-**"Clean" still does not mean correct.** The second reader is another model and
-it misses things: it passed a question asking whether $9^2$ can be a perfect
-cube that offered both "No, it's not possible" and "No, only certain perfect
-squares can be perfect cubes", where both are true. And on the first four
-topics drafted this way, three of them never reached "Clean" in four attempts
-each — which is the honest signal. A model that cannot get its own drafts past
-its own checker is not a model whose output you should be publishing unread.
+**"Clean" still does not mean correct.** The second reader is another model. It
+misses things — it passed a question asking whether $9^2$ can be a perfect cube
+that offered both "No, it's not possible" and "No, only certain perfect squares
+can be perfect cubes", where both are true — and it is sometimes wrong about
+what it does flag.
 
-Read every question. That is the job the drafting script exists to shorten, not
-to replace.
+And what it catches, on the chapter it was written for, is not marginal. One
+draft of "Finding Cube Roots" asked for the cube root of $729$ and marked $27$,
+with a solution line reading $3^{6/3} = 27$. Another asked what is true of a
+number whose cube root is $4$ and offered "the number ends in 4", "the number
+is 64" and "the number is a perfect square" — all three true of $64$ — as
+competing options. Both drafts had passed every structural check.
+
+So: a topic that will not go "Clean" after a few attempts is telling you
+something, and the answer is not to keep re-rolling until one slips through.
+Read every question yourself. The drafting script exists to shorten that job,
+not to replace it.
 
 ---
 
