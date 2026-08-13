@@ -1,0 +1,113 @@
+"use client";
+
+/* Which language the tutor teaches in.
+ *
+ * Placed on the tutor index rather than buried in Settings, because it is a
+ * decision a student makes once and makes on the way into their first lesson —
+ * and a setting nobody finds is a setting that does not exist.
+ *
+ * Each option is labelled in its own language. A student who cannot read the
+ * label cannot choose the language, which is a small thing that decides
+ * whether the Hindi option is usable by the people it is for. */
+
+import { useEffect, useState } from "react";
+import { Check, Languages, Loader2 } from "lucide-react";
+
+import type { Language } from "@/lib/language";
+
+export function LanguagePicker() {
+  const [options, setOptions] = useState<Language[]>([]);
+  const [current, setCurrent] = useState("");
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    let live = true;
+
+    void fetch("/api/profile/language")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload) => {
+        if (!live || !payload) return;
+        setOptions(payload.options ?? []);
+        setCurrent(payload.language ?? "");
+      })
+      .catch(() => {
+        /* The tutor works without this. Showing nothing is better than an
+           error a student cannot act on. */
+      });
+
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  const choose = async (language: string) => {
+    setBusy(true);
+
+    try {
+      const response = await fetch("/api/profile/language", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ language }),
+      });
+
+      if (response.ok) setCurrent(language);
+    } finally {
+      setBusy(false);
+      setOpen(false);
+    }
+  };
+
+  if (options.length === 0) return null;
+
+  const chosen = options.find((option) => option.id === current) ?? options[0];
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-[14px]"
+        style={{ background: "rgb(var(--fg-rgb) / 0.06)" }}
+      >
+        {busy ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        ) : (
+          <Languages className="h-3.5 w-3.5" />
+        )}
+        {chosen.label}
+      </button>
+
+      {open && (
+        <ul
+          role="listbox"
+          className="absolute right-0 z-20 mt-2 w-64 overflow-hidden rounded-xl border border-black/10 bg-white shadow-lg dark:border-white/15 dark:bg-neutral-900"
+        >
+          {options.map((option) => (
+            <li key={option.id}>
+              <button
+                type="button"
+                role="option"
+                aria-selected={option.id === current}
+                onClick={() => void choose(option.id)}
+                className="flex w-full items-start gap-2 px-4 py-3 text-left hover:bg-black/5 dark:hover:bg-white/10"
+              >
+                <Check
+                  className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${
+                    option.id === current ? "opacity-100" : "opacity-0"
+                  }`}
+                />
+                <span>
+                  <span className="block text-[14px] font-semibold">{option.label}</span>
+                  <span className="mt-0.5 block text-[12px] opacity-60">{option.hint}</span>
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}

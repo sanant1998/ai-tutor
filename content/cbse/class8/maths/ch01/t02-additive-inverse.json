@@ -1,0 +1,286 @@
+{
+  "board": "cbse",
+  "classLevel": 8,
+  "subjectId": "maths",
+  "provenance": {
+    "source": "NCERT Mathematics Class 8, Chapter 1 'Rational Numbers' — additive inverse. The four misconceptions are the ones this topic reliably produces: reciprocal confusion, the belief that an inverse must be negative, treating the three ways of writing a negative fraction as different numbers, and denying zero an inverse.",
+    "verifiedOn": "2026-08-12",
+    "note": "m1 (additive vs multiplicative inverse) is the one that matters. It is the single most common error on this topic and it is a genuine concept gap, not a slip — a student holding it will also get 'role of one' wrong later, which is why c8-math-ch1-t3 lists this topic as a prerequisite."
+  },
+  "subject": { "id": "cbse-8-maths", "name": "Mathematics", "language": "en-IN" },
+  "chapter": {
+    "id": "c8-math-ch1",
+    "no": 1,
+    "title": "Rational Numbers",
+    "ncertRef": "NCERT Mathematics Class 8, Chapter 1",
+    "estMinutes": 210,
+    "isFree": true
+  },
+  "topic": {
+    "id": "c8-math-ch1-t2",
+    "no": 2,
+    "title": "Additive Inverse",
+    "prereqTopicIds": ["c8-math-ch1-t1"]
+  },
+
+  "concepts": [
+    {
+      "id": "c8-math-ch1-t2-c1",
+      "seq": 1,
+      "title": "Additive inverse",
+      "statement": "Kisi rational number $\\frac{a}{b}$ ka additive inverse wo number hota hai jise usme jodne par 0 aaye. Yaani $\\frac{a}{b} + \\left(-\\frac{a}{b}\\right) = 0$. Ise us number ka 'negative' bhi kehte hain.",
+      "hook": "Socho tumhare paas ₹50 hain aur tumne dost se ₹50 udhaar liye hain. Total kitna hua? Zero. Ye ₹50 aur -₹50 ek doosre ko cancel kar dete hain — yahi additive inverse hai. Ab sawal: agar tumhare paas -₹50 hain, yaani ₹50 ka karza, to usko zero karne ke liye kya chahiye?",
+      "analogies": [
+        {
+          "id": "a1",
+          "text": "Lift me 3 floor upar jaana aur 3 floor neeche aana — wapas wahin."
+        },
+        {
+          "id": "a2",
+          "text": "Cricket me 4 run banaye phir 4 run ka penalty laga — net zero."
+        },
+        {
+          "id": "a3",
+          "text": "Temperature 5° badha phir 5° gira — wapas wahi temperature."
+        }
+      ],
+      "formulas": [
+        {
+          "id": "f1",
+          "latex": "\\frac{a}{b} + \\left(-\\frac{a}{b}\\right) = 0",
+          "note": "b ≠ 0. Yahi additive inverse ki definition hai."
+        },
+        {
+          "id": "f2",
+          "latex": "-\\frac{a}{b} = \\frac{-a}{b} = \\frac{a}{-b}",
+          "note": "Teeno ek hi number hain, sirf likhne ka tareeka alag."
+        },
+        {
+          "id": "f3",
+          "latex": "\\frac{a}{b} \\times \\frac{b}{a} = 1",
+          "note": "Ye multiplicative inverse hai — additive se alag. Isse guna karne par 1 aata hai, jodne par nahi."
+        }
+      ],
+      "misconceptions": [
+        {
+          "id": "m1",
+          "wrong_belief": "Additive inverse matlab ulta kar do — $\\frac{3}{5}$ ka inverse $\\frac{5}{3}$.",
+          "why_wrong": "Wo multiplicative inverse (reciprocal) hai, jisse guna karne par 1 aata hai. Additive inverse jodne par 0 deta hai. Check karke dekho: $\\frac{3}{5} + \\frac{5}{3}$ 0 nahi aata.",
+          "correction": "Jodna hai to sign badlo. Guna hai to ulta karo.",
+          "probe": "$\\frac{3}{5}$ me kya jodun ki 0 aaye? Aur kis se guna karun ki 1 aaye? Ye do alag sawal hain."
+        },
+        {
+          "id": "m2",
+          "wrong_belief": "Additive inverse hamesha negative hota hai.",
+          "why_wrong": "Agar number khud negative hai to uska inverse positive hoga — kyunki 0 laane ke liye ulta sign chahiye, negative sign nahi.",
+          "correction": "$-\\frac{11}{4}$ ka additive inverse $+\\frac{11}{4}$ hai. Sign ULTA hota hai, negative nahi.",
+          "probe": "$-\\frac{11}{4}$ me kya jodoge ki 0 mile? Wo positive hoga ya negative?"
+        },
+        {
+          "id": "m3",
+          "wrong_belief": "$\\frac{-3}{5}$, $\\frac{3}{-5}$ aur $-\\left(\\frac{3}{5}\\right)$ alag-alag numbers hain.",
+          "why_wrong": "Teeno ka maan same hai, sirf likhne ka tareeka alag hai. Number line pe teeno ek hi jagah baithte hain.",
+          "correction": "Sign numerator me ho, denominator me ho, ya poore fraction ke aage — value nahi badalti.",
+          "probe": "$\\frac{3}{-5}$ ko standard form me likho. Ab batao ye $\\frac{-3}{5}$ se alag hai ya wahi?"
+        },
+        {
+          "id": "m4",
+          "wrong_belief": "0 ka additive inverse nahi hota.",
+          "why_wrong": "$0 + 0 = 0$, to 0 khud apna additive inverse hai. Definition kehti hai 'jise jodne par 0 aaye' — 0 ye shart poori karta hai.",
+          "correction": "0 hi ek aisa number hai jo apna additive inverse hai.",
+          "probe": "0 me kya jodein ki 0 aaye? Kya wo khud 0 ho sakta hai?"
+        }
+      ],
+      "worked_examples": [
+        {
+          "id": "we1",
+          "problem": "$\\frac{7}{9}$ ka additive inverse nikalo aur verify karo.",
+          "steps": [
+            "Additive inverse matlab sign badlo: $-\\frac{7}{9}$",
+            "Verify: $\\frac{7}{9} + \\left(-\\frac{7}{9}\\right) = \\frac{7-7}{9} = \\frac{0}{9} = 0$",
+            "Verified"
+          ],
+          "answer": "$-\\frac{7}{9}$"
+        },
+        {
+          "id": "we2",
+          "problem": "$-\\frac{11}{4}$ ka additive inverse nikalo.",
+          "steps": [
+            "Number already negative hai, to inverse positive hoga",
+            "Sign badla: $+\\frac{11}{4}$",
+            "Verify: $-\\frac{11}{4} + \\frac{11}{4} = 0$"
+          ],
+          "answer": "$\\frac{11}{4}$"
+        },
+        {
+          "id": "we3",
+          "problem": "$\\frac{5}{8}$ ka additive inverse aur multiplicative inverse — dono nikalo aur farak dikhao.",
+          "steps": [
+            "Additive inverse: sign badlo → $-\\frac{5}{8}$. Check: $\\frac{5}{8} + \\left(-\\frac{5}{8}\\right) = 0$ ✓",
+            "Multiplicative inverse: ulta karo → $\\frac{8}{5}$. Check: $\\frac{5}{8} \\times \\frac{8}{5} = 1$ ✓",
+            "Farak: ek jodne par 0 deta hai, doosra guna karne par 1"
+          ],
+          "answer": "Additive inverse $-\\frac{5}{8}$, multiplicative inverse $\\frac{8}{5}$"
+        }
+      ]
+    }
+  ],
+
+  "questions": [
+    {
+      "id": "q-c8m-ch1-0041",
+      "conceptId": "c8-math-ch1-t2-c1",
+      "qtype": "mcq",
+      "level": "L1",
+      "stem": "$\\frac{5}{8}$ ka additive inverse kya hai?",
+      "options": [
+        { "key": "A", "text": "$-\\frac{5}{8}$" },
+        { "key": "B", "text": "$\\frac{8}{5}$" },
+        { "key": "C", "text": "$-\\frac{8}{5}$" },
+        { "key": "D", "text": "$\\frac{5}{8}$" }
+      ],
+      "correct": ["A"],
+      "distractor_map": { "B": "m1", "C": "m1", "D": "m2" },
+      "solution": "Sign badlo: $-\\frac{5}{8}$. Check: $\\frac{5}{8} + \\left(-\\frac{5}{8}\\right) = 0$. $\\frac{8}{5}$ multiplicative inverse hai — usse guna karne par 1 aata hai, jodne par 0 nahi."
+    },
+    {
+      "id": "q-c8m-ch1-0042",
+      "conceptId": "c8-math-ch1-t2-c1",
+      "qtype": "mcq",
+      "level": "L2",
+      "stem": "$\\frac{-13}{7}$ ka additive inverse kya hai?",
+      "options": [
+        { "key": "A", "text": "$\\frac{-13}{7}$" },
+        { "key": "B", "text": "$\\frac{13}{7}$" },
+        { "key": "C", "text": "$\\frac{-7}{13}$" },
+        { "key": "D", "text": "$0$" }
+      ],
+      "correct": ["B"],
+      "distractor_map": { "A": "m2", "C": "m1", "D": "m4" },
+      "solution": "Number pehle se negative hai, to uska inverse positive hoga: $\\frac{13}{7}$. Check: $\\frac{-13}{7} + \\frac{13}{7} = 0$."
+    },
+    {
+      "id": "q-c8m-ch1-0043",
+      "conceptId": "c8-math-ch1-t2-c1",
+      "qtype": "nvt",
+      "level": "L3",
+      "stem": "Agar $x$, $\\frac{-4}{9}$ ka additive inverse hai, to $x + \\frac{2}{9}$ ka maan kya hai? (dashamlav me do sthaan tak)",
+      "correct": { "value": 0.6667, "tol": 0.001, "exact": "6/9 = 2/3" },
+      "solution": "$\\frac{-4}{9}$ ka additive inverse $x = \\frac{4}{9}$ hai. Phir $\\frac{4}{9} + \\frac{2}{9} = \\frac{6}{9} = \\frac{2}{3} \\approx 0.667$."
+    },
+    {
+      "id": "q-c8m-ch1-0044",
+      "conceptId": "c8-math-ch1-t2-c1",
+      "qtype": "subjective",
+      "level": "L4",
+      "stem": "Sabit karo ki rational numbers me additive inverse unique hota hai — yaani ek number ke do alag additive inverse nahi ho sakte.",
+      "correct": {
+        "rubric": [
+          "Maan liya ki $a$ ke do additive inverse hain, $y$ aur $z$",
+          "Definition se $a + y = 0$ aur $a + z = 0$",
+          "$y = y + 0 = y + (a + z) = (y + a) + z$ — associativity ka istemaal",
+          "$= 0 + z = z$, isliye $y = z$ aur inverse unique hai"
+        ]
+      },
+      "solution": "Maan lo $a$ ke do additive inverse hain: $y$ aur $z$. To $a + y = 0$ aur $a + z = 0$. Ab $y = y + 0 = y + (a + z) = (y + a) + z = 0 + z = z$. Yahan zero ka additive identity hona aur addition ka associative hona — dono use hue. Chunki $y = z$, additive inverse unique hai."
+    },
+    {
+      "id": "q-c8m-ch1-0045",
+      "conceptId": "c8-math-ch1-t2-c1",
+      "qtype": "mcq",
+      "level": "L1",
+      "stem": "$0$ ka additive inverse kya hai?",
+      "options": [
+        { "key": "A", "text": "$0$" },
+        { "key": "B", "text": "$0$ ka additive inverse hota hi nahi" },
+        { "key": "C", "text": "$1$" },
+        { "key": "D", "text": "Anant (infinity)" }
+      ],
+      "correct": ["A"],
+      "distractor_map": { "B": "m4", "C": "m1", "D": "m4" },
+      "solution": "$0 + 0 = 0$, to 0 khud apna additive inverse hai. Ye ekmatra number hai jiske saath aisa hota hai."
+    },
+    {
+      "id": "q-c8m-ch1-0046",
+      "conceptId": "c8-math-ch1-t2-c1",
+      "qtype": "mcq",
+      "level": "L2",
+      "stem": "In me se kaunsa $\\frac{-3}{5}$ ke barabar NAHI hai?",
+      "options": [
+        { "key": "A", "text": "$\\frac{3}{5}$" },
+        { "key": "B", "text": "$\\frac{3}{-5}$" },
+        { "key": "C", "text": "$-\\left(\\frac{3}{5}\\right)$" },
+        { "key": "D", "text": "$\\frac{-6}{10}$" }
+      ],
+      "correct": ["A"],
+      "distractor_map": { "B": "m3", "C": "m3", "D": "m3" },
+      "solution": "$\\frac{3}{-5}$, $-\\left(\\frac{3}{5}\\right)$ aur $\\frac{-6}{10}$ — teenon ka maan $\\frac{-3}{5}$ hai. Sirf $\\frac{3}{5}$ alag hai; wo to $\\frac{-3}{5}$ ka additive inverse hai."
+    },
+    {
+      "id": "q-c8m-ch1-0047",
+      "conceptId": "c8-math-ch1-t2-c1",
+      "qtype": "mcq",
+      "level": "L2",
+      "stem": "Kis number se $\\frac{5}{8}$ ko guna karne par $1$ aata hai?",
+      "options": [
+        { "key": "A", "text": "$\\frac{8}{5}$" },
+        { "key": "B", "text": "$-\\frac{5}{8}$" },
+        { "key": "C", "text": "$\\frac{5}{8}$" },
+        { "key": "D", "text": "$0$" }
+      ],
+      "correct": ["A"],
+      "distractor_map": { "B": "m1", "C": "m1", "D": "m4" },
+      "solution": "$\\frac{5}{8} \\times \\frac{8}{5} = 1$ — ye multiplicative inverse hai. $-\\frac{5}{8}$ additive inverse hai; usse jodne par 0 aata hai, guna karne par nahi. Ye sawal jaan-bujhkar ulta poochha gaya hai, taaki dono me farak saaf ho."
+    },
+    {
+      "id": "q-c8m-ch1-0048",
+      "conceptId": "c8-math-ch1-t2-c1",
+      "qtype": "mcq",
+      "level": "L3",
+      "stem": "Neha ne likha: '$\\frac{2}{7}$ ka additive inverse $\\frac{7}{2}$ hai kyunki dono milke number ko cancel kar dete hain.' Uski galti kya hai?",
+      "options": [
+        { "key": "A", "text": "$\\frac{7}{2}$ multiplicative inverse hai — $\\frac{2}{7} + \\frac{7}{2}$ ka maan 0 nahi aata" },
+        { "key": "B", "text": "Koi galti nahi, $\\frac{7}{2}$ hi sahi hai" },
+        { "key": "C", "text": "Galti sirf sign ki hai, jawab $-\\frac{7}{2}$ hona chahiye" },
+        { "key": "D", "text": "$\\frac{2}{7}$ ka additive inverse hota hi nahi" }
+      ],
+      "correct": ["A"],
+      "distractor_map": { "B": "m1", "C": "m1", "D": "m4" },
+      "solution": "'Cancel' do tarah se hota hai aur dono alag hain. Jodne par 0 laane wala additive inverse hai — $-\\frac{2}{7}$. Guna karne par 1 laane wala multiplicative inverse hai — $\\frac{7}{2}$. Neha ne doosra wala pehle wale ki jagah likh diya."
+    },
+    {
+      "id": "q-c8m-ch1-0049",
+      "conceptId": "c8-math-ch1-t2-c1",
+      "qtype": "nvt",
+      "level": "L2",
+      "stem": "$\\frac{-7}{12}$ ka additive inverse $\\frac{p}{12}$ hai. $p$ ka maan kya hoga?",
+      "correct": { "value": 7, "tol": 0, "exact": "7" },
+      "solution": "$\\frac{-7}{12}$ ka additive inverse $\\frac{7}{12}$ hai, kyunki $\\frac{-7}{12} + \\frac{7}{12} = 0$. To $p = 7$."
+    },
+    {
+      "id": "q-c8m-ch1-0050",
+      "conceptId": "c8-math-ch1-t2-c1",
+      "qtype": "nvt",
+      "level": "L4",
+      "stem": "$a = \\frac{-5}{6}$ hai. $a$ ke additive inverse aur $a$ ke multiplicative inverse ko jodo. Jawab dashamlav me char sthaan tak likho.",
+      "correct": { "value": -0.3667, "tol": 0.001, "exact": "5/6 + (-6/5) = 25/30 - 36/30 = -11/30" },
+      "solution": "Additive inverse: $\\frac{5}{6}$. Multiplicative inverse: $\\frac{-6}{5}$ (kyunki $\\frac{-5}{6} \\times \\frac{-6}{5} = 1$). Jodo: $\\frac{5}{6} + \\frac{-6}{5} = \\frac{25}{30} - \\frac{36}{30} = \\frac{-11}{30} \\approx -0.3667$. Dhyan do — negative number ka multiplicative inverse bhi negative hota hai."
+    },
+    {
+      "id": "q-c8m-ch1-0051",
+      "conceptId": "c8-math-ch1-t2-c1",
+      "qtype": "subjective",
+      "level": "L3",
+      "stem": "Ek doston ko samjhao ki additive inverse aur multiplicative inverse me kya farak hai. Ek udaharan dono ka do.",
+      "correct": {
+        "rubric": [
+          "Additive inverse: jodne par 0 deta hai, sign badalkar milta hai",
+          "Multiplicative inverse: guna karne par 1 deta hai, ulta karke milta hai",
+          "Ek number pe dono dikhaye, jaise $\\frac{3}{4}$ ka $-\\frac{3}{4}$ aur $\\frac{4}{3}$",
+          "Dono ko verify kiya"
+        ]
+      },
+      "solution": "Additive inverse wo hai jise jodne par 0 aaye — sign badal do. $\\frac{3}{4}$ ka additive inverse $-\\frac{3}{4}$ hai, kyunki $\\frac{3}{4} + \\left(-\\frac{3}{4}\\right) = 0$. Multiplicative inverse wo hai jisse guna karne par 1 aaye — ulta kar do. $\\frac{3}{4}$ ka multiplicative inverse $\\frac{4}{3}$ hai, kyunki $\\frac{3}{4} \\times \\frac{4}{3} = 1$. Yaad rakhne ka tareeka: JODNA hai to SIGN badlo, GUNA hai to ULTA karo."
+    }
+  ]
+}

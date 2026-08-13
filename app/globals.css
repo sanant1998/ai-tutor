@@ -1,0 +1,489 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------------------------------------------------------------------------
+   Design tokens
+
+   The page is dark-first. Every theme publishes the same token set, so a
+   theme switch is one class change on <html> with no JS-computed colour and
+   therefore no hydration mismatch.
+
+   Colours are published twice: once ready to use, once as bare RGB channels
+   so components can apply their own alpha with rgb(var(--text-rgb) / 0.62).
+
+   Glass surfaces are declared per theme rather than derived, because the
+   right translucency over a dark ground is not the right translucency over
+   a light one.
+   --------------------------------------------------------------------------- */
+:root,
+html.theme-dark {
+  --bg: #0a0c13;
+  --bg-rgb: 10 12 19;
+  --text: #e9edf6;
+  --text-rgb: 233 237 246;
+  --acc: #5b8def;
+  --acc-rgb: 91 141 239;
+  --acc-2: #a78bfa;
+  --acc-2-rgb: 167 139 250;
+  --acc-3: #22d3ee;
+  --acc-3-rgb: 34 211 238;
+  --onacc: #06070c;
+  --onacc-rgb: 6 7 12;
+
+  --glass: rgb(255 255 255 / 0.045);
+  --glass-2: rgb(255 255 255 / 0.075);
+  --line: rgb(255 255 255 / 0.1);
+  --line-strong: rgb(255 255 255 / 0.18);
+  --shadow: 0 24px 70px -30px rgb(0 0 0 / 0.85);
+  --mesh-opacity: 0.75;
+
+  color-scheme: dark;
+}
+
+html.theme-light {
+  --bg: #f6f7fb;
+  --bg-rgb: 246 247 251;
+  --text: #0f1524;
+  --text-rgb: 15 21 36;
+  --acc: #2f66d8;
+  --acc-rgb: 47 102 216;
+  --acc-2: #7c5cf0;
+  --acc-2-rgb: 124 92 240;
+  --acc-3: #0ea5b7;
+  --acc-3-rgb: 14 165 183;
+  --onacc: #ffffff;
+  --onacc-rgb: 255 255 255;
+
+  --glass: rgb(255 255 255 / 0.72);
+  --glass-2: rgb(255 255 255 / 0.92);
+  --line: rgb(15 21 36 / 0.09);
+  --line-strong: rgb(15 21 36 / 0.16);
+  --shadow: 0 24px 60px -32px rgb(15 21 36 / 0.35);
+  --mesh-opacity: 0.5;
+
+  color-scheme: light;
+}
+
+/* The default. A warm paper cream with a single confident blue, plus a coral
+   and a green reserved for the "before / after" marks. */
+html.theme-notebook {
+  --bg: #fbf7f1;
+  --bg-rgb: 251 247 241;
+  --text: #14203a;
+  --text-rgb: 20 32 58;
+  --acc: #1d5cff;
+  --acc-rgb: 29 92 255;
+  --acc-2: #e2554d;
+  --acc-2-rgb: 226 85 77;
+  --acc-3: #17a34a;
+  --acc-3-rgb: 23 163 74;
+  --onacc: #ffffff;
+  --onacc-rgb: 255 255 255;
+
+  --glass: rgb(255 255 255 / 0.72);
+  --glass-2: rgb(255 255 255 / 0.96);
+  --line: rgb(20 32 58 / 0.1);
+  --line-strong: rgb(20 32 58 / 0.2);
+  --shadow: 0 24px 60px -32px rgb(60 45 25 / 0.35);
+  --mesh-opacity: 0.3;
+
+  color-scheme: light;
+}
+
+html.theme-paper {
+  --bg: #f7f3ee;
+  --bg-rgb: 247 243 238;
+  --text: #2b2019;
+  --text-rgb: 43 32 25;
+  --acc: #b65720;
+  --acc-rgb: 182 87 32;
+  --acc-2: #a3562f;
+  --acc-2-rgb: 163 86 47;
+  --acc-3: #7d7a3c;
+  --acc-3-rgb: 125 122 60;
+  --onacc: #ffffff;
+  --onacc-rgb: 255 255 255;
+
+  --glass: rgb(255 255 255 / 0.78);
+  --glass-2: rgb(255 255 255 / 0.95);
+  --line: rgb(43 32 25 / 0.1);
+  --line-strong: rgb(43 32 25 / 0.18);
+  --shadow: 0 22px 55px -30px rgb(60 40 25 / 0.4);
+  --mesh-opacity: 0.38;
+
+  color-scheme: light;
+}
+
+html.theme-ocean {
+  --bg: #07131d;
+  --bg-rgb: 7 19 29;
+  --text: #e2eef6;
+  --text-rgb: 226 238 246;
+  --acc: #38bdf8;
+  --acc-rgb: 56 189 248;
+  --acc-2: #22d3ee;
+  --acc-2-rgb: 34 211 238;
+  --acc-3: #5eead4;
+  --acc-3-rgb: 94 234 212;
+  --onacc: #05141f;
+  --onacc-rgb: 5 20 31;
+
+  --glass: rgb(255 255 255 / 0.05);
+  --glass-2: rgb(255 255 255 / 0.08);
+  --line: rgb(255 255 255 / 0.11);
+  --line-strong: rgb(255 255 255 / 0.2);
+  --shadow: 0 24px 70px -30px rgb(0 0 0 / 0.85);
+  --mesh-opacity: 0.7;
+
+  color-scheme: dark;
+}
+
+html.theme-forest {
+  --bg: #091410;
+  --bg-rgb: 9 20 16;
+  --text: #e4f0e8;
+  --text-rgb: 228 240 232;
+  --acc: #40c46f;
+  --acc-rgb: 64 196 111;
+  --acc-2: #6ee7a8;
+  --acc-2-rgb: 110 231 168;
+  --acc-3: #a3e635;
+  --acc-3-rgb: 163 230 53;
+  --onacc: #04160c;
+  --onacc-rgb: 4 22 12;
+
+  --glass: rgb(255 255 255 / 0.05);
+  --glass-2: rgb(255 255 255 / 0.08);
+  --line: rgb(255 255 255 / 0.11);
+  --line-strong: rgb(255 255 255 / 0.2);
+  --shadow: 0 24px 70px -30px rgb(0 0 0 / 0.85);
+  --mesh-opacity: 0.7;
+
+  color-scheme: dark;
+}
+
+html.theme-rose {
+  --bg: #150a0f;
+  --bg-rgb: 21 10 15;
+  --text: #f6e9ee;
+  --text-rgb: 246 233 238;
+  --acc: #f43f5e;
+  --acc-rgb: 244 63 94;
+  --acc-2: #fb7185;
+  --acc-2-rgb: 251 113 133;
+  --acc-3: #fda4af;
+  --acc-3-rgb: 253 164 175;
+  --onacc: #1b0509;
+  --onacc-rgb: 27 5 9;
+
+  --glass: rgb(255 255 255 / 0.05);
+  --glass-2: rgb(255 255 255 / 0.08);
+  --line: rgb(255 255 255 / 0.12);
+  --line-strong: rgb(255 255 255 / 0.21);
+  --shadow: 0 24px 70px -30px rgb(0 0 0 / 0.85);
+  --mesh-opacity: 0.68;
+
+  color-scheme: dark;
+}
+
+html.theme-ember {
+  --bg: #150d07;
+  --bg-rgb: 21 13 7;
+  --text: #f5ebe0;
+  --text-rgb: 245 235 224;
+  --acc: #f97316;
+  --acc-rgb: 249 115 22;
+  --acc-2: #fbbf24;
+  --acc-2-rgb: 251 191 36;
+  --acc-3: #fb923c;
+  --acc-3-rgb: 251 146 60;
+  --onacc: #1a0c02;
+  --onacc-rgb: 26 12 2;
+
+  --glass: rgb(255 255 255 / 0.05);
+  --glass-2: rgb(255 255 255 / 0.08);
+  --line: rgb(255 255 255 / 0.12);
+  --line-strong: rgb(255 255 255 / 0.21);
+  --shadow: 0 24px 70px -30px rgb(0 0 0 / 0.85);
+  --mesh-opacity: 0.68;
+
+  color-scheme: dark;
+}
+
+html.theme-inkwell {
+  --bg: #0d131c;
+  --bg-rgb: 13 19 28;
+  --text: #e8eef6;
+  --text-rgb: 232 238 246;
+  --acc: #f5be3d;
+  --acc-rgb: 245 190 61;
+  --acc-2: #e8739a;
+  --acc-2-rgb: 232 115 154;
+  --acc-3: #57c7c2;
+  --acc-3-rgb: 87 199 194;
+  --onacc: #17120a;
+  --onacc-rgb: 23 18 10;
+
+  --glass: rgb(255 255 255 / 0.05);
+  --glass-2: rgb(255 255 255 / 0.08);
+  --line: rgb(255 255 255 / 0.11);
+  --line-strong: rgb(255 255 255 / 0.2);
+  --shadow: 0 24px 70px -30px rgb(0 0 0 / 0.8);
+  --mesh-opacity: 0.7;
+
+  color-scheme: dark;
+}
+
+/* Crossfade when the theme changes. Deliberately not applied to transform, so
+   hover lifts stay snappy. */
+.theme-tx {
+  transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease;
+}
+
+@layer base {
+  body {
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: rgb(var(--acc-rgb) / 0.3);
+    color: var(--text);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Glass surfaces
+   --------------------------------------------------------------------------- */
+.glass {
+  background: var(--glass);
+  border: 1px solid var(--line);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+.glass-strong {
+  background: var(--glass-2);
+  border: 1px solid var(--line-strong);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  box-shadow: var(--shadow);
+}
+
+/* A single hairline of light along the top edge, which is what stops a glass
+   card reading as a flat grey box. */
+.glass-sheen {
+  position: relative;
+}
+
+.glass-sheen::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(var(--text-rgb) / 0.25),
+    transparent
+  );
+  pointer-events: none;
+}
+
+.lift {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s ease, border-color 0.35s ease;
+}
+
+.lift:hover {
+  transform: translateY(-4px);
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow);
+}
+
+/* ---------------------------------------------------------------------------
+   Type
+   font-display / font-sans / font-patrick come from tailwind.config.ts, which
+   points them at the next/font variables.
+   --------------------------------------------------------------------------- */
+
+/* Gradient headline treatment, kept subtle enough to stay readable. */
+.text-gradient {
+  background: linear-gradient(
+    100deg,
+    var(--text) 0%,
+    var(--text) 35%,
+    var(--acc) 70%,
+    var(--acc-2) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ---------------------------------------------------------------------------
+   Marquees
+   --------------------------------------------------------------------------- */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee var(--marquee-duration, 45s) linear infinite;
+}
+
+.marquee-track.reverse {
+  animation-direction: reverse;
+}
+
+.marquee-row:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+/* Fades the marquee into the background at both edges. */
+.marquee-mask {
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 8%,
+    #000 92%,
+    transparent
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 8%,
+    #000 92%,
+    transparent
+  );
+}
+
+/* ---------------------------------------------------------------------------
+   Background texture
+   --------------------------------------------------------------------------- */
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.028;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.dot-grid {
+  background-image: radial-gradient(
+    rgb(var(--text-rgb) / 0.16) 0.5px,
+    transparent 0.5px
+  );
+  background-size: 22px 22px;
+}
+
+/* ---------------------------------------------------------------------------
+   Lenis smooth scroll
+   --------------------------------------------------------------------------- */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* ---------------------------------------------------------------------------
+   Accessibility modes
+   --------------------------------------------------------------------------- */
+html.a11y-dyslexia,
+html.a11y-dyslexia body,
+html.a11y-dyslexia button,
+html.a11y-dyslexia input,
+html.a11y-dyslexia textarea,
+html.a11y-dyslexia select {
+  font-family: var(--font-lexend), Lexend, Inter, system-ui, sans-serif;
+}
+
+html.a11y-dyslexia *:not(code):not(pre):not(.font-mono) {
+  font-family: var(--font-lexend), Lexend, Inter, system-ui, sans-serif !important;
+  font-feature-settings: normal;
+}
+
+html.a11y-readable body {
+  letter-spacing: 0.035em;
+  word-spacing: 0.14em;
+  line-height: 1.9;
+}
+
+html.a11y-readable p,
+html.a11y-readable li {
+  letter-spacing: 0.035em;
+  word-spacing: 0.14em;
+  line-height: 1.95 !important;
+}
+
+html.a11y-text-lg {
+  font-size: 18px;
+}
+
+html.a11y-text-xl {
+  font-size: 20px;
+}
+
+html.a11y-calm *,
+html.a11y-calm *::before,
+html.a11y-calm *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+html.a11y-calm .marquee-track {
+  animation: none !important;
+  transform: none !important;
+}
+
+/* Calm mode also flattens the decorative gradient wash. */
+html.a11y-calm .mesh {
+  display: none;
+}
+
+html.a11y-contrast {
+  --line: rgb(var(--text-rgb) / 0.5);
+  --line-strong: rgb(var(--text-rgb) / 0.75);
+  --glass: rgb(var(--bg-rgb) / 0.95);
+  --glass-2: rgb(var(--bg-rgb) / 1);
+}
+
+html.a11y-contrast a:not([class*="btn"]) {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+html.a11y-contrast *:focus-visible {
+  outline: 3px solid hsl(45 100% 50%) !important;
+  outline-offset: 2px !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none !important;
+    transform: none !important;
+  }
+}

@@ -1,0 +1,230 @@
+{
+  "board": "cbse",
+  "classLevel": 8,
+  "subjectId": "maths",
+  "provenance": {
+    "source": "NCERT Mathematics Class 8, Chapter 2 'Linear Equations in One Variable' — applications, i.e. forming an equation from a word problem. The misconceptions are the ones that appear when the arithmetic is fine and the translation is not, which is where nearly all the marks are lost on this topic.",
+    "verifiedOn": "2026-08-12",
+    "note": "This topic is where students who can solve equations still fail. Solving is mechanical and they have it by now; deciding what x IS, and reading 'more than' in the right direction, is the actual skill. m1 and m3 are both about direction of subtraction and they are worth teaching as one habit rather than two rules."
+  },
+  "subject": { "id": "cbse-8-maths", "name": "Mathematics", "language": "en-IN" },
+  "chapter": {
+    "id": "c8-math-ch2",
+    "no": 2,
+    "title": "Linear Equations in One Variable",
+    "ncertRef": "NCERT Mathematics Class 8, Chapter 2",
+    "estMinutes": 240,
+    "isFree": false
+  },
+  "topic": {
+    "id": "c8-math-ch2-t2",
+    "no": 2,
+    "title": "Turning Words Into Equations",
+    "prereqTopicIds": ["c8-math-ch2-t1"]
+  },
+
+  "concepts": [
+    {
+      "id": "c8-math-ch2-t2-c1",
+      "seq": 1,
+      "title": "Naming the unknown, and reading the direction right",
+      "statement": "Word problem hal karne ka pehla kadam solve karna nahi, likhna hai: 'maan lo $x$ = ...'. Jo cheez poochhi ja rahi hai, usko $x$ kaho, phir sawal ki har line ko $x$ ki bhasha me likhte jao. Equation apne aap ban jaayegi.",
+      "hook": "Socho tumhare aur tumhare bhai ke paas milakar ₹200 hain, aur tumhare paas usse ₹40 zyada hain. Ab batao — agar main kahun 'bhai ke paas $x$ rupaye hain', to tumhare paas kitne hue? Aur agar main kahun 'tumhare paas $x$ hain', to bhai ke paas? Dono tareeke sahi hain, par ek me hisaab aasan hota hai. Sawal ye hai: kaunsa?",
+      "analogies": [
+        {
+          "id": "a1",
+          "text": "Translation jaisa: har Hindi line ka ek maths line me tarjuma. 'Se 5 zyada' ka matlab '+5', 'se 5 kam' ka matlab '-5'."
+        },
+        {
+          "id": "a2",
+          "text": "Dukaan ka bill: jo pata nahi wo $x$, baaki sab uske hisaab se likho, aur total pehle se pata hai — wahi RHS hai."
+        }
+      ],
+      "formulas": [
+        {
+          "id": "f1",
+          "latex": "\\text{jo poochha hai} = x",
+          "note": "Sabse aasan tab hota hai jab chhoti cheez ko x kaho."
+        },
+        {
+          "id": "f2",
+          "latex": "a \\text{ se } b \\text{ zyada} \\Rightarrow a + b",
+          "note": "'zyada' = plus."
+        },
+        {
+          "id": "f3",
+          "latex": "a \\text{ se } b \\text{ kam} \\Rightarrow a - b",
+          "note": "'kam' = minus. Dhyan do: 'a se b kam', 'b se a kam' nahi."
+        }
+      ],
+      "misconceptions": [
+        {
+          "id": "m1",
+          "wrong_belief": "'$x$ se 5 kam' ka matlab $5 - x$ hai.",
+          "why_wrong": "'$x$ se 5 kam' matlab $x$ se shuru karo aur 5 ghatao — yaani $x - 5$. $5 - x$ ka matlab hota '5 me se $x$ ghatao', jo ulti baat hai. Number rakhkar dekho: $x = 12$ ho to '12 se 5 kam' 7 hai, $-7$ nahi.",
+          "correction": "'A se B kam' matlab $A - B$. Jis cheez se ghatana hai wo PEHLE aati hai.",
+          "probe": "$x = 12$ maano. '$x$ se 5 kam' kitna hua? Ab $x - 5$ aur $5 - x$ dono nikaalo — kaunsa match kiya?"
+        },
+        {
+          "id": "m2",
+          "wrong_belief": "Word problem me $x$ kuch bhi rakh sakte hain, farak nahi padta — jawab wahi aayega.",
+          "why_wrong": "Jawab to wahi aayega, par mehnat alag hoti hai. Bade wale ko $x$ kaho to doosri cheez $x - 40$ banti hai; chhote wale ko $x$ kaho to doosri $x + 40$. Aur ant me ye yaad rakhna padta hai ki sawal ne kaunsa poochha tha — wahi jagah hai jahan sahi hisaab pe galat jawab likha jaata hai.",
+          "correction": "Chhoti cheez ko $x$ kaho, aur ant me dobara padho ki sawal ne kya poochha tha.",
+          "probe": "Do bhaiyon ke paas milakar 200 hain, ek ke paas 40 zyada. Chhote ko $x$ kaho to bada kya hua? Ab bade ko $x$ kaho to chhota kya hua? Kaunsa likhna aasan laga?"
+        },
+        {
+          "id": "m3",
+          "wrong_belief": "'Ram ki umar Shyam se 3 guna hai' ka matlab $R \\times 3 = S$ hai.",
+          "why_wrong": "'Ram, Shyam se 3 guna' matlab Ram bada hai: $R = 3S$. Jaise likha hai waise seedha utaar dene se direction ulti ho jaati hai. Number se check karo: Shyam 10 ka ho to Ram 30 ka — aur $R = 3S$ hi 30 deta hai.",
+          "correction": "'A, B se n guna' matlab $A = n \\times B$. Jo bada hai wo akela taraf.",
+          "probe": "Shyam 10 saal ka hai aur Ram usse 3 guna. Ram kitne ka hua? Ab $R = 3S$ aur $3R = S$ dono me 10 rakhkar dekho — kaunsa 30 laaya?"
+        },
+        {
+          "id": "m4",
+          "wrong_belief": "$x$ nikal aaya to sawal khatam.",
+          "why_wrong": "Sawal ne aksar $x$ nahi poochha hota. 'Chhote bhai ke paas kitne?' poochha tha aur tumne bade ko $x$ kaha tha — to jawab $x$ nahi, $x - 40$ hai. Poora hisaab sahi karke aakhri line me number gawa dena is topic ki sabse aam galti hai.",
+          "correction": "$x$ nikalne ke baad sawal dobara padho, phir jawab likho.",
+          "probe": "Tumne bade bhai ko $x$ kaha aur $x = 120$ nikala. Sawal poochh raha tha chhote bhai ke paise. Jawab kya likhoge?"
+        }
+      ],
+      "worked_examples": [
+        {
+          "id": "we1",
+          "problem": "Do bhaiyon ke paas milakar ₹200 hain. Bade ke paas chhote se ₹40 zyada hain. Chhote ke paas kitne hain?",
+          "steps": [
+            "Maan lo chhote ke paas $x$ rupaye hain (chhoti cheez ko $x$ kaha, taaki plus lage minus nahi)",
+            "To bade ke paas $x + 40$ hue",
+            "Milakar 200: $x + (x + 40) = 200$",
+            "$2x + 40 = 200$, dono taraf se 40 ghatao: $2x = 160$",
+            "$x = 80$",
+            "Sawal chhote ka poochh raha tha, aur $x$ chhota hi tha — to jawab ₹80. Jaanch: 80 + 120 = 200 aur 120 - 80 = 40 ✓"
+          ],
+          "answer": "Chhote ke paas ₹80"
+        },
+        {
+          "id": "we2",
+          "problem": "Ram ki umar Shyam se 3 guna hai. Dono ki umar ka jod 32 saal hai. Ram kitne saal ka hai?",
+          "steps": [
+            "Maan lo Shyam $x$ saal ka hai (chhota, isliye 3 guna wala plain rahega)",
+            "To Ram $3x$ saal ka hua",
+            "Jod 32: $x + 3x = 32$",
+            "$4x = 32$, to $x = 8$",
+            "Sawal RAM ka poochh raha tha, Shyam ka nahi: Ram $= 3 \\times 8 = 24$",
+            "Jaanch: 8 + 24 = 32 aur 24 Shyam se 3 guna ✓"
+          ],
+          "answer": "Ram 24 saal ka hai"
+        }
+      ]
+    }
+  ],
+
+  "questions": [
+    {
+      "id": "q-c8m-ch2-0021",
+      "conceptId": "c8-math-ch2-t2-c1",
+      "qtype": "mcq",
+      "level": "L1",
+      "stem": "'$x$ se 5 kam' ko maths me kaise likhenge?",
+      "options": [
+        { "key": "A", "text": "$x - 5$" },
+        { "key": "B", "text": "$5 - x$" },
+        { "key": "C", "text": "$x + 5$" },
+        { "key": "D", "text": "$5x$" }
+      ],
+      "correct": ["A"],
+      "distractor_map": { "B": "m1", "C": "m1", "D": "m3" },
+      "solution": "'$x$ se 5 kam' matlab $x$ se shuru karke 5 ghatao: $x - 5$. Check karo — $x = 12$ pe '12 se 5 kam' 7 hai, aur $x - 5 = 7$ ✓ jabki $5 - x = -7$."
+    },
+    {
+      "id": "q-c8m-ch2-0022",
+      "conceptId": "c8-math-ch2-t2-c1",
+      "qtype": "mcq",
+      "level": "L1",
+      "stem": "'Ram ki umar Shyam se 3 guna hai.' Agar Shyam $x$ saal ka hai, to Ram?",
+      "options": [
+        { "key": "A", "text": "$3x$" },
+        { "key": "B", "text": "$\\frac{x}{3}$" },
+        { "key": "C", "text": "$x + 3$" },
+        { "key": "D", "text": "$x - 3$" }
+      ],
+      "correct": ["A"],
+      "distractor_map": { "B": "m3", "C": "m1", "D": "m1" },
+      "solution": "Ram bada hai — Shyam se 3 guna. To Ram $= 3x$. Number se check: Shyam 10 ka ho to Ram 30 ka, aur $3 \\times 10 = 30$ ✓"
+    },
+    {
+      "id": "q-c8m-ch2-0023",
+      "conceptId": "c8-math-ch2-t2-c1",
+      "qtype": "mcq",
+      "level": "L2",
+      "stem": "Do bhaiyon ke paas milakar ₹200 hain, bade ke paas ₹40 zyada. Chhote ke paas $x$ maano — kaunsi equation sahi hai?",
+      "options": [
+        { "key": "A", "text": "$x + (x + 40) = 200$" },
+        { "key": "B", "text": "$x + (x - 40) = 200$" },
+        { "key": "C", "text": "$x + 40 = 200$" },
+        { "key": "D", "text": "$x \\times 40 = 200$" }
+      ],
+      "correct": ["A"],
+      "distractor_map": { "B": "m1", "C": "m4", "D": "m3" },
+      "solution": "Chhote ke paas $x$, to bade ke paas $x + 40$. Dono milakar 200: $x + (x + 40) = 200$. Option C bhool jaata hai ki dono ko jodna hai."
+    },
+    {
+      "id": "q-c8m-ch2-0024",
+      "conceptId": "c8-math-ch2-t2-c1",
+      "qtype": "nvt",
+      "level": "L2",
+      "stem": "Do bhaiyon ke paas milakar ₹200 hain, bade ke paas chhote se ₹40 zyada. Chhote ke paas kitne rupaye hain?",
+      "correct": { "value": 80, "tol": 0, "exact": "80" },
+      "solution": "$x + (x + 40) = 200$, to $2x = 160$ aur $x = 80$. Jaanch: 80 + 120 = 200, aur 120 - 80 = 40 ✓"
+    },
+    {
+      "id": "q-c8m-ch2-0025",
+      "conceptId": "c8-math-ch2-t2-c1",
+      "qtype": "nvt",
+      "level": "L3",
+      "stem": "Ram ki umar Shyam se 3 guna hai aur dono ki umar ka jod 32 saal hai. RAM kitne saal ka hai?",
+      "correct": { "value": 24, "tol": 0, "exact": "24" },
+      "solution": "Shyam $= x$, Ram $= 3x$. $x + 3x = 32$, to $x = 8$ — par ye SHYAM ki umar hai. Sawal Ram ka poochh raha tha: $3 \\times 8 = 24$."
+    },
+    {
+      "id": "q-c8m-ch2-0026",
+      "conceptId": "c8-math-ch2-t2-c1",
+      "qtype": "mcq",
+      "level": "L3",
+      "stem": "Meera ne sahi equation banayi, sahi hal kiya, aur $x = 8$ nikala — par uska jawab galat gina gaya. Usne Shyam ko $x$ kaha tha aur sawal Ram ki umar poochh raha tha. Galti kya hai?",
+      "options": [
+        { "key": "A", "text": "Usne $x$ likh diya, jabki jawab $3x = 24$ hona chahiye tha" },
+        { "key": "B", "text": "Uska $x$ hi galat aaya" },
+        { "key": "C", "text": "Usne Ram ko $x$ kehna chahiye tha, warna hal hi galat hota" },
+        { "key": "D", "text": "Equation galat thi" }
+      ],
+      "correct": ["A"],
+      "distractor_map": { "B": "m4", "C": "m2", "D": "m3" },
+      "solution": "Poora hisaab sahi tha. Bas aakhri kadam chhoot gaya: $x$ Shyam ki umar thi, aur sawal Ram ki poochh raha tha, yaani $3x = 24$. Ram ko $x$ kehna bhi chal jaata — jawab wahi aata, sirf equation thodi alag banti."
+    },
+    {
+      "id": "q-c8m-ch2-0027",
+      "conceptId": "c8-math-ch2-t2-c1",
+      "qtype": "nvt",
+      "level": "L4",
+      "stem": "Ek number ka 5 guna, usi number se 12 zyada hai. Wo number kya hai?",
+      "correct": { "value": 3, "tol": 0, "exact": "3" },
+      "solution": "Number $= x$. '$x$ ka 5 guna' $= 5x$. 'Usi number se 12 zyada' $= x + 12$. To $5x = x + 12$. Dono taraf se $x$ ghatao: $4x = 12$, $x = 3$. Jaanch: $5 \\times 3 = 15$ aur $3 + 12 = 15$ ✓"
+    },
+    {
+      "id": "q-c8m-ch2-0028",
+      "conceptId": "c8-math-ch2-t2-c1",
+      "qtype": "subjective",
+      "level": "L4",
+      "stem": "Word problem hal karne ka apna tareeka likho — kadam dar kadam. Phir usi tareeke se ye sawal hal karo: 'Ek aayat (rectangle) ki lambai chaudai se 4 cm zyada hai aur parimaap (perimeter) 40 cm hai. Chaudai kya hai?'",
+      "correct": {
+        "rubric": [
+          "Kadam likhe: kya poochha hai wahi x, baaki sab x ki bhasha me, equation banao, hal karo, phir sawal dobara padho",
+          "Chaudai ko x kaha aur lambai x + 4 likhi",
+          "Perimeter ka formula lagaya: 2(x + x + 4) = 40",
+          "Hal kiya: x = 8, aur jaanch ki — 8 aur 12, perimeter 40 ✓"
+        ]
+      },
+      "solution": "Tareeka: (1) jo poochha hai use $x$ kaho — yahan chaudai, (2) baaki sab $x$ me likho — lambai $= x + 4$, (3) sawal ka diya hua total equation banao — perimeter $= 2(\\text{lambai} + \\text{chaudai})$, to $2(x + 4 + x) = 40$, (4) hal karo: $2(2x + 4) = 40$, yaani $4x + 8 = 40$, $4x = 32$, $x = 8$, (5) sawal dobara padho — chaudai poochhi thi, aur $x$ chaudai hi hai, to jawab 8 cm. Jaanch: chaudai 8, lambai 12, perimeter $= 2(8 + 12) = 40$ ✓"
+    }
+  ]
+}

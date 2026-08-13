@@ -1,0 +1,237 @@
+{
+  "board": "cbse",
+  "classLevel": 8,
+  "subjectId": "maths",
+  "provenance": {
+    "source": "NCERT Mathematics Class 8, Chapter 1 'Rational Numbers' — distributivity of multiplication over addition and subtraction. The misconceptions are the recurring ones: forgetting the second term, distributing over multiplication, and sign errors when distributing a negative.",
+    "verifiedOn": "2026-08-12",
+    "note": "m1 (multiplying only the first term) is a hand-movement error rather than a belief — a student writes the first product and their pen moves on. It is still worth a distractor, because it is by far the most common wrong answer here and the correction is a habit ('do arrows, not one') rather than an explanation."
+  },
+  "subject": { "id": "cbse-8-maths", "name": "Mathematics", "language": "en-IN" },
+  "chapter": {
+    "id": "c8-math-ch1",
+    "no": 1,
+    "title": "Rational Numbers",
+    "ncertRef": "NCERT Mathematics Class 8, Chapter 1",
+    "estMinutes": 210,
+    "isFree": true
+  },
+  "topic": {
+    "id": "c8-math-ch1-t4",
+    "no": 4,
+    "title": "Distributivity",
+    "prereqTopicIds": ["c8-math-ch1-t1", "c8-math-ch1-t3"]
+  },
+
+  "concepts": [
+    {
+      "id": "c8-math-ch1-t4-c1",
+      "seq": 1,
+      "title": "Distributivity of multiplication over addition",
+      "statement": "Kisi rational number ko do numbers ke jod se guna karna, aur alag-alag guna karke jodna — dono ka jawab ek hi aata hai: $a \\times (b + c) = a \\times b + a \\times c$. Ghatane pe bhi yahi chalta hai.",
+      "hook": "Socho tumhe 6 doston ke liye samosa lena hai. Har dost ko 2 samose aur 3 kachori. Ab do tareeke hain — pehle ek dost ka poora hisaab (2+3=5) karke 6 se guna karo, ya 6 doston ke samose (6×2) aur 6 doston ki kachori (6×3) alag-alag ginkar jodo. Dono me 30 aayega. Sawal ye hai: kya ye hamesha kaam karega, ya sirf is baar sanyog se?",
+      "analogies": [
+        {
+          "id": "a1",
+          "text": "Class ki 4 rows, har row me 5 ladke aur 3 ladkiyan. Total = 4×(5+3), ya 4×5 + 4×3 — jaise bhi gino, 32."
+        },
+        {
+          "id": "a2",
+          "text": "Ek din 2 ghante maths aur 1 ghanta science. 5 din me kitna? 5×(2+1) = 5×2 + 5×1 = 15 ghante."
+        }
+      ],
+      "formulas": [
+        {
+          "id": "f1",
+          "latex": "a \\times (b + c) = a \\times b + a \\times c",
+          "note": "Distributive law. 'a' DONO se guna hota hai."
+        },
+        {
+          "id": "f2",
+          "latex": "a \\times (b - c) = a \\times b - a \\times c",
+          "note": "Ghatane pe bhi wahi — sign ka dhyan rakho."
+        },
+        {
+          "id": "f3",
+          "latex": "a \\times b + a \\times c = a \\times (b + c)",
+          "note": "Ulta bhi chalta hai — common number bahar nikal lo. Isse hisaab aasan ho jaata hai."
+        }
+      ],
+      "misconceptions": [
+        {
+          "id": "m1",
+          "wrong_belief": "$a \\times (b + c) = a \\times b + c$ — sirf pehle wale se guna karo.",
+          "why_wrong": "Bracket ke andar dono cheezein hain, aur bahar wala number dono pe lagta hai. Sirf pehle se guna karne pa doosri cheez guna hone se reh jaati hai.",
+          "correction": "Do teer chalte hain, ek nahi. Bahar wala number bracket ke ANDAR ki har cheez se guna hota hai.",
+          "probe": "$3 \\times (4 + 5)$ — pehle bracket solve karke nikalo, phir distributive law se. Dono ka jawab same aaya?"
+        },
+        {
+          "id": "m2",
+          "wrong_belief": "Distributive law guna pe bhi chalta hai: $a \\times (b \\times c) = a \\times b \\times a \\times c$.",
+          "why_wrong": "Distributivity guna ka JOD pe hota hai, guna pe nahi. $2 \\times (3 \\times 4) = 24$ hai, par $2 \\times 3 \\times 2 \\times 4 = 48$ — dugna ho gaya, kyunki 2 do baar laga diya.",
+          "correction": "Bracket me PLUS ya MINUS ho tabhi distribute karo. Guna ho to seedha guna kar do.",
+          "probe": "$2 \\times (3 \\times 4)$ ko dono tareeke se karo. Kya same aaya?"
+        },
+        {
+          "id": "m3",
+          "wrong_belief": "$a \\times (b - c) = a \\times b + a \\times c$ — distribute karte waqt minus plus ban jaata hai.",
+          "why_wrong": "Bracket ke andar ka sign waisa ka waisa rehta hai. Minus tha to minus hi rahega.",
+          "correction": "Sign bracket ke andar se aata hai — badalta nahi. $5 \\times (4 - 1) = 20 - 5 = 15$.",
+          "probe": "$5 \\times (4 - 1)$ pehle bracket se, phir distribute karke. Doosre me tumne plus lagaya ya minus?"
+        },
+        {
+          "id": "m4",
+          "wrong_belief": "$-a \\times (b + c) = -a \\times b + a \\times c$ — negative sirf pehle term pe lagta hai.",
+          "why_wrong": "Bahar wala poora number, sign ke saath, dono se guna hota hai. Negative number distribute karo to dono term negative honge.",
+          "correction": "Sign bhi number ka hissa hai. $-2 \\times (3 + 4) = -6 + (-8) = -14$.",
+          "probe": "$-2 \\times (3 + 4)$ ka jawab kya hai? Ab distribute karke dekho — dono term ka sign kya nikla?"
+        }
+      ],
+      "worked_examples": [
+        {
+          "id": "we1",
+          "problem": "$\\frac{2}{5} \\times \\left(\\frac{3}{4} + \\frac{1}{4}\\right)$ ko dono tareeke se hal karo.",
+          "steps": [
+            "Tareeka 1 — pehle bracket: $\\frac{3}{4} + \\frac{1}{4} = \\frac{4}{4} = 1$, phir $\\frac{2}{5} \\times 1 = \\frac{2}{5}$",
+            "Tareeka 2 — distribute: $\\frac{2}{5} \\times \\frac{3}{4} + \\frac{2}{5} \\times \\frac{1}{4}$",
+            "$= \\frac{6}{20} + \\frac{2}{20} = \\frac{8}{20} = \\frac{2}{5}$",
+            "Dono se $\\frac{2}{5}$ — distributive law kaam kar gaya"
+          ],
+          "answer": "$\\frac{2}{5}$"
+        },
+        {
+          "id": "we2",
+          "problem": "Distributive law se hisaab aasan karo: $\\frac{7}{9} \\times \\frac{5}{6} + \\frac{7}{9} \\times \\frac{1}{6}$",
+          "steps": [
+            "Dono me $\\frac{7}{9}$ common hai — usko bahar nikalo",
+            "$= \\frac{7}{9} \\times \\left(\\frac{5}{6} + \\frac{1}{6}\\right)$",
+            "$= \\frac{7}{9} \\times \\frac{6}{6} = \\frac{7}{9} \\times 1$",
+            "$= \\frac{7}{9}$"
+          ],
+          "answer": "$\\frac{7}{9}$"
+        },
+        {
+          "id": "we3",
+          "problem": "$-\\frac{3}{4} \\times \\left(\\frac{2}{3} - \\frac{1}{3}\\right)$ nikalo.",
+          "steps": [
+            "Bahar wala number $-\\frac{3}{4}$ hai — sign uska hissa hai",
+            "Distribute: $-\\frac{3}{4} \\times \\frac{2}{3} - \\left(-\\frac{3}{4} \\times \\frac{1}{3}\\right)$",
+            "$= -\\frac{6}{12} + \\frac{3}{12} = -\\frac{3}{12} = -\\frac{1}{4}$",
+            "Check bracket se: $\\frac{2}{3} - \\frac{1}{3} = \\frac{1}{3}$, phir $-\\frac{3}{4} \\times \\frac{1}{3} = -\\frac{1}{4}$ ✓"
+          ],
+          "answer": "$-\\frac{1}{4}$"
+        }
+      ]
+    }
+  ],
+
+  "questions": [
+    {
+      "id": "q-c8m-ch1-0081",
+      "conceptId": "c8-math-ch1-t4-c1",
+      "qtype": "mcq",
+      "level": "L1",
+      "stem": "$3 \\times (4 + 5)$ ko distributive law se kaise likhenge?",
+      "options": [
+        { "key": "A", "text": "$3 \\times 4 + 3 \\times 5$" },
+        { "key": "B", "text": "$3 \\times 4 + 5$" },
+        { "key": "C", "text": "$3 \\times 4 \\times 3 \\times 5$" },
+        { "key": "D", "text": "$3 \\times 4 - 3 \\times 5$" }
+      ],
+      "correct": ["A"],
+      "distractor_map": { "B": "m1", "C": "m2", "D": "m3" },
+      "solution": "Bahar wala 3 bracket ke andar ki DONO cheezon se guna hota hai: $3 \\times 4 + 3 \\times 5 = 12 + 15 = 27$. Check: $3 \\times 9 = 27$ ✓"
+    },
+    {
+      "id": "q-c8m-ch1-0082",
+      "conceptId": "c8-math-ch1-t4-c1",
+      "qtype": "nvt",
+      "level": "L1",
+      "stem": "$5 \\times (4 - 1)$ ka maan kya hai?",
+      "correct": { "value": 15, "tol": 0, "exact": "15" },
+      "solution": "Bracket se: $5 \\times 3 = 15$. Distribute karke: $5 \\times 4 - 5 \\times 1 = 20 - 5 = 15$. Dhyan do — minus distribute karne par minus hi rehta hai."
+    },
+    {
+      "id": "q-c8m-ch1-0083",
+      "conceptId": "c8-math-ch1-t4-c1",
+      "qtype": "mcq",
+      "level": "L2",
+      "stem": "$-2 \\times (3 + 4)$ ka maan kya hai?",
+      "options": [
+        { "key": "A", "text": "$-14$" },
+        { "key": "B", "text": "$-6 + 8 = 2$" },
+        { "key": "C", "text": "$-6 + 4 = -2$" },
+        { "key": "D", "text": "$14$" }
+      ],
+      "correct": ["A"],
+      "distractor_map": { "B": "m4", "C": "m1", "D": "m4" },
+      "solution": "Bahar wala number $-2$ hai, sign uska hissa hai. $-2 \\times 3 + (-2) \\times 4 = -6 + (-8) = -14$. Check: $-2 \\times 7 = -14$ ✓"
+    },
+    {
+      "id": "q-c8m-ch1-0084",
+      "conceptId": "c8-math-ch1-t4-c1",
+      "qtype": "mcq",
+      "level": "L2",
+      "stem": "In me se kaunsa kathan GALAT hai?",
+      "options": [
+        { "key": "A", "text": "$2 \\times (3 \\times 4) = 2 \\times 3 \\times 2 \\times 4$" },
+        { "key": "B", "text": "$2 \\times (3 + 4) = 2 \\times 3 + 2 \\times 4$" },
+        { "key": "C", "text": "$2 \\times (3 - 4) = 2 \\times 3 - 2 \\times 4$" },
+        { "key": "D", "text": "$2 \\times 3 + 2 \\times 4 = 2 \\times (3 + 4)$" }
+      ],
+      "correct": ["A"],
+      "distractor_map": { "B": "m1", "C": "m3", "D": "m1" },
+      "solution": "Distributivity guna ka JOD (ya ghatav) pe hoti hai, guna pe nahi. $2 \\times (3 \\times 4) = 24$ hai, jabki $2 \\times 3 \\times 2 \\times 4 = 48$ — 2 do baar lag gaya. Baaki teeno sahi hain."
+    },
+    {
+      "id": "q-c8m-ch1-0085",
+      "conceptId": "c8-math-ch1-t4-c1",
+      "qtype": "nvt",
+      "level": "L3",
+      "stem": "$\\frac{7}{9} \\times \\frac{5}{6} + \\frac{7}{9} \\times \\frac{1}{6}$ ka maan kya hai? (dashamlav me char sthaan tak)",
+      "correct": { "value": 0.7778, "tol": 0.001, "exact": "7/9" },
+      "solution": "Dono me $\\frac{7}{9}$ common hai. Bahar nikalo: $\\frac{7}{9} \\times \\left(\\frac{5}{6} + \\frac{1}{6}\\right) = \\frac{7}{9} \\times 1 = \\frac{7}{9} \\approx 0.7778$."
+    },
+    {
+      "id": "q-c8m-ch1-0086",
+      "conceptId": "c8-math-ch1-t4-c1",
+      "qtype": "mcq",
+      "level": "L3",
+      "stem": "Sneha ne likha: $\\frac{1}{2} \\times \\left(\\frac{3}{5} + \\frac{2}{5}\\right) = \\frac{3}{10} + \\frac{2}{5}$. Galti kahan hai?",
+      "options": [
+        { "key": "A", "text": "Usne $\\frac{1}{2}$ ko sirf pehle term se guna kiya, doosre se nahi" },
+        { "key": "B", "text": "Koi galti nahi hai" },
+        { "key": "C", "text": "Usne plus ki jagah minus lagana tha" },
+        { "key": "D", "text": "Distributive law yahan chalti hi nahi" }
+      ],
+      "correct": ["A"],
+      "distractor_map": { "B": "m1", "C": "m3", "D": "m2" },
+      "solution": "Sahi hota $\\frac{1}{2} \\times \\frac{3}{5} + \\frac{1}{2} \\times \\frac{2}{5} = \\frac{3}{10} + \\frac{2}{10} = \\frac{5}{10} = \\frac{1}{2}$. Sneha ne doosre term ko $\\frac{1}{2}$ se guna karna bhool gayi."
+    },
+    {
+      "id": "q-c8m-ch1-0087",
+      "conceptId": "c8-math-ch1-t4-c1",
+      "qtype": "nvt",
+      "level": "L4",
+      "stem": "Distributive law istemaal karke jaldi nikalo: $\\frac{4}{7} \\times \\frac{9}{11} + \\frac{4}{7} \\times \\frac{2}{11}$. Jawab dashamlav me char sthaan tak.",
+      "correct": { "value": 0.5714, "tol": 0.001, "exact": "4/7" },
+      "solution": "$\\frac{4}{7}$ common hai: $\\frac{4}{7} \\times \\left(\\frac{9}{11} + \\frac{2}{11}\\right) = \\frac{4}{7} \\times \\frac{11}{11} = \\frac{4}{7} \\approx 0.5714$. Alag-alag guna karke jodne me zyada mehnat lagti."
+    },
+    {
+      "id": "q-c8m-ch1-0088",
+      "conceptId": "c8-math-ch1-t4-c1",
+      "qtype": "subjective",
+      "level": "L4",
+      "stem": "Samjhao ki distributive law se hisaab kaise aasan ho jaata hai. Ek udaharan do jahan ulta istemaal (common number bahar nikalna) chhota raasta ho.",
+      "correct": {
+        "rubric": [
+          "Distributive law dono taraf chalti hai — todna aur jodna",
+          "Ek udaharan diya jahan common factor bahar nikalne se bracket ka jod aasan ho gaya",
+          "Dikhaya ki seedha guna karne me zyada steps lagte",
+          "Nateeja: jab do guna me ek number common ho, use bahar nikal lo"
+        ]
+      },
+      "solution": "$\\frac{7}{9} \\times \\frac{5}{6} + \\frac{7}{9} \\times \\frac{1}{6}$ seedha karne me do guna aur ek jod lagega, aur beech me bade numbers aayenge. Par $\\frac{7}{9}$ dono me common hai, to use bahar nikal do: $\\frac{7}{9} \\times \\left(\\frac{5}{6} + \\frac{1}{6}\\right)$. Bracket ka jawab $1$ aa gaya, to poora hisaab $\\frac{7}{9}$ ho gaya — ek line me. Yahi baat aage algebra me bhi kaam aayegi, jahan isko 'common factor nikalna' kehte hain."
+    }
+  ]
+}

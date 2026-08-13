@@ -1,0 +1,348 @@
+/* The Indian school syllabus: board → class → subject → chapter.
+
+   This replaces the old international model (board → subject → unit), which
+   was shaped around Edexcel IAL papers and does not describe how CBSE, ICSE or
+   UP Board work. Here the unit of study is a textbook chapter.
+
+   ---------------------------------------------------------------------------
+   THE RULE THIS FILE EXISTS TO ENFORCE
+
+   Nothing goes in SYLLABUS unless it was read off a real source, and every
+   entry records where it came from and when. A wrong chapter list is worse
+   than a missing one: the app builds a revision plan from these names and then
+   asks an AI to write questions on them, so an invented chapter becomes a
+   student revising something that is not on their paper.
+
+   Combinations that have not been sourced yet are simply absent. `isCovered`
+   returns false for them and the UI offers them as "not ready" rather than
+   showing plausible-looking placeholders.
+   ---------------------------------------------------------------------------
+
+   NCERT is mid-transition under NCF-SE 2023: several textbooks were replaced
+   for the 2026-27 session, with different chapter counts and titles from the
+   books most online summaries still describe. Each entry below names the book
+   it came from for that reason. */
+
+export type BoardId = "cbse" | "icse" | "upboard";
+
+export type Board = {
+  id: BoardId;
+  name: string;
+  detail: string;
+  /* Whose textbooks this board's syllabus actually follows. */
+  basis: string;
+};
+
+export const BOARDS: Board[] = [
+  {
+    id: "cbse",
+    name: "CBSE",
+    detail: "Central Board of Secondary Education",
+    basis: "NCERT textbooks",
+  },
+  {
+    id: "icse",
+    name: "ICSE",
+    detail: "CISCE · Council for the Indian School Certificate Examinations",
+    basis: "CISCE's own syllabus, publisher-independent",
+  },
+  {
+    id: "upboard",
+    name: "UP Board",
+    detail: "UPMSP · Uttar Pradesh Madhyamik Shiksha Parishad",
+    basis: "NCERT textbooks for the secondary classes",
+  },
+];
+
+export type ClassLevel = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+
+export const CLASSES: ClassLevel[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+/* Classes 1-5 are a different product from 6-10: a seven-year-old does not
+   revise alone, so those screens are read by a parent. Kept as a band here so
+   the UI can address the right person. */
+export function classBand(level: ClassLevel): "primary" | "middle" | "secondary" {
+  if (level <= 5) return "primary";
+  if (level <= 8) return "middle";
+  return "secondary";
+}
+
+export type Subject = {
+  id: string;
+  name: string;
+  glyph: string;
+  /* Which classes this subject is taught in. */
+  classes: ClassLevel[];
+};
+
+export const SUBJECTS: Subject[] = [
+  { id: "maths", name: "Mathematics", glyph: "Σ", classes: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+  { id: "evs", name: "Environmental Studies", glyph: "🌱", classes: [3, 4, 5] },
+  { id: "science", name: "Science", glyph: "🔬", classes: [6, 7, 8, 9, 10] },
+  { id: "sst", name: "Social Science", glyph: "🗺️", classes: [6, 7, 8, 9, 10] },
+  { id: "english", name: "English", glyph: "📖", classes: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+  { id: "hindi", name: "Hindi", glyph: "📝", classes: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+  { id: "sanskrit", name: "Sanskrit", glyph: "🕉️", classes: [6, 7, 8] },
+  { id: "computer", name: "Computer Applications", glyph: "💻", classes: [9, 10] },
+];
+
+export function subjectsFor(level: ClassLevel): Subject[] {
+  return SUBJECTS.filter((subject) => subject.classes.includes(level));
+}
+
+export type Chapter = {
+  id: string;
+  number: number;
+  name: string;
+  /* Rough time to learn it properly, in minutes. Used to pack the schedule.
+     Estimated from chapter length, not published by any board. */
+  minutes: number;
+};
+
+export type SyllabusEntry = {
+  /* The textbook these chapters are from, named because NCERT replaced several
+     books for 2026-27 and the old titles are still widely reproduced. */
+  book: string;
+  /* Where this list was read, and when. Both are required. */
+  source: string;
+  verifiedOn: string;
+  /* Anything the sources disagreed on, so it can be checked against the real
+     book rather than silently trusted. */
+  caveat?: string;
+  chapters: Chapter[];
+};
+
+function chapters(names: string[], minutes = 45): Chapter[] {
+  return names.map((name, index) => ({
+    id: String(index + 1),
+    number: index + 1,
+    name,
+    minutes,
+  }));
+}
+
+export function syllabusKey(
+  board: BoardId,
+  level: ClassLevel,
+  subjectId: string,
+) {
+  return `${board}:${level}:${subjectId}`;
+}
+
+/* ---------------------------------------------------------------------------
+   SOURCED SYLLABI
+
+   Add an entry only with a real source. Everything else stays absent.
+   --------------------------------------------------------------------------- */
+export const SYLLABUS: Record<string, SyllabusEntry> = {
+  "cbse:10:science": {
+    book: "NCERT Science, Class 10",
+    source: "learncbse.net NCERT Class 10 Science book page, cross-checked against careers360 syllabus listing",
+    verifiedOn: "2026-08-12",
+    caveat:
+      "Chapter 8 appears as 'Heredity' in the rationalised book and 'Heredity and Evolution' in older summaries. Chapter 10 is written both as 'The Human Eye and the Colourful World' and without the articles.",
+    chapters: chapters([
+      "Chemical Reactions and Equations",
+      "Acids, Bases and Salts",
+      "Metals and Non-metals",
+      "Carbon and its Compounds",
+      "Life Processes",
+      "Control and Coordination",
+      "How do Organisms Reproduce?",
+      "Heredity",
+      "Light – Reflection and Refraction",
+      "The Human Eye and the Colourful World",
+      "Electricity",
+      "Magnetic Effects of Electric Current",
+      "Our Environment",
+    ]),
+  },
+
+  "cbse:10:maths": {
+    book: "NCERT Mathematics, Class 10",
+    source: "learncbse.net NCERT Class 10 Mathematics book page",
+    verifiedOn: "2026-08-12",
+    chapters: chapters([
+      "Real Numbers",
+      "Polynomials",
+      "Pair of Linear Equations in Two Variables",
+      "Quadratic Equations",
+      "Arithmetic Progressions",
+      "Triangles",
+      "Coordinate Geometry",
+      "Introduction to Trigonometry",
+      "Some Applications of Trigonometry",
+      "Circles",
+      "Areas Related to Circles",
+      "Surface Areas and Volumes",
+      "Statistics",
+      "Probability",
+    ]),
+  },
+
+  /* Social Science is one board subject taught from four separate books, and
+     students refer to a chapter by its book, not by a running number across
+     all four. So the book is carried in the name and the number is only the
+     order it sits in the plan. */
+  "cbse:10:sst": {
+    book: "NCERT Class 10 Social Science — four books: India and the Contemporary World II, Contemporary India II, Democratic Politics II, Understanding Economic Development",
+    source: "learncbse.net Class 10 Social Science page, corrected against byjus/vedantu/tiwariacademy chapter listings",
+    verifiedOn: "2026-08-12",
+    caveat:
+      "The first source had two scraping errors: it gave Political Science chapter 4 as 'Democratic Politics' (it is 'Political Parties') and listed 'Notes for the Teacher' as Economics chapter 1, displacing 'Development'. Both corrected here against other listings — worth one check against the printed books.",
+    chapters: chapters([
+      "History Ch 1: The Rise of Nationalism in Europe",
+      "History Ch 2: Nationalism in India",
+      "History Ch 3: The Making of a Global World",
+      "History Ch 4: The Age of Industrialisation",
+      "History Ch 5: Print Culture and the Modern World",
+      "Geography Ch 1: Resources and Development",
+      "Geography Ch 2: Forest and Wildlife Resources",
+      "Geography Ch 3: Water Resources",
+      "Geography Ch 4: Agriculture",
+      "Geography Ch 5: Minerals and Energy Resources",
+      "Geography Ch 6: Manufacturing Industries",
+      "Geography Ch 7: Lifelines of National Economy",
+      "Civics Ch 1: Power-sharing",
+      "Civics Ch 2: Federalism",
+      "Civics Ch 3: Gender, Religion and Caste",
+      "Civics Ch 4: Political Parties",
+      "Civics Ch 5: Outcomes of Democracy",
+      "Economics Ch 1: Development",
+      "Economics Ch 2: Sectors of the Indian Economy",
+      "Economics Ch 3: Money and Credit",
+      "Economics Ch 4: Globalisation and the Indian Economy",
+      "Economics Ch 5: Consumer Rights",
+    ]),
+  },
+
+  "cbse:9:science": {
+    book: "NCERT Exploration, Class 9 (new for 2026-27 under NCF-SE 2023)",
+    source: "ncertbooks.org Class 9 Science book page, cross-checked against learncbse.net and a change summary",
+    verifiedOn: "2026-08-12",
+    caveat:
+      "This book replaced the old Class 9 Science textbook. Reproduction and classification moved down from Class 10, so chapters 11-12 are Class 9 material now and are not retaught in Class 10.",
+    chapters: chapters([
+      "Exploration: Entering the World of Secondary Science",
+      "Cell: The Building Block of Life",
+      "Tissues in Action",
+      "Describing Motion Around Us",
+      "Exploring Mixtures and their Separation",
+      "How Forces Affect Motion",
+      "Work, Energy and Simple Machines",
+      "Journey Inside the Atom",
+      "Atomic Foundations of Matter",
+      "Sound Waves: Characteristics and Applications",
+      "Reproduction: How Life Continues",
+      "Patterns in Life: Diversity and Classification",
+      "Earth as a System: Energy, Matter and Life",
+    ]),
+  },
+
+  "cbse:9:maths": {
+    book: "NCERT Ganita Manjari Part 1, Class 9 (new for 2026-27 under NEP 2020)",
+    source: "tiwariacademy / learncbse.in / boundlessmaths listings, cross-checked against learncbse.net",
+    verifiedOn: "2026-08-12",
+    caveat:
+      "Replaced the older 15-chapter book; polynomials and Heron's formula are now folded into other chapters. Sources disagree on chapter 3: 'The World of Numbers' against 'The Dawn of Mathematics: The Human Need to Count'. Check against the printed book before relying on it.",
+    chapters: chapters([
+      "Orienting Yourself: The Use of Coordinates",
+      "Introduction to Linear Polynomials",
+      "The World of Numbers",
+      "Exploring Algebraic Identities",
+      "I'm Up and Down, and Round and Round",
+      "Measuring Space: Perimeter and Area",
+      "The Mathematics of Maybe: Introduction to Probability",
+      "Predicting What Comes Next?: Exploring Sequences and Progressions",
+    ]),
+  },
+};
+
+/* UP Board teaches NCERT books in the secondary classes, so those syllabi are
+   the same lists rather than copies that can drift apart. Only mapped where
+   the CBSE entry itself is sourced. */
+const UP_BOARD_FOLLOWS_NCERT: [ClassLevel, string][] = [
+  [9, "science"],
+  [9, "maths"],
+  [9, "sst"],
+  [10, "science"],
+  [10, "maths"],
+  [10, "sst"],
+];
+
+for (const [level, subjectId] of UP_BOARD_FOLLOWS_NCERT) {
+  const entry = SYLLABUS[syllabusKey("cbse", level, subjectId)];
+  if (entry) {
+    SYLLABUS[syllabusKey("upboard", level, subjectId)] = {
+      ...entry,
+      source: `${entry.source} — UP Board prescribes NCERT for this class`,
+    };
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Lookups
+   -------------------------------------------------------------------------- */
+export function syllabusFor(
+  board: BoardId,
+  level: ClassLevel,
+  subjectId: string,
+): SyllabusEntry | null {
+  return SYLLABUS[syllabusKey(board, level, subjectId)] ?? null;
+}
+
+export function chaptersFor(
+  board: BoardId,
+  level: ClassLevel,
+  subjectId: string,
+): Chapter[] {
+  return syllabusFor(board, level, subjectId)?.chapters ?? [];
+}
+
+/* Whether this board, class and subject has a real chapter list behind it.
+   The picker uses this to grey out what is not ready instead of offering a
+   plan built on nothing. */
+export function isCovered(
+  board: BoardId,
+  level: ClassLevel,
+  subjectId: string,
+): boolean {
+  return chaptersFor(board, level, subjectId).length > 0;
+}
+
+export function coveredSubjects(board: BoardId, level: ClassLevel): Subject[] {
+  return subjectsFor(level).filter((subject) =>
+    isCovered(board, level, subject.id),
+  );
+}
+
+/* What is and is not ready, for an at-a-glance answer to "which classes work
+   right now" without reading the table by eye. */
+export function coverageReport() {
+  const rows: {
+    board: BoardId;
+    level: ClassLevel;
+    subject: string;
+    chapters: number;
+  }[] = [];
+
+  for (const board of BOARDS) {
+    for (const level of CLASSES) {
+      for (const subject of subjectsFor(level)) {
+        const count = chaptersFor(board.id, level, subject.id).length;
+        if (count > 0) {
+          rows.push({
+            board: board.id,
+            level,
+            subject: subject.name,
+            chapters: count,
+          });
+        }
+      }
+    }
+  }
+
+  const possible = BOARDS.length * CLASSES.reduce((n, level) => n + subjectsFor(level).length, 0);
+
+  return { covered: rows, coveredCount: rows.length, possible };
+}

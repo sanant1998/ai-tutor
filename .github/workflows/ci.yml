@@ -1,0 +1,134 @@
+name: CI
+
+# Runs on every push and pull request. Four of the five jobs need no secrets at
+# all, which is the point — a gate that only works when someone remembers to
+# add an API key is a gate that gets disabled.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Typecheck, tests, content
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Node 22+ strips TypeScript types natively, which is how the scripts
+          # and the tests run without a build step or a ts-node dependency.
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      # The four things that are easy to get subtly wrong and impossible to
+      # notice when they are: the streaming sanitizer, verdict parsing, exact
+      # fraction arithmetic, and answer-leak detection.
+      - name: Unit tests
+        run: npm run test
+
+      # Content is the product. A pack whose distractors point at
+      # misconceptions that do not exist still runs — it just quietly makes the
+      # app worse, which is exactly what a build should catch.
+      - name: Validate content packs
+        run: npm run content:validate -- --strict
+
+      - name: Build
+        run: npm run build
+        env:
+          # A keyless build has to work: every screen degrades to a clear
+          # message rather than an exception, and this job proves it.
+          NEXT_PUBLIC_SUPABASE_URL: ""
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ""
+
+      # The only tests that ask the application for a response. Deliberately
+      # keyless: the question is whether every route degrades to a clear answer
+      # with nothing configured, which is a promise the README makes and which
+      # a suite needing a database could never check on a fork's pull request.
+      - name: Smoke test the built server
+        run: |
+          npm start &
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:3000 >/dev/null && break
+            sleep 1
+          done
+          npm run smoke
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ""
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ""
+
+      # The performance budget, enforced rather than aspirational. The audience
+      # is on a mid-range Android over 4G; a route that quietly doubles its
+      # first-load JS is a route that stops being usable for them, and nothing
+      # in a diff makes that visible.
+      - name: Check the bundle budget
+        run: node --no-warnings --import ./scripts/register-alias.mjs scripts/check-bundle.ts
+
+  evals:
+    name: Golden set
+    runs-on: ubuntu-latest
+    # Needs a live model, so it cannot run on a fork's pull request — the
+    # secret is not available there and the job would fail for a contributor
+    # who did nothing wrong.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Without a key this is skipped rather than failed. A prompt change with
+      # no eval run is worth a warning, not a blocked merge — but see the note
+      # below about what happens when the key IS present.
+      - name: Run the golden set
+        if: ${{ env.AI_API_KEY != '' }}
+        run: |
+          # A subset on pull requests, the whole set on main. The full run costs
+          # real money per push, and the subset catches the regressions that
+          # matter: verdict parsing, answer leakage, and the reteach strategy
+          # actually changing.
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            npm run evals -- --limit 8
+          else
+            npm run evals
+          fi
+        env:
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+          AI_PROVIDER: ${{ secrets.AI_PROVIDER }}
+          AI_MODEL_STRONG: ${{ secrets.AI_MODEL_STRONG }}
+          AI_BASE_URL: ${{ secrets.AI_BASE_URL }}
+          # A different provider for the judge. A model grading its own output
+          # rates it about half a point too high, consistently.
+          AI_FALLBACK_API_KEY: ${{ secrets.AI_FALLBACK_API_KEY }}
+          AI_FALLBACK_PROVIDER: ${{ secrets.AI_FALLBACK_PROVIDER }}
+          AI_FALLBACK_MODEL: ${{ secrets.AI_FALLBACK_MODEL }}
+          AI_FALLBACK_BASE_URL: ${{ secrets.AI_FALLBACK_BASE_URL }}
+
+      - name: Note when no key is configured
+        if: ${{ env.AI_API_KEY == '' }}
+        run: |
+          echo "::warning::AI_API_KEY is not set, so the golden set did not run."
+          echo "::warning::Prompt changes are unverified until it is."
+        env:
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+
+  # evals/run.ts exits non-zero below 92% objective pass or a judged mean under
+  # 4.0. The gate lives in the script rather than here so `npm run evals`
+  # locally and CI agree about what passing means.
