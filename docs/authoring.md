@@ -215,6 +215,59 @@ approve.
 Nothing it writes can go live without a person publishing it. There is no path
 from the model to the curriculum that skips you, and that is deliberate.
 
+### A whole topic, questions included
+
+`author-concept.ts` drafts the concept. `author-pack.ts` drafts the concept
+*and* the questions that catch its misconceptions, and writes a whole pack:
+
+```bash
+npm run author:pack -- --book gp \
+  --chapter-no 1 --chapter "A Square and A Cube" \
+  --topic-no 1 --topic "Square Numbers and Their Patterns" \
+  --concept "What makes a number a perfect square"
+```
+
+`--book` picks which Class 8 textbook the ids belong to: `legacy` for the old
+sixteen-chapter Mathematics book that everything in `content/` was written
+against, `gp` for Ganita Prakash. It is not cosmetic. Both books have a chapter
+1, the ids are derived from the number, and the seeder upserts on id — without
+the flag, Ganita Prakash's "A Square and A Cube" and the old book's "Rational
+Numbers" would fight over `c8-math-ch1` and one of them would silently lose.
+`--book gp` writes `c8-math-gp-ch1` instead, and `npm run content:validate`
+refuses the collision if it ever happens another way.
+
+It writes to `drafts/`, never `content/`.
+
+### What "Clean" means, and what it does not
+
+Two checks run over the questions:
+
+**Substitution.** Exact and free: put the marked answer back into the equation
+in the stem and evaluate both sides over fractions. It applies to the algebra
+chapters and to almost nothing else.
+
+**A second read.** For every question substitution could not check, a model is
+shown the stem and the options — and *not* which option is marked — and asked
+to answer it cold. Where it disagrees, or finds a second option that is also
+correct, the script says so and exits non-zero.
+
+The second read exists because of what happened without it. On the first
+Ganita Prakash chapter, substitution could check 0 of 9 questions, the script
+printed "Clean", and the set contained a question asking which number ending
+in 4 is *not* a perfect square, offering 4, 14, 64, 144, marking 64 — with a
+solution line that said 14. Structure was perfect. Mathematics was wrong.
+
+**"Clean" still does not mean correct.** The second reader is another model and
+it misses things: it passed a question asking whether $9^2$ can be a perfect
+cube that offered both "No, it's not possible" and "No, only certain perfect
+squares can be perfect cubes", where both are true. And on the first four
+topics drafted this way, three of them never reached "Clean" in four attempts
+each — which is the honest signal. A model that cannot get its own drafts past
+its own checker is not a model whose output you should be publishing unread.
+
+Read every question. That is the job the drafting script exists to shorten, not
+to replace.
+
 ---
 
 ## The provenance block

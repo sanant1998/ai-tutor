@@ -58,11 +58,11 @@ export async function POST(request: Request) {
 
   if (!verified.ok) {
     const message: Record<typeof verified.reason, string> = {
-      not_found: "Ye link theek nahi hai.",
-      expired: "Code ki samay-seema khatam ho gayi. Naya code maango.",
-      used: "Ye code pehle hi use ho chuka hai.",
-      too_many: "Bahut baar galat code daala gaya. Naya code maango.",
-      wrong: "Code galat hai. Dobara dekho.",
+      not_found: "That link is not valid.",
+      expired: "That code has expired. Ask for a new one.",
+      used: "That code has already been used.",
+      too_many: "Too many wrong codes. Ask for a new one.",
+      wrong: "That code is wrong. Please check it.",
     };
 
     /* 410 for a spent or expired challenge so the screen can offer "send
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
 
   if (missing.length > 0) {
     return fail(
-      "Account aur AI processing — in dono ke bina app chal hi nahi sakta. Agar aap sehmat nahi hain to is page ko band kar dijiye; account nahi banega.",
+      "The account and AI processing permissions are both needed for the app to work at all. If you do not agree, simply close this page and no account will be created.",
       400,
     );
   }
@@ -120,7 +120,7 @@ export async function POST(request: Request) {
 
   if (error) {
     return fail(
-      "Consent record nahi ho paayi. Ek baar aur try karo.",
+      "The consent could not be recorded. Please try once more.",
       500,
     );
   }

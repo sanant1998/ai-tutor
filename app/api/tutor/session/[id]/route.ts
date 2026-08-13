@@ -82,7 +82,7 @@ export async function PATCH(
   /* A completed session stays completed. Reopening it would restart a turn
      counter that has already done its job. */
   if (session.status === "completed") {
-    return fail("Ye session poora ho chuka hai.", 409);
+    return fail("This session is already finished.", 409);
   }
 
   await applyTransition(id, {

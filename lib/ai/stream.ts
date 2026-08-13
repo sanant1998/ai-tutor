@@ -27,6 +27,7 @@ import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 
 import { AiError } from "@/lib/ai/client";
+import { sendCompatible } from "@/lib/ai/compat";
 import { track } from "@/lib/analytics/events";
 import { reportError } from "@/lib/observability";
 import { createAdminClient, isAdminConfigured } from "@/lib/supabase/admin";
@@ -321,24 +322,30 @@ async function* viaOpenAiCompatible(
 ): AsyncGenerator<RawChunk> {
   const base = (endpoint.baseUrl || "https://api.openai.com/v1").replace(/\/$/, "");
 
-  const response = await fetch(`${base}/chat/completions`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${endpoint.key}`,
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: request.maxTokens ?? 1024,
-      temperature: request.temperature ?? 0.6,
-      stream: true,
-      stream_options: { include_usage: true },
-      messages: [
-        { role: "system", content: request.system },
-        ...request.messages,
-      ],
+  /* Through sendCompatible: OpenAI's reasoning models reject `max_tokens` and
+     a non-default `temperature`, and both say so in the 400. Without this,
+     pointing AI_MODEL_STRONG at one of them breaks every tutor turn with
+     "Unsupported parameter" — which is exactly what happened. */
+  const response = await sendCompatible((shape) =>
+    fetch(`${base}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${endpoint.key}`,
+      },
+      body: JSON.stringify({
+        model,
+        [shape.tokenField]: request.maxTokens ?? 1024,
+        ...(shape.temperature ? { temperature: request.temperature ?? 0.6 } : {}),
+        stream: true,
+        stream_options: { include_usage: true },
+        messages: [
+          { role: "system", content: request.system },
+          ...request.messages,
+        ],
+      }),
     }),
-  });
+  );
 
   if (!response.ok || !response.body) {
     const detail = await response.text().catch(() => "");

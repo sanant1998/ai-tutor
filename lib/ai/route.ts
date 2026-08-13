@@ -11,6 +11,7 @@ import { NextResponse } from "next/server";
 
 import { AiError } from "@/lib/ai/client";
 import { resolveScope, type Scope, type ScopeRequest } from "@/lib/ai/scope";
+import { processingAllowed } from "@/lib/consent/gate";
 import { createClient } from "@/lib/supabase/server";
 
 export type Handled<T> = { ok: true; value: T } | { ok: false; response: NextResponse };
@@ -40,6 +41,30 @@ export async function requireUser(): Promise<Handled<string>> {
   }
 
   return { ok: true, value: data.user.id };
+}
+
+/* Resolves the caller AND checks they may be processed at all.
+ *
+ * This is what every route that sends a student's words to a model should use.
+ * `requireUser` on its own answers "is somebody signed in", which was the only
+ * question most of these routes were asking — so a minor with no parental
+ * consent, and an account that had asked to be erased, both carried on
+ * generating. See lib/consent/gate.ts.
+ *
+ * Routes that must work precisely when consent is absent — the consent flow
+ * itself, the parent screens, billing, the privacy page — keep `requireUser`.
+ * A gate on those would lock a parent out of the screen where they grant the
+ * thing the gate is checking for. */
+export async function requireStudent(): Promise<Handled<string>> {
+  const user = await requireUser();
+  if (!user.ok) return user;
+
+  const allowed = await processingAllowed(user.value);
+  if (!allowed.ok) {
+    return { ok: false, response: fail(allowed.message, allowed.status) };
+  }
+
+  return user;
 }
 
 export async function readScope(

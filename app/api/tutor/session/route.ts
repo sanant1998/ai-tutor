@@ -7,7 +7,7 @@
 import { NextResponse } from "next/server";
 
 import { chapterAccess, PAYWALL_MESSAGE } from "@/lib/billing/access";
-import { isMinorFromDob } from "@/lib/consent/age";
+import { processingAllowed } from "@/lib/consent/gate";
 import { fail, requireUser } from "@/lib/ai/route";
 import { LIMITS, topicUnlocked } from "@/lib/pedagogy/beats";
 import { createAdminClient, isAdminConfigured } from "@/lib/supabase/admin";
@@ -77,7 +77,7 @@ export async function POST(request: Request) {
      Checked before anything is processed, not after. For a minor with no
      parental consent on record there is no lawful basis to send their words
      to a model, and "we will collect consent later" is not one either. */
-  const consent = await consentState(admin, user.value);
+  const consent = await processingAllowed(user.value);
   if (!consent.ok) return fail(consent.message, consent.status);
 
   /* --- Prerequisites --------------------------------------------------- */
@@ -105,7 +105,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json(
         {
-          error: "Pehle iske prerequisites poore karo.",
+          error: "Finish this topic\u2019s prerequisites first.",
           blockedBy: (blockers ?? []).map((row) => ({
             id: row.id as string,
             title: row.title as string,
@@ -163,72 +163,7 @@ export async function POST(request: Request) {
   });
 }
 
-/* An adult account needs no parental consent; a minor needs both 'account' and
-   'ai_processing' granted and not withdrawn. Absence of a DOB is treated as a
-   minor, because the population using this app is overwhelmingly under 18 and
-   the safe default is the restrictive one. */
-async function consentState(
-  admin: ReturnType<typeof createAdminClient>,
-  userId: string,
-): Promise<{ ok: true } | { ok: false; message: string; status: number }> {
-  const { data: profile, error } = await admin
-    .from("profiles")
-    .select("dob, account_state")
-    .eq("id", userId)
-    .maybeSingle();
-
-  /* The compliance migration has not been run. Fail closed and say which one:
-     a deployment that silently skips the consent check is the exact failure
-     the check exists to prevent. */
-  if (error) {
-    return {
-      ok: false,
-      status: 503,
-      message:
-        "Consent tracking is not set up on this database yet. Run supabase/compliance.sql.",
-    };
-  }
-
-  if (profile?.account_state === "read_only") {
-    return {
-      ok: false,
-      status: 403,
-      message:
-        "Is account ki consent wapas le li gayi hai. Purana kaam padha ja sakta hai, nayi padhai ke liye parent ko dobara consent dena hoga.",
-    };
-  }
-
-  if (profile?.account_state === "suspended") {
-    return { ok: false, status: 403, message: "Ye account suspended hai." };
-  }
-
-  const minor = isMinorFromDob(profile?.dob as string | null);
-  if (!minor) return { ok: true };
-
-  const { data: granted } = await admin
-    .from("consents")
-    .select("purpose, granted, withdrawn_at, granted_at")
-    .eq("student_id", userId)
-    .in("purpose", ["account", "ai_processing"])
-    .order("granted_at", { ascending: false });
-
-  const current = new Map<string, boolean>();
-  for (const row of granted ?? []) {
-    /* Newest row per purpose wins; the query is already in that order. */
-    if (!current.has(row.purpose as string)) {
-      current.set(
-        row.purpose as string,
-        Boolean(row.granted) && row.withdrawn_at === null,
-      );
-    }
-  }
-
-  if (current.get("account") && current.get("ai_processing")) return { ok: true };
-
-  return {
-    ok: false,
-    status: 403,
-    message:
-      "Padhai shuru karne se pehle parent ki consent chahiye. Unke phone pe link bheja gaya hai.",
-  };
-}
+/* The consent rule itself now lives in lib/consent/gate.ts, so that every
+   route which processes a student asks the same question. It used to live
+   here, which is why for a long time this was the only endpoint that asked
+   it. */

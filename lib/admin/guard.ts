@@ -35,6 +35,17 @@ export function adminConfigured() {
   return allowlist().length > 0;
 }
 
+/* Is this address the vendor's?
+ *
+ * Exported so lib/roles.ts can answer "which of the three roles is this"
+ * without a second copy of the parsing. An empty allowlist means nobody, the
+ * same as it does in requireAdmin below — the failure mode of the other choice
+ * is every signed-in account being a super admin on a fresh deployment. */
+export function isAllowlistedEmail(email: string | null | undefined): boolean {
+  if (!email) return false;
+  return allowlist().includes(email.toLowerCase());
+}
+
 export async function requireAdmin(): Promise<AdminCheck> {
   const allowed = allowlist();
 

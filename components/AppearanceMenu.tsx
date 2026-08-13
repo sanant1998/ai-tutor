@@ -16,6 +16,7 @@ import {
 import {
   DEFAULT_THEME,
   THEMES,
+  THEMES_ENABLED,
   THEME_IDS,
   acc,
   applyTheme,
@@ -104,6 +105,12 @@ export function AppearanceMenu() {
             transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
             className="glass-strong absolute right-0 z-50 mt-3 w-[288px] max-w-[calc(100vw-2rem)] rounded-3xl p-4"
           >
+            {/* Hidden while themes are off. A picker that changes nothing
+                is worse than no picker: the person taps it, the screen does
+                not move, and they conclude the app is broken rather than
+                that the feature is paused. */}
+            {THEMES_ENABLED && (
+              <>
             <SectionLabel>Theme</SectionLabel>
             <div
               role="radiogroup"
@@ -149,6 +156,8 @@ export function AppearanceMenu() {
                 );
               })}
             </div>
+              </>
+            )}
 
             <Divider />
             <SectionLabel>Reading and focus</SectionLabel>

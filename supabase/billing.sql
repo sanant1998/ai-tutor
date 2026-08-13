@@ -211,7 +211,21 @@ as $$
        where s.user_id = p_user
          and (s.subject_ref is null or s.subject_ref = c.subject_ref)
          and (
-           s.status = 'active'
+           (
+             s.status = 'active'
+             -- The period has to still be running.
+             --
+             -- Without this, 'active' was open-ended: the row only ever leaves
+             -- that state when a webhook says so, and a webhook that stops
+             -- arriving is not a rare failure — a rotated secret, a paused
+             -- endpoint, an expired mandate Razorpay gave up retrying. Every
+             -- one of those looked exactly like a subscription that renews
+             -- free forever, and nothing in the product would have shown it.
+             --
+             -- Null is treated as open. A mandate that is authorised but not
+             -- yet charged has no period end, and that student has paid.
+             and (s.current_period_end is null or s.current_period_end > now())
+           )
            -- A failed charge inside its grace window still opens the app.
            or (s.status = 'past_due' and s.grace_until > now())
          )

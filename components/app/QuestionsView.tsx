@@ -13,6 +13,7 @@ import {
 import { Panel } from "@/components/app/ui";
 import { Button } from "@/components/ui/button";
 import { boardName, buildRoadmap, chosenSubjects } from "@/lib/study";
+import { BOARDS, CLASSES, chaptersFor, coveredSubjects, type BoardId, type ClassLevel } from "@/lib/syllabus";
 import { LEVELS, type LevelId } from "@/lib/mastery";
 import { useAppData } from "@/lib/useAppData";
 import { acc, acc2, onacc, text } from "@/lib/theme";
@@ -71,17 +72,77 @@ export function QuestionsView() {
   const [error, setError] = useState("");
 
   const roadmap = useMemo(() => buildRoadmap(state), [state]);
-  const subjects = chosenSubjects(state);
-  const board = boardName(state);
+  /* A teacher opening this has no onboarding answers.
+     TEACHER_NAV offers "Question Builder (AI)" on the argument that making a
+     worksheet for tomorrow is a real thing a teacher does with it — and this
+     screen read its subject list out of the student's own onboarding, so for
+     a teacher it was permanently "No subjects yet" with no way forward. Same
+     for a student who skipped onboarding.
+
+     So when there are no chosen subjects, the syllabus itself is the list and
+     the board and class become questions on this screen instead of answers
+     from somewhere else. */
+  const chosen = chosenSubjects(state);
+  const standalone = chosen.length === 0;
+
+  const [fallbackBoard, setFallbackBoard] = useState<BoardId>(
+    (state.boardId as BoardId | null) ?? "cbse",
+  );
+  const [fallbackClass, setFallbackClass] = useState<ClassLevel>(
+    (state.classLevel as ClassLevel) ?? 8,
+  );
+
+  const activeBoard = standalone ? fallbackBoard : (state.boardId as BoardId);
+  const activeClass = standalone ? fallbackClass : (state.classLevel as ClassLevel);
+
+  const subjects = useMemo(
+    () => (standalone ? coveredSubjects(activeBoard, activeClass) : chosen),
+    [standalone, activeBoard, activeClass, chosen],
+  );
+  const board = standalone
+    ? (BOARDS.find((entry) => entry.id === activeBoard)?.name ?? activeBoard)
+    : boardName(state);
 
   useEffect(() => {
     setSubjectId((current) => current || state.subjectIds[0] || "");
   }, [state.subjectIds]);
 
-  const topics = useMemo(
-    () => roadmap.filter((topic) => topic.subjectId === subjectId),
-    [roadmap, subjectId],
-  );
+  /* Standalone mode had no subject SELECTED, only subjects listed.
+     `subjectId` was seeded from the student's onboarding picks, which is
+     exactly what a teacher does not have, so it stayed "" — and a <select>
+     whose value matches no option displays the first one. The screen showed
+     "Mathematics" chosen, held nothing, and the topic list below it was empty
+     with no way to tell why. Picking the first subject is what the screen
+     already appeared to have done. */
+  useEffect(() => {
+    if (!standalone) return;
+
+    setSubjectId((current) =>
+      subjects.some((subject) => subject.id === current) ? current : (subjects[0]?.id ?? ""),
+    );
+  }, [standalone, subjects]);
+
+  /* The roadmap is built from the student's own plan and is empty without one,
+     so standalone mode reads the chapters straight off the syllabus. Same
+     shape either way: an id, a name, and the subject it belongs to. */
+  const topics = useMemo(() => {
+    if (!standalone) return roadmap.filter((topic) => topic.subjectId === subjectId);
+    if (!subjectId) return [];
+
+    /* `subject:chapter`, not the bare chapter id. lib/ai/scope.ts rebuilds that
+       string from the board's own syllabus and rejects anything else — it does
+       not trust an id from the browser — so a topic id of "1" comes back as
+       "That board, subject, unit or topic is not one we cover.", which reads
+       like a gap in the syllabus and is really a mismatched key. The roadmap
+       (lib/study.ts) has always built the id this way; standalone mode has to
+       agree with it. */
+    return chaptersFor(activeBoard, activeClass, subjectId).map((chapter) => ({
+      id: `${subjectId}:${chapter.id}`,
+      name: chapter.name,
+      subjectId,
+      unitId: chapter.id,
+    }));
+  }, [standalone, roadmap, subjectId, activeBoard, activeClass]);
 
   useEffect(() => {
     if (!topics.some((topic) => topic.id === topicId)) {
@@ -118,8 +179,8 @@ export function QuestionsView() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          boardId: state.boardId,
-          classLevel: state.classLevel,
+          boardId: activeBoard,
+          classLevel: activeClass,
           subjectId: topic.subjectId,
           unitId: topic.unitId,
           topicId: topic.id,
@@ -212,6 +273,31 @@ export function QuestionsView() {
       </p>
 
       <Panel className="mt-6 p-5 sm:p-6">
+        {/* Only when there is no plan behind this screen. For a student who has
+            onboarded, the board and class are already settled and asking again
+            would invite an answer that disagrees with their roadmap. */}
+        {standalone && (
+          <div className="mb-4 grid gap-4 sm:grid-cols-2">
+            <Field
+              label="Board"
+              value={activeBoard}
+              onChange={(value) => setFallbackBoard(value as BoardId)}
+              options={BOARDS.map((entry) => ({ value: entry.id, label: entry.name }))}
+              empty="No boards"
+            />
+            <Field
+              label="Class"
+              value={String(activeClass)}
+              onChange={(value) => setFallbackClass(Number(value) as ClassLevel)}
+              options={CLASSES.map((level) => ({
+                value: String(level),
+                label: `Class ${level}`,
+              }))}
+              empty="No classes"
+            />
+          </div>
+        )}
+
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Field
             label="Subject"
@@ -221,7 +307,7 @@ export function QuestionsView() {
               value: subject.id,
               label: `${subject.glyph} ${subject.name}`,
             }))}
-            empty="No subjects yet"
+            empty={standalone ? "Is class ke liye syllabus abhi nahi hai" : "No subjects yet"}
           />
           <Field
             label="Topic"
@@ -231,7 +317,7 @@ export function QuestionsView() {
               value: entry.id,
               label: entry.name,
             }))}
-            empty="No topics yet"
+            empty={standalone ? "Is subject ke chapters abhi nahi hain" : "No topics yet"}
           />
           <Field
             label="Type"

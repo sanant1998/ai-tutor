@@ -34,7 +34,13 @@ import "server-only";
 
 import { createAdminClient, isAdminConfigured } from "@/lib/supabase/admin";
 
-export type LimitAction = "consent_request" | "tutor_turn" | "practice_attempt" | "signup";
+export type LimitAction =
+  | "consent_request"
+  | "tutor_turn"
+  | "practice_attempt"
+  | "signup"
+  | "audio"
+  | "analytics";
 
 type Rule = { limit: number; windowSeconds: number };
 
@@ -55,6 +61,20 @@ const RULES: Record<LimitAction, Rule> = {
   practice_attempt: { limit: 600, windowSeconds: 3600 },
 
   signup: { limit: 20, windowSeconds: 3600 },
+
+  /* Text-to-speech and speech-to-text. Their own bucket, because they used to
+     share `practice_attempt` with the analytics beacon: a page emitting events
+     normally could exhaust the allowance for a paid audio call, and a flood of
+     free beacons could switch the audio feature off for a whole school's IP.
+     Two things that cost completely different amounts do not belong in one
+     counter. */
+  audio: { limit: 200, windowSeconds: 3600 },
+
+  /* The beacon. High, because a single active student legitimately emits
+     dozens of events an hour and the endpoint stores nothing that costs
+     anything — it is here to stop a script filling the table, not to ration
+     ordinary use. */
+  analytics: { limit: 1000, windowSeconds: 3600 },
 };
 
 export type LimitResult = {
@@ -130,4 +150,4 @@ export async function takeLimit(
    a number tells a script exactly how long to wait, and tells a genuine
    student nothing they can act on. */
 export const LIMIT_MESSAGE =
-  "Bahut saare requests aa gaye. Thodi der baad dobara try karo.";
+  "Too many requests just now. Try again in a little while.";

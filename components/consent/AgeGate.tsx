@@ -30,7 +30,9 @@ import { RequestConsent } from "@/components/consent/RequestConsent";
 import { Button } from "@/components/ui/button";
 import { PURPOSES, type PurposeKey } from "@/lib/consent/purposes";
 
-type Who = "student" | "parent" | "teacher";
+/* Mirrors StoredRole in lib/roles.ts — the two values profiles.role
+   accepts. There is no parent account. */
+type Who = "student" | "teacher";
 
 export function AgeGate({ firstName }: { firstName: string }) {
   const [who, setWho] = useState<Who>("student");
@@ -66,7 +68,7 @@ export function AgeGate({ firstName }: { firstName: string }) {
       const payload = await response.json();
 
       if (!response.ok) {
-        setError(payload.error ?? "Kuch gadbad hui.");
+        setError(payload.error ?? "Something went wrong.");
         return;
       }
 
@@ -79,7 +81,7 @@ export function AgeGate({ firstName }: { firstName: string }) {
 
       window.location.href = payload.next ?? "/onboarding";
     } catch {
-      setError("Network problem. Dobara try karo.");
+      setError("Network problem. Try again.");
     } finally {
       setBusy(false);
     }
@@ -90,30 +92,33 @@ export function AgeGate({ firstName }: { firstName: string }) {
   return (
     <main className="mx-auto max-w-lg px-5 py-10">
       <h1 className="font-display text-2xl font-extrabold tracking-[-0.03em]">
-        {firstName ? `${firstName}, ek` : "Ek"} minute — pehle ye batao
+        {firstName ? `${firstName}, one` : "One"} minute — tell us this first
       </h1>
 
       <p className="mt-3 text-[15px] leading-relaxed opacity-75">
-        Ye app zyadatar school ke bachchon ke liye hai, aur kanoon ke hisaab se
-        18 saal se kam umr walon ka data istemaal karne se pehle unke parent ki
-        anumati chahiye. Isliye ye do sawal.
+        This app is mostly for school children, and the law requires a parent’s
+        permission before using the data of anyone under 18. Hence these two
+        questions.
       </p>
 
       <form onSubmit={submit} className="mt-7 space-y-5">
         <fieldset>
-          <legend className="mb-2 text-[14px] font-semibold">Aap kaun hain?</legend>
+          <legend className="mb-2 text-[14px] font-semibold">Who are you?</legend>
 
           <div className="space-y-2">
             {(
               [
-                ["student", "Main student hoon — padhne aaya/aayi hoon"],
-                ["parent", "Main parent hoon — apne bachche ka progress dekhna hai"],
-                ["teacher", "Main teacher hoon — apni class dekhni hai"],
+                /* No "I am a parent" any more. A parent has no account — they
+                   consent from a link on their phone — and offering the option
+                   here led to an account the product had nothing to show. See
+                   lib/roles.ts. */
+                ["student", "I am a student — I am here to study"],
+                ["teacher", "I am a teacher — I want to see my class"],
               ] as [Who, string][]
             ).map(([value, label]) => (
               <label
                 key={value}
-                className="flex cursor-pointer items-center gap-3 rounded-xl border border-black/10 px-4 py-3 dark:border-white/10"
+                className="flex cursor-pointer items-center gap-3 rounded-xl border border-[rgb(var(--text-rgb)/0.12)] px-4 py-3"
               >
                 <input
                   type="radio"
@@ -138,11 +143,11 @@ export function AgeGate({ firstName }: { firstName: string }) {
             onChange={(event) => setDob(event.target.value)}
             required
             max={new Date().toISOString().slice(0, 10)}
-            className="w-full rounded-xl border border-black/10 bg-transparent px-3 py-2.5 text-[15px] dark:border-white/15"
+            className="w-full rounded-xl border border-[rgb(var(--text-rgb)/0.12)] bg-transparent px-3 py-2.5 text-[15px]"
           />
           <span className="mt-1.5 block text-[12px] opacity-55">
-            Sirf ye tay karne ke liye ki parent ki anumati chahiye ya nahi. Ye
-            kisi ko dikhaya nahi jaata.
+            Only to decide whether a parent’s permission is needed. It is not shown
+            to anyone.
           </span>
         </label>
 
@@ -158,7 +163,7 @@ export function AgeGate({ firstName }: { firstName: string }) {
             {PURPOSES.filter((purpose) => !purpose.required).map((purpose) => (
               <label
                 key={purpose.key}
-                className="flex cursor-pointer gap-3 rounded-xl border border-black/10 p-3 dark:border-white/10"
+                className="flex cursor-pointer gap-3 rounded-xl border border-[rgb(var(--text-rgb)/0.12)] p-3"
               >
                 <input
                   type="checkbox"
@@ -187,7 +192,7 @@ export function AgeGate({ firstName }: { firstName: string }) {
         {error && (
           <p
             role="alert"
-            className="rounded-xl bg-red-500/10 px-4 py-3 text-[14px] text-red-700 dark:text-red-300"
+            className="rounded-xl bg-red-500/10 px-4 py-3 text-[14px] text-[var(--danger)]"
           >
             {error}
           </p>

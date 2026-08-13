@@ -64,7 +64,7 @@ export async function GET() {
       ? {
           endsOn: subscription.grace_until as string,
           message:
-            "Pichli payment nahi ho paayi. Padhai chalu hai — is date tak payment method theek kar lein.",
+            "The last payment did not go through. Study continues — please fix the payment method by this date.",
         }
       : null,
 
@@ -114,7 +114,7 @@ export async function DELETE() {
     .maybeSingle();
 
   if (!subscription?.provider_sub_id) {
-    return fail("Koi chalu subscription nahi mila.", 404);
+    return fail("No active subscription found.", 404);
   }
 
   const { cancelSubscription } = await import("@/lib/billing/razorpay");
@@ -126,12 +126,12 @@ export async function DELETE() {
     await cancelSubscription(subscription.provider_sub_id as string, true);
   } catch (error) {
     console.error("[billing] cancel failed", error);
-    return fail("Cancel nahi ho paaya. Thodi der baad try karein.", 502);
+    return fail("That could not be cancelled. Please try again in a little while.", 502);
   }
 
   return NextResponse.json({
     cancelled: true,
     accessUntil: subscription.current_period_end as string | null,
-    note: "Subscription band ho gaya. Jitna paisa diya hai, us period tak padhai chalu rahegi.",
+    note: "Subscription cancelled. Study continues for the period already paid for.",
   });
 }

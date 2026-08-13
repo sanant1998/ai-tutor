@@ -5,9 +5,13 @@
   "provenance": {
     "source": "NCERT Mathematics Class 8, Chapter 1 'Rational Numbers' — role of zero (additive identity) and one (multiplicative identity), and the reciprocal. Misconceptions are the recurring errors on this topic; m1 on the second concept is the same reciprocal confusion as t2, met again where it does real damage.",
     "verifiedOn": "2026-08-12",
-    "note": "This topic lists t2 as a prerequisite on purpose. A student who still thinks additive inverse means 'flip it' cannot learn the identities, because both ideas are about what a number does to another number, and they will merge the two."
+    "note": "This topic lists t2 as a prerequisite on purpose. A student who still thinks additive inverse means 'flip it' cannot learn the identities, because both ideas are about what a number does to another number, and they will merge the two. Prose translated to en-IN by scripts/translate-pack.ts using gpt-5.5 (135 of 135 strings); LaTeX, answers and distractor maps unchanged by construction. Not read by a subject expert since."
   },
-  "subject": { "id": "cbse-8-maths", "name": "Mathematics", "language": "en-IN" },
+  "subject": {
+    "id": "cbse-8-maths",
+    "name": "Mathematics",
+    "language": "en-IN"
+  },
   "chapter": {
     "id": "c8-math-ch1",
     "no": 1,
@@ -20,244 +24,370 @@
     "id": "c8-math-ch1-t3",
     "no": 3,
     "title": "Role of Zero and One",
-    "prereqTopicIds": ["c8-math-ch1-t1", "c8-math-ch1-t2"]
+    "prereqTopicIds": [
+      "c8-math-ch1-t1",
+      "c8-math-ch1-t2"
+    ]
   },
-
   "concepts": [
     {
       "id": "c8-math-ch1-t3-c1",
       "seq": 1,
       "title": "Zero, the additive identity",
-      "statement": "Kisi bhi rational number me 0 jodne par wahi number wapas milta hai: $a + 0 = 0 + a = a$. Isiliye 0 ko additive identity kehte hain — wo jodne wale kaam me 'kuch nahi badalta'.",
-      "hook": "Socho tumhare bank account me ₹1200 hain. Tumne aaj na kuch jama kiya na nikala — yaani ₹0 ka lena-dena. Shaam ko balance kitna hoga? Wahi ₹1200. Zero jodna matlab kuch na karna. Ab ek tedha sawal: agar zero kuch nahi badalta, to $5 - 0$ aur $0 - 5$ dono barabar hone chahiye na?",
+      "statement": "When we add 0 to any rational number, we get the same number back: $a + 0 = 0 + a = a$. That is why 0 is called the additive identity — in addition, it changes nothing.",
+      "hook": "Think your bank account has ₹1200. Today you neither deposited anything nor withdrew anything — that means a ₹0 transaction. What will the balance be in the evening? The same ₹1200. Adding zero means doing nothing. Now one tricky question: if zero changes nothing, then should $5 - 0$ and $0 - 5$ both be equal?",
       "analogies": [
-        { "id": "a1", "text": "Weighing machine pe khaali thaili rakhna — reading nahi badlegi." },
-        { "id": "a2", "text": "Cricket me ek over maiden gaya — score wahi ka wahi." }
+        {
+          "id": "a1",
+          "text": "Putting an empty bag on a weighing machine — the reading will not change."
+        },
+        {
+          "id": "a2",
+          "text": "In cricket, one over was a maiden — the score stayed the same."
+        }
       ],
       "formulas": [
-        { "id": "f1", "latex": "a + 0 = 0 + a = a", "note": "Zero additive identity hai — dono taraf se." },
-        { "id": "f2", "latex": "a - 0 = a,\\quad 0 - a = -a", "note": "Ye dono ALAG hain. Ghatana commutative nahi hai." }
+        {
+          "id": "f1",
+          "latex": "a + 0 = 0 + a = a",
+          "note": "Zero is the additive identity — from both sides."
+        },
+        {
+          "id": "f2",
+          "latex": "a - 0 = a,\\quad 0 - a = -a",
+          "note": "These two are DIFFERENT. Subtraction is not commutative."
+        }
       ],
       "misconceptions": [
         {
           "id": "m1",
-          "wrong_belief": "$a - 0$ aur $0 - a$ ek hi baat hai.",
-          "why_wrong": "Jodna commutative hai par ghatana nahi. $5 - 0 = 5$ hai jabki $0 - 5 = -5$ hai — dono ka sign hi ulta hai.",
-          "correction": "$a - 0 = a$, par $0 - a = -a$. Ghatane me order matter karta hai.",
-          "probe": "$5 - 0$ kitna hai? Aur $0 - 5$? Kya dono same aaye?"
+          "wrong_belief": "$a - 0$ and $0 - a$ are the same thing.",
+          "why_wrong": "Addition is commutative, but subtraction is not. $5 - 0 = 5$ whereas $0 - 5 = -5$ — the signs of both are opposite.",
+          "correction": "$a - 0 = a$, but $0 - a = -a$. In subtraction, order matters.",
+          "probe": "How much is $5 - 0$? And $0 - 5$? Did both come out the same?"
         },
         {
           "id": "m2",
-          "wrong_belief": "0 se guna karna bhi 'kuch nahi badalta', jaise 0 jodna.",
-          "why_wrong": "Zero jodne aur zero se guna karne me zameen-aasman ka farak hai. $a + 0 = a$ par $a \\times 0 = 0$ — guna karne pe poora number khatam ho jaata hai.",
-          "correction": "0 jodne se kuch nahi badalta; 0 se guna karne pe sab kuch 0 ho jaata hai.",
-          "probe": "$\\frac{3}{4} + 0$ kitna hai? Aur $\\frac{3}{4} \\times 0$? Dono me kya farak dikha?"
+          "wrong_belief": "Multiplying by 0 also ‘changes nothing’, just like adding 0.",
+          "why_wrong": "There is a huge difference between adding zero and multiplying by zero. $a + 0 = a$ but $a \\times 0 = 0$ — on multiplying, the whole number becomes zero.",
+          "correction": "Adding 0 changes nothing; multiplying by 0 makes everything 0.",
+          "probe": "How much is $\\frac{3}{4} + 0$? And $\\frac{3}{4} \\times 0$? What difference did you see in the two?"
         },
         {
           "id": "m3",
-          "wrong_belief": "$\\frac{0}{5}$ aur $\\frac{5}{0}$ dono ka maan 0 hai.",
-          "why_wrong": "$\\frac{0}{5} = 0$ hai kyunki 0 ko 5 hisson me baanto to har hisse me 0. Par $\\frac{5}{0}$ ka koi maan hai hi nahi — 0 hisson me baantna ek kaam hi nahi hai.",
-          "correction": "$\\frac{0}{5} = 0$; $\\frac{5}{0}$ undefined hai. Upar ka 0 theek hai, neeche ka 0 nahi.",
-          "probe": "$\\frac{0}{5}$ ka maan kya hai? Aur $\\frac{5}{0}$ ka? Kya dono ka jawab ek hai?"
+          "wrong_belief": "Both $\\frac{0}{5}$ and $\\frac{5}{0}$ have value 0.",
+          "why_wrong": "$\\frac{0}{5} = 0$ because if you divide 0 into 5 parts, each part has 0. But $\\frac{5}{0}$ has no value at all — dividing into 0 parts is not a valid operation.",
+          "correction": "$\\frac{0}{5} = 0$; $\\frac{5}{0}$ is undefined. A 0 on top is fine, a 0 at the bottom is not.",
+          "probe": "What is the value of $\\frac{0}{5}$? And of $\\frac{5}{0}$? Do both have the same answer?"
         },
         {
           "id": "m4",
-          "wrong_belief": "0 additive identity hai, to wo multiplicative identity bhi hoga.",
-          "why_wrong": "Multiplicative identity wo hai jisse guna karne par number nahi badalta — wo 1 hai, 0 nahi. $a \\times 0 = 0$, jo $a$ ke barabar nahi hai (jab tak $a$ khud 0 na ho).",
-          "correction": "Jodne ki identity 0 hai, guna ki identity 1. Do alag kaam, do alag identity.",
-          "probe": "Guna karne par number ko na badalne wala number kaunsa hai — 0 ya 1? Ek baar $\\frac{2}{3}$ pe dono try karke dekho."
+          "wrong_belief": "If 0 is the additive identity, then it must be the multiplicative identity too.",
+          "why_wrong": "The multiplicative identity is the number which does not change a number when multiplied — that is 1, not 0. $a \\times 0 = 0$, which is not equal to $a$ (unless $a$ itself is 0).",
+          "correction": "The identity for addition is 0, the identity for multiplication is 1. Two different operations, two different identities.",
+          "probe": "Which number does not change a number when multiplied — 0 or 1? Try both once on $\\frac{2}{3}$."
         }
       ],
       "worked_examples": [
         {
           "id": "we1",
-          "problem": "$\\frac{-7}{9} + 0$ aur $\\frac{-7}{9} \\times 0$ — dono nikalo aur farak batao.",
+          "problem": "Find both $\\frac{-7}{9} + 0$ and $\\frac{-7}{9} \\times 0$ and tell the difference.",
           "steps": [
-            "$\\frac{-7}{9} + 0 = \\frac{-7}{9}$ — 0 additive identity hai, kuch nahi badla",
-            "$\\frac{-7}{9} \\times 0 = 0$ — 0 se guna karne pe sab 0",
-            "Farak: pehle me number bacha, doosre me khatam ho gaya"
+            "$\\frac{-7}{9} + 0 = \\frac{-7}{9}$ — 0 is the additive identity, nothing changed",
+            "$\\frac{-7}{9} \\times 0 = 0$ — on multiplying by 0, everything becomes 0",
+            "Difference: in the first one the number stayed, in the second one it became zero"
           ],
           "answer": "$\\frac{-7}{9}$ aur $0$"
         },
         {
           "id": "we2",
-          "problem": "$0 - \\frac{3}{8}$ ka maan nikalo.",
+          "problem": "Find the value of $0 - \\frac{3}{8}$.",
           "steps": [
-            "$0 - \\frac{3}{8}$ ka matlab hai 0 me se $\\frac{3}{8}$ ghatana",
-            "Ghatana = additive inverse jodna: $0 + \\left(-\\frac{3}{8}\\right)$",
-            "0 additive identity hai, to jawab $-\\frac{3}{8}$"
+            "$0 - \\frac{3}{8}$ means subtracting $\\frac{3}{8}$ from 0",
+            "Subtraction = adding the additive inverse: $0 + \\left(-\\frac{3}{8}\\right)$",
+            "0 is the additive identity, so the answer is $-\\frac{3}{8}$"
           ],
           "answer": "$-\\frac{3}{8}$"
         }
       ]
     },
-
     {
       "id": "c8-math-ch1-t3-c2",
       "seq": 2,
       "title": "One, the multiplicative identity, and the reciprocal",
-      "statement": "Kisi bhi rational number ko 1 se guna karne par wahi number milta hai: $a \\times 1 = 1 \\times a = a$. Aur $\\frac{a}{b}$ ka reciprocal $\\frac{b}{a}$ hota hai (jab $a \\neq 0$), kyunki $\\frac{a}{b} \\times \\frac{b}{a} = 1$.",
-      "hook": "Socho ek recipe hai jo 4 logon ke liye hai aur tumhe bhi 4 logon ke liye hi banani hai. Tum har cheez ko 1 se guna karoge — kuch nahi badlega. Ab socho tumne aadha kilo aata liya aur usse dugna karna hai: $\\frac{1}{2} \\times 2 = 1$ kilo. Ye 2 hi $\\frac{1}{2}$ ka reciprocal hai. Sawal: 0 ka reciprocal kya hoga?",
+      "statement": "When any rational number is multiplied by 1, we get the same number: $a \\times 1 = 1 \\times a = a$. And the reciprocal of $\\frac{a}{b}$ is $\\frac{b}{a}$ (when $a \\neq 0$), because $\\frac{a}{b} \\times \\frac{b}{a} = 1$.",
+      "hook": "Think of a recipe that is for 4 people, and you have to make it for 4 people only. You will multiply everything by 1 — nothing will change. Now think you took half a kilo of flour and have to double it: $\\frac{1}{2} \\times 2 = 1$ kilo. This 2 is the reciprocal of $\\frac{1}{2}$. Question: what will be the reciprocal of 0?",
       "analogies": [
-        { "id": "a1", "text": "Photocopy 100% pe nikaalna — size wahi rehta hai. Wahi 1 se guna karna hai." },
-        { "id": "a2", "text": "Gear ratio: aadha ghumana aur phir dugna ghumana — wapas wahin." }
+        {
+          "id": "a1",
+          "text": "Taking a photocopy at 100% — the size stays the same. That is multiplying by 1."
+        },
+        {
+          "id": "a2",
+          "text": "Gear ratio: turn half, and then turn double — back to the same place."
+        }
       ],
       "formulas": [
-        { "id": "f1", "latex": "a \\times 1 = 1 \\times a = a", "note": "1 multiplicative identity hai." },
-        { "id": "f2", "latex": "\\frac{a}{b} \\times \\frac{b}{a} = 1,\\ a \\neq 0,\\ b \\neq 0", "note": "Reciprocal ki definition." },
-        { "id": "f3", "latex": "\\frac{-a}{b} \\times \\frac{-b}{a} = 1", "note": "Negative number ka reciprocal bhi negative hota hai." }
+        {
+          "id": "f1",
+          "latex": "a \\times 1 = 1 \\times a = a",
+          "note": "1 is the multiplicative identity."
+        },
+        {
+          "id": "f2",
+          "latex": "\\frac{a}{b} \\times \\frac{b}{a} = 1,\\ a \\neq 0,\\ b \\neq 0",
+          "note": "Definition of reciprocal."
+        },
+        {
+          "id": "f3",
+          "latex": "\\frac{-a}{b} \\times \\frac{-b}{a} = 1",
+          "note": "The reciprocal of a negative number is also negative."
+        }
       ],
       "misconceptions": [
         {
           "id": "m1",
-          "wrong_belief": "$\\frac{a}{b}$ ka reciprocal $-\\frac{a}{b}$ hota hai.",
-          "why_wrong": "Sign badalne se 0 aata hai (additive inverse), 1 nahi. Reciprocal ke liye ULTA karna padta hai. $\\frac{2}{3} \\times \\left(-\\frac{2}{3}\\right) = -\\frac{4}{9}$, jo 1 nahi hai.",
-          "correction": "Reciprocal = ulta karo. Sign badalna additive inverse hai.",
-          "probe": "$\\frac{2}{3}$ ko $-\\frac{2}{3}$ se guna karo. Kya 1 aaya? To reciprocal kya hoga?"
+          "wrong_belief": "The reciprocal of $\\frac{a}{b}$ is $-\\frac{a}{b}$.",
+          "why_wrong": "Changing the sign gives 0 (additive inverse), not 1. For reciprocal, you have to flip it. $\\frac{2}{3} \\times \\left(-\\frac{2}{3}\\right) = -\\frac{4}{9}$, which is not 1.",
+          "correction": "Reciprocal = flip it. Changing the sign is additive inverse.",
+          "probe": "Multiply $\\frac{2}{3}$ by $-\\frac{2}{3}$. Did you get 1? Then what will the reciprocal be?"
         },
         {
           "id": "m2",
-          "wrong_belief": "0 ka reciprocal 0 hota hai.",
-          "why_wrong": "Reciprocal ki shart hai ki guna karne par 1 aaye. $0 \\times$ kuch bhi $= 0$, kabhi 1 nahi aata. Aur $\\frac{1}{0}$ undefined hai.",
-          "correction": "0 ka reciprocal hota hi nahi. Ye ekmatra rational number hai jiska reciprocal nahi hai.",
-          "probe": "0 ko kisi bhi number se guna karo — kya kabhi 1 aa sakta hai?"
+          "wrong_belief": "The reciprocal of 0 is 0.",
+          "why_wrong": "The condition for reciprocal is that on multiplying, we should get 1. $0 \\times$ anything $= 0$, never gives 1. And $\\frac{1}{0}$ is undefined.",
+          "correction": "0 has no reciprocal. It is the only rational number that has no reciprocal.",
+          "probe": "Multiply 0 by any number — can you ever get 1?"
         },
         {
           "id": "m3",
-          "wrong_belief": "Negative number ka reciprocal positive hota hai.",
-          "why_wrong": "Do numbers ka guna 1 (positive) tabhi aayega jab dono ke sign same hon. $-\\frac{3}{5}$ ka reciprocal $-\\frac{5}{3}$ hai — check: $-\\frac{3}{5} \\times -\\frac{5}{3} = +1$.",
-          "correction": "Reciprocal me sign wahi rehta hai, sirf upar-neeche palat jaata hai.",
-          "probe": "$-\\frac{3}{5}$ ko $\\frac{5}{3}$ se guna karo. Kya 1 aaya ya $-1$? To sahi reciprocal kya hai?"
+          "wrong_belief": "The reciprocal of a negative number is positive.",
+          "why_wrong": "The product of two numbers will be 1 (positive) only when both have the same sign. The reciprocal of $-\\frac{3}{5}$ is $-\\frac{5}{3}$ — check: $-\\frac{3}{5} \\times -\\frac{5}{3} = +1$.",
+          "correction": "In reciprocal, the sign stays the same, only the top and bottom get flipped.",
+          "probe": "Multiply $-\\frac{3}{5}$ by $\\frac{5}{3}$. Did you get 1 or $-1$? Then what is the correct reciprocal?"
         },
         {
           "id": "m4",
-          "wrong_belief": "1 se guna karne par number thoda bad jaata hai.",
-          "why_wrong": "$1$ multiplicative identity hai — guna ke kaam me wo bilkul kuch nahi badalta, jaise jodne me 0 kuch nahi badalta. $\\frac{7}{9} \\times 1 = \\frac{7}{9}$.",
-          "correction": "1 se guna = kuch mat karo. Number jaisa tha waisa hi rahega.",
-          "probe": "$\\frac{7}{9} \\times 1$ kitna hai? Number bada hua kya?"
+          "wrong_belief": "When we multiply by 1, the number increases a little.",
+          "why_wrong": "$1$ is the multiplicative identity — in multiplication it changes absolutely nothing, just like 0 changes nothing in addition. $\\frac{7}{9} \\times 1 = \\frac{7}{9}$.",
+          "correction": "Multiplying by 1 = do nothing. The number will stay exactly as it was.",
+          "probe": "How much is $\\frac{7}{9} \\times 1$? Did the number increase?"
         }
       ],
       "worked_examples": [
         {
           "id": "we1",
-          "problem": "$-\\frac{4}{7}$ ka reciprocal nikalo aur verify karo.",
+          "problem": "Find the reciprocal of $-\\frac{4}{7}$ and verify it.",
           "steps": [
-            "Reciprocal ke liye upar-neeche palto, sign wahi rakho: $-\\frac{7}{4}$",
+            "For reciprocal, flip the top and bottom, keep the sign the same: $-\\frac{7}{4}$",
             "Verify: $-\\frac{4}{7} \\times -\\frac{7}{4} = \\frac{28}{28} = 1$",
-            "Dono negative the, to guna positive aaya. Verified"
+            "Both were negative, so the product came positive. Verified"
           ],
           "answer": "$-\\frac{7}{4}$"
         },
         {
           "id": "we2",
-          "problem": "$\\frac{5}{9}$ ka additive inverse, multiplicative inverse aur $\\frac{5}{9} \\times 1$ — teenon nikalo.",
+          "problem": "Find the additive inverse, multiplicative inverse, and $\\frac{5}{9} \\times 1$ of $\\frac{5}{9}$ — all three.",
           "steps": [
-            "Additive inverse: sign badlo → $-\\frac{5}{9}$ (jodne par 0)",
-            "Multiplicative inverse: ulta karo → $\\frac{9}{5}$ (guna karne par 1)",
-            "$\\frac{5}{9} \\times 1 = \\frac{5}{9}$ — 1 multiplicative identity hai, kuch nahi badla"
+            "Additive inverse: change the sign → $-\\frac{5}{9}$ (on adding, we get 0)",
+            "Multiplicative inverse: flip it → $\\frac{9}{5}$ (on multiplying, we get 1)",
+            "$\\frac{5}{9} \\times 1 = \\frac{5}{9}$ — 1 is the multiplicative identity, nothing changed"
           ],
           "answer": "$-\\frac{5}{9}$, $\\frac{9}{5}$, aur $\\frac{5}{9}$"
         }
       ]
     }
   ],
-
   "questions": [
     {
       "id": "q-c8m-ch1-0061",
       "conceptId": "c8-math-ch1-t3-c1",
       "qtype": "mcq",
       "level": "L1",
-      "stem": "$\\frac{-7}{9} + 0$ ka maan kya hai?",
+      "stem": "What is the value of $\\frac{-7}{9} + 0$?",
       "options": [
-        { "key": "A", "text": "$\\frac{-7}{9}$" },
-        { "key": "B", "text": "$0$" },
-        { "key": "C", "text": "$\\frac{7}{9}$" },
-        { "key": "D", "text": "$\\frac{-7}{9}$ me 0 jod hi nahi sakte" }
+        {
+          "key": "A",
+          "text": "$\\frac{-7}{9}$"
+        },
+        {
+          "key": "B",
+          "text": "$0$"
+        },
+        {
+          "key": "C",
+          "text": "$\\frac{7}{9}$"
+        },
+        {
+          "key": "D",
+          "text": "We cannot add 0 in $\\frac{-7}{9}$ at all"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m2", "C": "m1", "D": "m3" },
-      "solution": "0 additive identity hai — jodne par number nahi badalta. To $\\frac{-7}{9} + 0 = \\frac{-7}{9}$."
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m2",
+        "C": "m1",
+        "D": "m3"
+      },
+      "solution": "0 is the additive identity — on adding, the number does not change. So $\\frac{-7}{9} + 0 = \\frac{-7}{9}$."
     },
     {
       "id": "q-c8m-ch1-0062",
       "conceptId": "c8-math-ch1-t3-c1",
       "qtype": "mcq",
       "level": "L1",
-      "stem": "$\\frac{3}{4} \\times 0$ ka maan kya hai?",
+      "stem": "What is the value of $\\frac{3}{4} \\times 0$?",
       "options": [
-        { "key": "A", "text": "$0$" },
-        { "key": "B", "text": "$\\frac{3}{4}$" },
-        { "key": "C", "text": "$1$" },
-        { "key": "D", "text": "Undefined" }
+        {
+          "key": "A",
+          "text": "$0$"
+        },
+        {
+          "key": "B",
+          "text": "$\\frac{3}{4}$"
+        },
+        {
+          "key": "C",
+          "text": "$1$"
+        },
+        {
+          "key": "D",
+          "text": "Undefined"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m2", "C": "m4", "D": "m3" },
-      "solution": "0 se guna karne par har number 0 ho jaata hai. Dhyan do — $+0$ karne pe number bachta hai, $\\times 0$ karne pe khatam ho jaata hai."
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m2",
+        "C": "m4",
+        "D": "m3"
+      },
+      "solution": "When we multiply by 0, every number becomes 0. Notice — when we do $+0$, the number remains; when we do $\\times 0$, it becomes zero."
     },
     {
       "id": "q-c8m-ch1-0063",
       "conceptId": "c8-math-ch1-t3-c1",
       "qtype": "mcq",
       "level": "L2",
-      "stem": "$0 - \\frac{2}{5}$ ka maan kya hai?",
+      "stem": "What is the value of $0 - \\frac{2}{5}$?",
       "options": [
-        { "key": "A", "text": "$-\\frac{2}{5}$" },
-        { "key": "B", "text": "$\\frac{2}{5}$" },
-        { "key": "C", "text": "$0$" },
-        { "key": "D", "text": "$\\frac{5}{2}$" }
+        {
+          "key": "A",
+          "text": "$-\\frac{2}{5}$"
+        },
+        {
+          "key": "B",
+          "text": "$\\frac{2}{5}$"
+        },
+        {
+          "key": "C",
+          "text": "$0$"
+        },
+        {
+          "key": "D",
+          "text": "$\\frac{5}{2}$"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m1", "C": "m2", "D": "m4" },
-      "solution": "$0 - \\frac{2}{5} = -\\frac{2}{5}$. Dhyan do ki $\\frac{2}{5} - 0 = \\frac{2}{5}$ hota — ghatane me order badalne se sign badal jaata hai."
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m1",
+        "C": "m2",
+        "D": "m4"
+      },
+      "solution": "$0 - \\frac{2}{5} = -\\frac{2}{5}$. Notice that $\\frac{2}{5} - 0 = \\frac{2}{5}$ would be there — in subtraction, changing the order changes the sign."
     },
     {
       "id": "q-c8m-ch1-0064",
       "conceptId": "c8-math-ch1-t3-c1",
       "qtype": "mcq",
       "level": "L2",
-      "stem": "$\\frac{0}{6}$ aur $\\frac{6}{0}$ ke baare me kaunsa kathan sahi hai?",
+      "stem": "Which statement about $\\frac{0}{6}$ and $\\frac{6}{0}$ is correct?",
       "options": [
-        { "key": "A", "text": "$\\frac{0}{6} = 0$ hai aur $\\frac{6}{0}$ undefined hai" },
-        { "key": "B", "text": "Dono ka maan 0 hai" },
-        { "key": "C", "text": "Dono undefined hain" },
-        { "key": "D", "text": "$\\frac{0}{6}$ undefined hai aur $\\frac{6}{0} = 0$ hai" }
+        {
+          "key": "A",
+          "text": "$\\frac{0}{6} = 0$ is there and $\\frac{6}{0}$ is undefined"
+        },
+        {
+          "key": "B",
+          "text": "Both have value 0"
+        },
+        {
+          "key": "C",
+          "text": "Both are undefined"
+        },
+        {
+          "key": "D",
+          "text": "$\\frac{0}{6}$ is undefined and $\\frac{6}{0} = 0$ is there"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m3", "C": "m3", "D": "m3" },
-      "solution": "Numerator me 0 hona bilkul theek hai — $\\frac{0}{6} = 0$. Denominator me 0 hona allowed nahi — $\\frac{6}{0}$ undefined hai."
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m3",
+        "C": "m3",
+        "D": "m3"
+      },
+      "solution": "Having 0 in the numerator is completely fine — $\\frac{0}{6} = 0$. Having 0 in the denominator is not allowed — $\\frac{6}{0}$ is undefined."
     },
     {
       "id": "q-c8m-ch1-0065",
       "conceptId": "c8-math-ch1-t3-c1",
       "qtype": "nvt",
       "level": "L3",
-      "stem": "$\\left(\\frac{4}{5} + 0\\right) \\times 0$ ka maan kya hai?",
-      "correct": { "value": 0, "tol": 0, "exact": "0" },
-      "solution": "Pehle bracket: $\\frac{4}{5} + 0 = \\frac{4}{5}$ (0 additive identity hai). Phir $\\frac{4}{5} \\times 0 = 0$. Ye sawal jaan-bujhkar dono kaam ek saath poochhta hai."
+      "stem": "What is the value of $\\left(\\frac{4}{5} + 0\\right) \\times 0$?",
+      "correct": {
+        "value": 0,
+        "tol": 0,
+        "exact": "0"
+      },
+      "solution": "First bracket: $\\frac{4}{5} + 0 = \\frac{4}{5}$ (0 is the additive identity). Then $\\frac{4}{5} \\times 0 = 0$. This question purposely asks both operations together."
     },
     {
       "id": "q-c8m-ch1-0066",
       "conceptId": "c8-math-ch1-t3-c1",
       "qtype": "mcq",
       "level": "L3",
-      "stem": "Kaunsa number aisa hai ki har rational number $a$ ke liye $a + x = a$ ho?",
+      "stem": "Which number is such that for every rational number $a$, $a + x = a$?",
       "options": [
-        { "key": "A", "text": "$x = 0$" },
-        { "key": "B", "text": "$x = 1$" },
-        { "key": "C", "text": "$x = a$" },
-        { "key": "D", "text": "Aisa koi number nahi hai" }
+        {
+          "key": "A",
+          "text": "$x = 0$"
+        },
+        {
+          "key": "B",
+          "text": "$x = 1$"
+        },
+        {
+          "key": "C",
+          "text": "$x = a$"
+        },
+        {
+          "key": "D",
+          "text": "There is no such number"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m4", "C": "m2", "D": "m3" },
-      "solution": "$a + x = a$ tabhi hoga jab $x = 0$ ho. Isiliye 0 ko additive identity kehte hain. $x = 1$ multiplicative identity hai — wo $a \\times x = a$ wale sawal ka jawab hai."
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m4",
+        "C": "m2",
+        "D": "m3"
+      },
+      "solution": "$a + x = a$ will happen only when $x = 0$. That is why 0 is called the additive identity. $x = 1$ is the multiplicative identity — it is the answer to the $a \\times x = a$ question."
     },
     {
       "id": "q-c8m-ch1-0067",
       "conceptId": "c8-math-ch1-t3-c1",
       "qtype": "subjective",
       "level": "L4",
-      "stem": "Samjhao ki 0 additive identity hai par multiplicative identity nahi. Dono ke liye ek-ek udaharan do.",
+      "stem": "Explain that 0 is the additive identity but not the multiplicative identity. Give one example for each.",
       "correct": {
         "rubric": [
           "Additive identity ki definition: jodne par number na badle",
@@ -266,113 +396,210 @@
           "Dikhaya ki $a \\times 0 = 0 \\neq a$ (jab $a \\neq 0$), isliye 0 multiplicative identity nahi; wo kaam 1 karta hai"
         ]
       },
-      "solution": "Additive identity wo number hai jise jodne par koi number nahi badalta. $\\frac{2}{3} + 0 = \\frac{2}{3}$ — 0 ye shart poori karta hai. Multiplicative identity wo hai jisse guna karne par number nahi badalta. $\\frac{2}{3} \\times 0 = 0$, jo $\\frac{2}{3}$ nahi hai — to 0 fail ho gaya. $\\frac{2}{3} \\times 1 = \\frac{2}{3}$ — 1 pass ho gaya. Isliye jodne ki identity 0 hai aur guna ki identity 1."
+      "solution": "The additive identity is the number which does not change any number when added. $\\frac{2}{3} + 0 = \\frac{2}{3}$ — 0 satisfies this condition. The multiplicative identity is the number which does not change a number when multiplied. $\\frac{2}{3} \\times 0 = 0$, which is not $\\frac{2}{3}$ — so 0 failed. $\\frac{2}{3} \\times 1 = \\frac{2}{3}$ — 1 passed. So the identity for addition is 0 and the identity for multiplication is 1."
     },
-
     {
       "id": "q-c8m-ch1-0071",
       "conceptId": "c8-math-ch1-t3-c2",
       "qtype": "mcq",
       "level": "L1",
-      "stem": "$\\frac{7}{9} \\times 1$ ka maan kya hai?",
+      "stem": "What is the value of $\\frac{7}{9} \\times 1$?",
       "options": [
-        { "key": "A", "text": "$\\frac{7}{9}$" },
-        { "key": "B", "text": "$\\frac{9}{7}$" },
-        { "key": "C", "text": "$1$" },
-        { "key": "D", "text": "$\\frac{7}{9}$ se thoda zyada" }
+        {
+          "key": "A",
+          "text": "$\\frac{7}{9}$"
+        },
+        {
+          "key": "B",
+          "text": "$\\frac{9}{7}$"
+        },
+        {
+          "key": "C",
+          "text": "$1$"
+        },
+        {
+          "key": "D",
+          "text": "A little more than $\\frac{7}{9}$"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m1", "C": "m2", "D": "m4" },
-      "solution": "1 multiplicative identity hai — guna karne par number nahi badalta. To $\\frac{7}{9} \\times 1 = \\frac{7}{9}$."
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m1",
+        "C": "m2",
+        "D": "m4"
+      },
+      "solution": "1 is the multiplicative identity — on multiplying, the number does not change. So $\\frac{7}{9} \\times 1 = \\frac{7}{9}$."
     },
     {
       "id": "q-c8m-ch1-0072",
       "conceptId": "c8-math-ch1-t3-c2",
       "qtype": "mcq",
       "level": "L1",
-      "stem": "$\\frac{2}{3}$ ka reciprocal kya hai?",
+      "stem": "What is the reciprocal of $\\frac{2}{3}$?",
       "options": [
-        { "key": "A", "text": "$\\frac{3}{2}$" },
-        { "key": "B", "text": "$-\\frac{2}{3}$" },
-        { "key": "C", "text": "$-\\frac{3}{2}$" },
-        { "key": "D", "text": "$\\frac{2}{3}$" }
+        {
+          "key": "A",
+          "text": "$\\frac{3}{2}$"
+        },
+        {
+          "key": "B",
+          "text": "$-\\frac{2}{3}$"
+        },
+        {
+          "key": "C",
+          "text": "$-\\frac{3}{2}$"
+        },
+        {
+          "key": "D",
+          "text": "$\\frac{2}{3}$"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m1", "C": "m3", "D": "m4" },
-      "solution": "Reciprocal ke liye upar-neeche palto: $\\frac{3}{2}$. Check: $\\frac{2}{3} \\times \\frac{3}{2} = 1$. $-\\frac{2}{3}$ additive inverse hai — usse jodne par 0 aata hai."
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m1",
+        "C": "m3",
+        "D": "m4"
+      },
+      "solution": "For reciprocal, flip the top and bottom: $\\frac{3}{2}$. Check: $\\frac{2}{3} \\times \\frac{3}{2} = 1$. $-\\frac{2}{3}$ is the additive inverse — on adding it, we get 0."
     },
     {
       "id": "q-c8m-ch1-0073",
       "conceptId": "c8-math-ch1-t3-c2",
       "qtype": "mcq",
       "level": "L2",
-      "stem": "$-\\frac{3}{5}$ ka reciprocal kya hai?",
+      "stem": "What is the reciprocal of $-\\frac{3}{5}$?",
       "options": [
-        { "key": "A", "text": "$-\\frac{5}{3}$" },
-        { "key": "B", "text": "$\\frac{5}{3}$" },
-        { "key": "C", "text": "$\\frac{3}{5}$" },
-        { "key": "D", "text": "$-\\frac{3}{5}$ ka reciprocal nahi hota" }
+        {
+          "key": "A",
+          "text": "$-\\frac{5}{3}$"
+        },
+        {
+          "key": "B",
+          "text": "$\\frac{5}{3}$"
+        },
+        {
+          "key": "C",
+          "text": "$\\frac{3}{5}$"
+        },
+        {
+          "key": "D",
+          "text": "$-\\frac{3}{5}$ has no reciprocal"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m3", "C": "m1", "D": "m2" },
-      "solution": "Reciprocal me sign wahi rehta hai, sirf upar-neeche palat jaate hain: $-\\frac{5}{3}$. Check: $-\\frac{3}{5} \\times -\\frac{5}{3} = +1$. Agar $\\frac{5}{3}$ lete to $-1$ aata, 1 nahi."
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m3",
+        "C": "m1",
+        "D": "m2"
+      },
+      "solution": "In reciprocal, the sign stays the same, only the top and bottom get flipped: $-\\frac{5}{3}$. Check: $-\\frac{3}{5} \\times -\\frac{5}{3} = +1$. If we took $\\frac{5}{3}$, we would get $-1$, not 1."
     },
     {
       "id": "q-c8m-ch1-0074",
       "conceptId": "c8-math-ch1-t3-c2",
       "qtype": "mcq",
       "level": "L2",
-      "stem": "Kis rational number ka reciprocal nahi hota?",
+      "stem": "Which rational number has no reciprocal?",
       "options": [
-        { "key": "A", "text": "$0$" },
-        { "key": "B", "text": "$1$" },
-        { "key": "C", "text": "$-1$" },
-        { "key": "D", "text": "$\\frac{1}{2}$" }
+        {
+          "key": "A",
+          "text": "$0$"
+        },
+        {
+          "key": "B",
+          "text": "$1$"
+        },
+        {
+          "key": "C",
+          "text": "$-1$"
+        },
+        {
+          "key": "D",
+          "text": "$\\frac{1}{2}$"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m4", "C": "m3", "D": "m1" },
-      "solution": "0 ko kisi bhi number se guna karo, jawab 0 hi aata hai — 1 kabhi nahi. Isliye 0 ka reciprocal hota hi nahi. Baaki sabka hota hai: 1 ka 1, $-1$ ka $-1$, aur $\\frac{1}{2}$ ka 2."
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m4",
+        "C": "m3",
+        "D": "m1"
+      },
+      "solution": "Multiply 0 by any number, the answer is always 0 — never 1. So 0 has no reciprocal. All the others have one: 1 has 1, $-1$ has $-1$, and $\\frac{1}{2}$ has 2."
     },
     {
       "id": "q-c8m-ch1-0075",
       "conceptId": "c8-math-ch1-t3-c2",
       "qtype": "nvt",
       "level": "L3",
-      "stem": "$\\frac{4}{7}$ ka reciprocal $\\frac{p}{4}$ hai. $p$ ka maan kya hoga?",
-      "correct": { "value": 7, "tol": 0, "exact": "7" },
-      "solution": "$\\frac{4}{7}$ ka reciprocal $\\frac{7}{4}$ hai, kyunki $\\frac{4}{7} \\times \\frac{7}{4} = 1$. To $p = 7$."
+      "stem": "The reciprocal of $\\frac{4}{7}$ is $\\frac{p}{4}$. What will be the value of $p$?",
+      "correct": {
+        "value": 7,
+        "tol": 0,
+        "exact": "7"
+      },
+      "solution": "The reciprocal of $\\frac{4}{7}$ is $\\frac{7}{4}$, because $\\frac{4}{7} \\times \\frac{7}{4} = 1$. So $p = 7$."
     },
     {
       "id": "q-c8m-ch1-0076",
       "conceptId": "c8-math-ch1-t3-c2",
       "qtype": "mcq",
       "level": "L3",
-      "stem": "Kabir kehta hai: '$-\\frac{2}{9}$ ka reciprocal $\\frac{9}{2}$ hai.' Uski galti pakdo.",
+      "stem": "Kabir says: ‘The reciprocal of $-\\frac{2}{9}$ is $\\frac{9}{2}$.’ Find his mistake.",
       "options": [
-        { "key": "A", "text": "Sign chhoot gaya — $-\\frac{2}{9} \\times \\frac{9}{2} = -1$ aata hai, 1 nahi. Sahi jawab $-\\frac{9}{2}$ hai" },
-        { "key": "B", "text": "Koi galti nahi hai" },
-        { "key": "C", "text": "Reciprocal $\\frac{2}{9}$ hona chahiye tha" },
-        { "key": "D", "text": "Negative numbers ka reciprocal hota hi nahi" }
+        {
+          "key": "A",
+          "text": "The sign got missed — $-\\frac{2}{9} \\times \\frac{9}{2} = -1$ comes, not 1. The correct answer is $-\\frac{9}{2}$"
+        },
+        {
+          "key": "B",
+          "text": "There is no mistake"
+        },
+        {
+          "key": "C",
+          "text": "The reciprocal should have been $\\frac{2}{9}$"
+        },
+        {
+          "key": "D",
+          "text": "Negative numbers do not have reciprocals at all"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m3", "C": "m1", "D": "m2" },
-      "solution": "Reciprocal ki shart hai guna karne par thik $1$ aaye. $-\\frac{2}{9} \\times \\frac{9}{2} = -1$ hai, jo 1 nahi. Sahi reciprocal $-\\frac{9}{2}$ hai: $-\\frac{2}{9} \\times -\\frac{9}{2} = 1$."
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m3",
+        "C": "m1",
+        "D": "m2"
+      },
+      "solution": "The condition for reciprocal is that on multiplying we should get exactly $1$. $-\\frac{2}{9} \\times \\frac{9}{2} = -1$, which is not 1. The correct reciprocal is $-\\frac{9}{2}$: $-\\frac{2}{9} \\times -\\frac{9}{2} = 1$."
     },
     {
       "id": "q-c8m-ch1-0077",
       "conceptId": "c8-math-ch1-t3-c2",
       "qtype": "nvt",
       "level": "L4",
-      "stem": "$a = \\frac{3}{8}$ hai. $a$ ke reciprocal me $a$ ka additive inverse jodo. Jawab dashamlav me char sthaan tak likho.",
-      "correct": { "value": 2.2917, "tol": 0.001, "exact": "8/3 - 3/8 = 64/24 - 9/24 = 55/24" },
-      "solution": "Reciprocal: $\\frac{8}{3}$. Additive inverse: $-\\frac{3}{8}$. Jodo: $\\frac{8}{3} - \\frac{3}{8} = \\frac{64}{24} - \\frac{9}{24} = \\frac{55}{24} \\approx 2.2917$."
+      "stem": "$a = \\frac{3}{8}$ is there. Add the additive inverse of $a$ to the reciprocal of $a$. Write the answer in decimal form up to four places.",
+      "correct": {
+        "value": 2.2917,
+        "tol": 0.001,
+        "exact": "8/3 - 3/8 = 64/24 - 9/24 = 55/24"
+      },
+      "solution": "Reciprocal: $\\frac{8}{3}$. Additive inverse: $-\\frac{3}{8}$. Add: $\\frac{8}{3} - \\frac{3}{8} = \\frac{64}{24} - \\frac{9}{24} = \\frac{55}{24} \\approx 2.2917$."
     },
     {
       "id": "q-c8m-ch1-0078",
       "conceptId": "c8-math-ch1-t3-c2",
       "qtype": "subjective",
       "level": "L4",
-      "stem": "0 ke alawa har rational number ka reciprocal hota hai. Samjhao ki 0 ko chhodna kyun zaroori hai, aur 1 aur $-1$ me kya khaas baat hai.",
+      "stem": "Every rational number except 0 has a reciprocal. Explain why it is necessary to leave out 0, and what is special about 1 and $-1$.",
       "correct": {
         "rubric": [
           "Reciprocal ki definition: guna karne par 1 aaye",
@@ -381,7 +608,7 @@
           "1 aur $-1$ apne khud ke reciprocal hain: $1 \\times 1 = 1$ aur $-1 \\times -1 = 1$"
         ]
       },
-      "solution": "Reciprocal wo number hai jisse guna karne par 1 aaye. 0 ke saath ye kabhi nahi ho sakta, kyunki $0 \\times x = 0$ har $x$ ke liye — 1 aane ka koi rasta hi nahi. Formula se bhi dikhta hai: $\\frac{a}{b}$ ka reciprocal $\\frac{b}{a}$ hai, aur $a = 0$ pe $\\frac{b}{0}$ undefined ho jaata hai. 1 aur $-1$ khaas hain kyunki wo apne khud ke reciprocal hain — $1 \\times 1 = 1$ aur $-1 \\times -1 = 1$. Sirf yahi do rational numbers aisa karte hain."
+      "solution": "A reciprocal is the number which gives 1 when multiplied. With 0, this can never happen, because $0 \\times x = 0$ for every $x$ — there is no way to get 1. The formula also shows it: the reciprocal of $\\frac{a}{b}$ is $\\frac{b}{a}$, and at $a = 0$, $\\frac{b}{0}$ becomes undefined. 1 and $-1$ are special because they are their own reciprocals — $1 \\times 1 = 1$ and $-1 \\times -1 = 1$. Only these two rational numbers do this."
     }
   ]
 }

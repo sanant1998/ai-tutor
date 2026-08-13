@@ -61,7 +61,7 @@ export function VoiceButton({ sessionId, onTranscript, onDraft, disabled }: Prop
     setError("");
 
     if (!navigator.mediaDevices?.getUserMedia) {
-      setError("Is browser me mic support nahi hai. Type karke poochho.");
+      setError("This browser has no microphone support. Type your question instead.");
       return;
     }
 
@@ -69,7 +69,7 @@ export function VoiceButton({ sessionId, onTranscript, onDraft, disabled }: Prop
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch {
-      setError("Mic ki permission nahi mili. Browser settings me chalu karo.");
+      setError("Microphone permission was refused. Turn it on in your browser settings.");
       return;
     }
 
@@ -103,7 +103,7 @@ export function VoiceButton({ sessionId, onTranscript, onDraft, disabled }: Prop
         const payload = await response.json();
 
         if (!response.ok) {
-          setError(payload.error ?? "Awaaz samajh nahi aayi.");
+          setError(payload.error ?? "That could not be understood.");
           return;
         }
 
@@ -128,7 +128,7 @@ export function VoiceButton({ sessionId, onTranscript, onDraft, disabled }: Prop
         type="button"
         onClick={() => (state === "recording" ? stop() : void start())}
         disabled={disabled || state === "sending"}
-        aria-label={state === "recording" ? "Recording band karo" : "Bolkar poochho"}
+        aria-label={state === "recording" ? "Stop recording" : "Bolkar poochho"}
         className="flex h-11 w-11 items-center justify-center rounded-xl transition-opacity disabled:opacity-50"
         style={{
           background: state === "recording" ? "#dc262622" : text(0.05),

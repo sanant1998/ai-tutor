@@ -67,12 +67,28 @@ export function validateFile(file: ContentFile): Issue[] {
     if (seenSeq.has(concept.seq)) at(where, `Two concepts share seq ${concept.seq}.`);
     seenSeq.add(concept.seq);
 
+    /* Read through locals with a fallback, not off the object directly.
+     *
+     * The Concept type declares these arrays as required, and at this exact
+     * boundary that type is a claim about data nobody has checked yet — which
+     * is the entire reason this function exists. A concept drafted by a model,
+     * or pasted into the content console by hand, legitimately arrives without
+     * `formulas`, and `concept.formulas.forEach` then throws a TypeError out of
+     * the validator instead of returning the issues it was called for.
+     *
+     * It went unnoticed because every pack in content/ happens to fill all
+     * four arrays; the first thing to arrive without one was a chapter import,
+     * and the failure surfaced as "Could not reach the server". */
+    const misconceptions = concept.misconceptions ?? [];
+    const workedExamples = concept.worked_examples ?? [];
+    const formulas = concept.formulas ?? [];
+
     if (!concept.statement?.trim()) at(where, "statement is the definition; it cannot be blank.");
     if (!concept.hook?.trim()) {
       at(where, "No hook — the HOOK beat will have to invent an opener.", "warn");
     }
 
-    if (concept.misconceptions.length === 0) {
+    if (misconceptions.length === 0) {
       at(
         where,
         "No misconceptions. The CHECK beat has nothing specific to probe for, which is most of the value of a pack.",
@@ -80,7 +96,7 @@ export function validateFile(file: ContentFile): Issue[] {
     }
 
     const seenMisconception = new Set<string>();
-    concept.misconceptions.forEach((misconception, mIndex) => {
+    misconceptions.forEach((misconception, mIndex) => {
       const mWhere = `${where} misconceptions[${mIndex}]`;
       if (seenMisconception.has(misconception.id)) {
         at(mWhere, `Duplicate misconception id ${misconception.id} within this concept.`);
@@ -95,7 +111,7 @@ export function validateFile(file: ContentFile): Issue[] {
       }
     });
 
-    if (concept.worked_examples.length === 0) {
+    if (workedExamples.length === 0) {
       at(
         where,
         "No worked examples. The second reteach is meant to show a full solution, and without one the tutor writes its own.",
@@ -103,14 +119,14 @@ export function validateFile(file: ContentFile): Issue[] {
       );
     }
 
-    concept.worked_examples.forEach((example, eIndex) => {
-      if (example.steps.length === 0) {
+    workedExamples.forEach((example, eIndex) => {
+      if ((example.steps ?? []).length === 0) {
         at(`${where} worked_examples[${eIndex}]`, "A worked example with no steps is just an answer.");
       }
     });
 
     checkLatex(concept.statement, `${where}.statement`, at);
-    concept.formulas.forEach((formula, fIndex) => {
+    formulas.forEach((formula, fIndex) => {
       if (!formula.latex?.trim()) {
         at(`${where} formulas[${fIndex}]`, "A formula entry needs latex.");
       }
@@ -186,7 +202,7 @@ export function validateFile(file: ContentFile): Issue[] {
 
     /* A misconception nothing points at is a misconception the app can name
        but never detect. */
-    concept.misconceptions.forEach((misconception) => {
+    (concept.misconceptions ?? []).forEach((misconception) => {
       const key = `${concept.id}:${misconception.id}`;
       if (!probedMisconceptions.has(key)) {
         at(
@@ -295,7 +311,7 @@ function checkDistractors(
 
     if (!concept) return;
 
-    const known = concept.misconceptions.some((entry) => entry.id === misconceptionId);
+    const known = (concept.misconceptions ?? []).some((entry) => entry.id === misconceptionId);
     if (!known) {
       at(
         where,
@@ -371,6 +387,41 @@ export function validateCollection(files: ContentFile[]): Issue[] {
         severity: "error",
         where: id,
         message: `${count} files declare this topic id.`,
+      });
+    }
+  });
+
+  /* A chapter is repeated once per topic file, by design — five topic files in
+     chapter 1 each carry chapter 1. So a repeated chapter id is normal and a
+     repeated chapter id with DIFFERENT contents is not: it means two chapters
+     are trying to be the same row.
+   *
+   * The way this happens is not a typo. It is a second textbook. NCERT
+   * replaced the Class 8 Mathematics book with Ganita Prakash, whose chapter 1
+   * is "A Square and A Cube" where the old chapter 1 was "Rational Numbers" —
+   * and the id scheme in content/ derives the id from the number alone, so
+   * both want c8-math-ch1. The seeder upserts on id, so one title would
+   * silently replace the other and both books' topics would hang off whichever
+   * file the walk reached last. */
+  const seenChapter = new Map<string, { source: string; body: string }>();
+
+  files.forEach((file) => {
+    const body = JSON.stringify(file.chapter);
+    const first = seenChapter.get(file.chapter.id);
+
+    if (!first) {
+      seenChapter.set(file.chapter.id, { source: file.topic.id, body });
+      return;
+    }
+
+    if (first.body !== body) {
+      issues.push({
+        severity: "error",
+        where: `${file.topic.id} chapter ${file.chapter.id}`,
+        message:
+          `Chapter id also used by ${first.source}, with different contents ` +
+          `("${file.chapter.title}" here). Chapter ids are the primary key, so one ` +
+          `would overwrite the other. A new textbook needs new ids, not reused numbers.`,
       });
     }
   });

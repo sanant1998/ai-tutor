@@ -117,6 +117,38 @@ const CHECKS: Check[] = [
   { migration: "tenancy.sql", table: "content_drafts", column: "org_id" },
   { migration: "tenancy.sql", table: "orgs", column: "can_author" },
   { migration: "cron.sql", table: "parent_report_log" },
+
+  { migration: "schoolops.sql", table: "boards" },
+  { migration: "schoolops.sql", table: "grades" },
+  { migration: "schoolops.sql", table: "academic_years" },
+  { migration: "schoolops.sql", table: "student_records" },
+  /* The table teacher scope now comes from. Its absence means a subject
+     teacher can only be given a class by being made an org admin, which is the
+     whole school. */
+  { migration: "schoolops.sql", table: "teacher_assignments" },
+  { migration: "schoolops.sql", table: "student_section_history" },
+  { migration: "schoolops.sql", table: "import_jobs" },
+  { migration: "schoolops.sql", table: "sections", column: "academic_year_id" },
+
+  { migration: "licensing.sql", table: "licence_plans" },
+  { migration: "licensing.sql", table: "licences" },
+  { migration: "licensing.sql", table: "licence_seats" },
+  { migration: "licensing.sql", table: "org_invoices" },
+
+  { migration: "assessment.sql", table: "assignment_submissions" },
+  { migration: "assessment.sql", table: "tests" },
+  { migration: "assessment.sql", table: "test_attempts" },
+  { migration: "assessment.sql", table: "test_answers" },
+  { migration: "assessment.sql", table: "assignments", column: "max_marks" },
+
+  { migration: "comms.sql", table: "announcements" },
+  { migration: "comms.sql", table: "notifications" },
+  { migration: "comms.sql", table: "audit_logs" },
+
+  /* Onboarding reads this to decide whether to ask a child for their board.
+     Absent, every school student is asked and can answer wrongly. */
+  { migration: "schoolops.sql", table: "orgs", column: "board" },
+
   /* Added by the safety console. Its absence means compliance.sql was run
      before that console existed, and a reviewer's decision would be written
      over the excerpt it was based on. */
@@ -147,6 +179,28 @@ const FUNCTIONS: { migration: string; name: string; args: Record<string, unknown
   { migration: "tenancy.sql", name: "my_org_ids", args: {} },
   { migration: "tenancy.sql", name: "can_see_content", args: { p_org: null } },
   { migration: "compliance.sql", name: "purge_expired_data", args: {} },
+  { migration: "schoolops.sql", name: "section_roster", args: { p_section: null } },
+  {
+    migration: "licensing.sql",
+    name: "licence_covers_chapter",
+    args: { p_plan: "__probe__", p_chapter: "__probe__" },
+  },
+  { migration: "assessment.sql", name: "test_results", args: { p_test: null } },
+  /* Probed with a user that cannot exist, so it returns no rows rather than
+     somebody's school. onboard_school is NOT probed: it is revoked from every
+     PostgREST role on purpose, so "missing" and "correctly forbidden" look the
+     same from here — and the one call that would tell them apart creates a
+     school. */
+  {
+    migration: "onboarding.sql",
+    name: "school_defaults",
+    args: { p_user: "00000000-0000-0000-0000-000000000000" },
+  },
+  /* comms.sql is probed by its tables above, not by a function. The only
+     functions it has delete or redact rows, and a presence check that quietly
+     purges six months of notifications is a check nobody can afford to run
+     twice. purge_expired_data is already in this list on the same terms — that
+     one predates this note and is left alone rather than changed here. */
 ];
 
 async function main() {
@@ -239,6 +293,12 @@ async function main() {
     "billing.sql",
     "ratelimit.sql",
     "analytics.sql",
+    "tenancy.sql",
+    "schoolops.sql",
+    "licensing.sql",
+    "assessment.sql",
+    "comms.sql",
+    "onboarding.sql",
     "cron.sql",
   ];
 

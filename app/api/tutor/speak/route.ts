@@ -33,12 +33,14 @@ import { createHash } from "node:crypto";
 
 import { NextResponse } from "next/server";
 
-import { fail, requireUser } from "@/lib/ai/route";
+import { consume, release } from "@/lib/ai/quota";
+import { fail, requireStudent } from "@/lib/ai/route";
 import { languageOf } from "@/lib/language";
 import { MAX_SPOKEN_CHARS, speakable } from "@/lib/math/speak";
 import { reportError } from "@/lib/observability";
 import { callerIp, LIMIT_MESSAGE, takeLimit } from "@/lib/ratelimit";
 import { createAdminClient, isAdminConfigured } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -50,12 +52,16 @@ const BUCKET = "tutor-audio";
 const SIGNED_URL_SECONDS = 60 * 60;
 
 export async function POST(request: Request) {
-  const user = await requireUser();
+  const user = await requireStudent();
   if (!user.ok) return user.response;
 
   if (!isAdminConfigured()) return fail("Voice is not configured here.", 503);
 
-  const limit = await takeLimit("practice_attempt", callerIp(request));
+  /* Its own bucket. This used to share `practice_attempt` with the free
+     analytics beacon, so a page emitting events normally could use up the
+     allowance for a call that bills per character. The per-account daily quota
+     is taken further down, at the point synthesis actually happens. */
+  const limit = await takeLimit("audio", callerIp(request));
   if (!limit.allowed) return fail(LIMIT_MESSAGE, 429);
 
   let body: { sessionId?: string; seq?: number };
@@ -93,7 +99,7 @@ export async function POST(request: Request) {
 
   if (!consent?.granted || consent.withdrawn_at) {
     return fail(
-      "Awaaz wale feature ke liye parent ki alag anumati chahiye. Wo Privacy page se de sakte hain.",
+      "The audio feature needs a separate permission from a parent. They can give it from the Privacy page.",
       403,
     );
   }
@@ -122,7 +128,7 @@ export async function POST(request: Request) {
      "backslash frac five eight", which is worse than silence. */
   const text = speakable(turn.content as string, language).slice(0, MAX_SPOKEN_CHARS);
 
-  if (!text) return fail("Is message me bolne layak kuch nahi hai.", 422);
+  if (!text) return fail("There is nothing to read aloud in this message.", 422);
 
   /* --- Cache ------------------------------------------------------------ */
   const voice = process.env.AI_TTS_VOICE ?? "alloy";
@@ -144,6 +150,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ url: cached.data.signedUrl, cached: true });
   }
 
+  /* --- Quota, but only for a real synthesis ------------------------------
+     Taken here rather than at the top of the route on purpose: a cache hit
+     costs nothing, and charging a student a slot for replaying a sentence the
+     product has already paid for would make the allowance mean something
+     different from what the pricing page says it means. */
+  const supabase = await createClient();
+  const slot = await consume(supabase, user.value, "speak");
+  if (!slot.ok) return fail(slot.message, slot.status);
+
   /* --- Synthesise ------------------------------------------------------- */
   let audio: ArrayBuffer;
 
@@ -163,7 +178,10 @@ export async function POST(request: Request) {
     audio = await response.arrayBuffer();
   } catch (error) {
     await reportError("tutor.speak", error, { sessionId, seq, language });
-    return fail("Awaaz nahi ban paayi. Padh kar dekh lo — text wahi hai.", 502);
+    /* A provider outage is not the student's fault and should not cost them
+       one of the day's plays. */
+    await release(supabase, "speak");
+    return fail("The audio could not be made. Read it instead — the text is the same.", 502);
   }
 
   const { error: uploadError } = await admin.storage

@@ -40,6 +40,8 @@ import { fileURLToPath } from "node:url";
 
 import Anthropic from "@anthropic-ai/sdk";
 
+import { sendCompatible } from "@/lib/ai/compat";
+
 import type { Concept } from "@/lib/content/pack";
 import { extractVerdict, SAFE_DEFAULT, type Verdict } from "@/lib/ai/verdict";
 import { auditEquations } from "@/lib/math/verify";
@@ -135,16 +137,24 @@ async function callModel(
 
   const base = (options.baseUrl || "https://api.openai.com/v1").replace(/\/$/, "");
 
-  const response = await fetch(`${base}/chat/completions`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${options.key}` },
-    body: JSON.stringify({
-      model: options.model,
-      max_tokens: 900,
-      temperature: 0.6,
-      messages: [{ role: "system", content: system }, ...messages],
+  /* Shared with the app: lib/ai/compat.ts. This harness had its own copy of
+     the retry for about an hour, which is how long it took to notice that
+     lib/ai/stream.ts needed one too. */
+  const response = await sendCompatible((shape) =>
+    fetch(`${base}/chat/completions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${options.key}` },
+      body: JSON.stringify({
+        model: options.model,
+        [shape.tokenField]: 900,
+        /* 0.6 where the model allows it. The reasoning models do not, and
+           their default of 1 is what the suite then measures — worth knowing
+           when comparing scores across models rather than across commits. */
+        ...(shape.temperature ? { temperature: 0.6 } : {}),
+        messages: [{ role: "system", content: system }, ...messages],
+      }),
     }),
-  });
+  );
 
   if (!response.ok) throw new Error(`${response.status}: ${(await response.text()).slice(0, 200)}`);
 
@@ -336,13 +346,28 @@ async function main() {
     }
   }
 
-  const rows = readFileSync(resolve(ROOT, "evals/golden/teaching.jsonl"), "utf8")
-    .split(/\r?\n/)
-    .filter((line) => line.trim())
-    .map((line) => JSON.parse(line) as Row)
-    .slice(0, limit);
+  /* The golden set, plus every regression anyone has filed.
+   *
+   * `readJsonl` has been in this file since the beginning and nothing called
+   * it: the run read `golden/teaching.jsonl` directly, so evals/regressions/
+   * — the folder whose README describes it as the thing that compounds — was
+   * never opened. A regression added there was a file, not a test.
+   *
+   * The flow audit did not catch it, because it checks that evals/run.ts
+   * MENTIONS evals/regressions, and it does: in a closing line of advice
+   * telling the reader to put failures in that folder.
+   *
+   * Regressions come first. They are the cases that have already been wrong
+   * once, they are the cheapest signal in the suite, and on a `--limit` run
+   * they are the ones worth spending the budget on. */
+  const golden = readJsonl("evals/golden");
+  const regressions = readJsonl("evals/regressions");
 
-  console.log(`${rows.length} rows · prompt ${PROMPT_VERSION} · tutor ${tutor.model}\n`);
+  const rows = [...regressions, ...golden].slice(0, limit);
+
+  console.log(
+    `${rows.length} rows (${regressions.length} regression, ${golden.length} golden) · prompt ${PROMPT_VERSION} · tutor ${tutor.model}\n`,
+  );
 
   /* --- Run -------------------------------------------------------------- */
   let checksRun = 0;

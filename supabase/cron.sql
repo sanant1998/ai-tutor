@@ -91,6 +91,29 @@ select cron.schedule(
   $$ select public.purge_expired_data(); $$
 );
 
+-- 02:45 UTC = 08:15 IST. Fifteen minutes after the main purge, not alongside
+-- it: both take row locks on tables the other does not touch, and running them
+-- together only makes a slow morning harder to read in the logs.
+--
+-- comms.sql owns this one rather than adding a branch to purge_expired_data,
+-- so the two retention rules can be read separately — notifications go at 180
+-- days, audit rows keep the fact and lose the payload at two years.
+select cron.schedule(
+  'paperpath-purge-comms',
+  '45 2 * * *',
+  $$ select public.purge_comms(); $$
+);
+
+-- 02:50 UTC = 08:20 IST. The failed rows of a roster import name children who
+-- do not have accounts yet — the one store of personal data written by a
+-- school rather than by a user, and the one nothing else in the retention
+-- story covers.
+select cron.schedule(
+  'paperpath-purge-imports',
+  '50 2 * * *',
+  $$ select public.purge_import_errors(); $$
+);
+
 -- Hourly. A grace window that expired at 3am should not buy a free morning.
 select cron.schedule(
   'paperpath-grace',

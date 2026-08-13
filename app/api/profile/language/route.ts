@@ -51,17 +51,17 @@ export async function PATCH(request: Request) {
   /* Checked against the list rather than stored as given. The column has no
      constraint, and an unknown value would silently fall back to Hinglish at
      read time — which looks like the picker not working. */
-  if (!isLanguage(language)) return fail("Ye language available nahi hai.", 400);
+  if (!isLanguage(language)) return fail("That language is not available.", 400);
 
   const { error } = await createAdminClient()
     .from("profiles")
     .update({ language })
     .eq("id", user.value);
 
-  if (error) return fail("Save nahi ho paaya.", 500);
+  if (error) return fail("That could not be saved.", 500);
 
   /* Takes effect on the next turn, not the current one: a session in flight
      keeps the language it started in, because switching mid-conversation reads
      as the tutor losing the thread. */
-  return NextResponse.json({ language, note: "Agle session se lagoo hoga." });
+  return NextResponse.json({ language, note: "This takes effect from the next session." });
 }

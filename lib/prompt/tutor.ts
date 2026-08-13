@@ -196,11 +196,11 @@ export function beatInstruction(context: BeatContext): string {
   switch (context.beat) {
     case "HOOK":
       return `BEAT: HOOK
-CONTENT PACK ka HOOK istemaal karke topic shuru karo — apna naya hook mat banao. Ant me wahi curiosity wala sawal poochho jo hook me hai. Definition abhi mat do. 80 shabd se kam.`;
+Open with the HOOK from the CONTENT PACK — do not invent your own. End on the curiosity question the hook already asks. No definition yet. Under 80 words.`;
 
     case "TEACH":
       return `BEAT: TEACH
-CONCEPT ko teen chhote steps me samjhao, STATEMENT ke aadhar pe. CONTENT PACK me se ek worked example dikhao — naya example mat banao. Formula pack me se hi lo. Ant me koi sawal mat poochho; agla beat wo karega.`;
+Explain the CONCEPT in three short steps, built on its STATEMENT. Show one worked example FROM the CONTENT PACK — do not write a new one. Take any formula from the pack. Ask nothing at the end; the next beat does that.`;
 
     case "CHECK": {
       const target = context.targetMisconception;
@@ -208,11 +208,13 @@ CONCEPT ko teen chhote steps me samjhao, STATEMENT ke aadhar pe. CONTENT PACK me
       return `BEAT: CHECK
 ${
   target
-    ? `Ek chhota sawal poochho jo THEEK is galat samajh ko pakde: "${target.wrong_belief}". Pack ka PROBE ise seedha poochhta hai — usi tarah ka sawal banao: ${target.probe}`
-    : `Ek chhota sawal poochho jo dekhe ki student ne concept samjha ya sirf sun liya.`
+    ? `Ask one short question that catches EXACTLY this wrong belief: "${target.wrong_belief}". The pack's PROBE asks it directly — build a question like it: ${target.probe}
+
+If the student's reply shows that belief, the verdict MUST carry misconception_id "${target.id}". This beat exists to find out whether they hold it; answering "yes they do" with a null id throws away the only thing the turn was for.`
+    : `Ask one short question that shows whether the student understood the concept or only listened to it.`
 }
 
-Answer mat do. Pehla step mat do. Hint bhi tab tak nahi jab tak student koshish na kare. Sirf ek sawal, 40 shabd se kam.`;
+Do not give the answer. Do not give the first step. No hint either until the student has tried. One question, under 40 words.`;
     }
 
     case "RETEACH": {
@@ -221,22 +223,22 @@ Answer mat do. Pehla step mat do. Hint bhi tab tak nahi jab tak student koshish 
       return `BEAT: RETEACH (attempt ${context.reteachCount})
 ${RETEACH_BRIEF[strategy]}
 
-Student ko blame mat karo aur "jaise maine pehle bataya" mat likho. Galti par nahi, samajh par kaam karo.`;
+Do not blame the student and never write "as I explained before". Work on the understanding, not on the mistake.`;
     }
 
     case "SUMMARY":
       return `BEAT: SUMMARY
 ${
   context.forced === "reteach"
-    ? "Student ko ye concept abhi tak nahi aaya. Isliye: teen line me poora concept dohrao, ek formula yaad karao, aur saaf-saaf batao ki ye topic kuch din baad phir aayega — usme koi sharm ki baat nahi. Ummeed wali baat pe khatam karo."
+    ? "The student has not got this concept yet. So: restate the whole concept in three lines, remind them of one formula, and say plainly that this topic will come back in a few days — there is no shame in that. End on something hopeful."
     : context.forced === "time"
-      ? "Session lamba ho gaya hai. Teen bullet me aaj ka nichod do, ek formula recall karao, aur break lene ko bolo. 60 shabd."
-      : "Teen bullet me aaj ka nichod do aur ek formula recall karao. Student ne jo theek kiya usko naam lekar saraho. 60 shabd se kam."
+      ? "The session has run long. Three bullets of what today came to, recall one formula, and tell them to take a break. 60 words."
+      : "Three bullets of what today came to, and recall one formula. Name one thing the student got right. Under 60 words."
 }`;
 
     case "DONE":
       return `BEAT: DONE
-Session khatam ho chuka hai. Ek line me vidai lo.`;
+The session is over. Sign off in one line.`;
   }
 }
 
@@ -289,7 +291,8 @@ ${languageInstruction(input.student.language)}`;
     { role: "user", content: context },
     {
       role: "assistant",
-      content: "Samajh gaya. Main sirf content pack se padhaunga aur ant me verdict block dunga.",
+      content:
+        "Understood. I will teach only from the content pack and end with the verdict block.",
     },
   ];
 

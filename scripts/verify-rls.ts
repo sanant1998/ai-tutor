@@ -266,6 +266,14 @@ async function main() {
       "content_drafts",
       "billing_events",
       "rate_limits",
+      /* The trail of who did what to whose child. Readable by an org admin
+         through a policy that checks the role; a student is neither. */
+      "audit_logs",
+      /* Error rows in an import name other people's children. */
+      "import_jobs",
+      /* The paper. bank_questions has no select policy and this is the join
+         table that would otherwise hand out the ids one at a time. */
+      "test_questions",
     ]) {
       check(
         `a student cannot select ${table}`,
@@ -323,16 +331,23 @@ async function main() {
          with no readable parent would pass for the wrong reason. */
       const suffix = `probe-${stamp}`;
 
-      await admin.from("subjects").insert({
+      /* subject_id is unique per run, not "maths".
+         subjects is unique on (board, class_level, subject_id, language), and
+         a seeded database already HAS cbse/8/maths — so the fixed value
+         collided, the insert failed, and the chapter and topic below never
+         existed. The org-can-see-its-own-material check then failed because
+         there was nothing to see, which reads exactly like a policy that is
+         too tight. The probe has to be unable to collide with real content. */
+      const subjectInsert = await admin.from("subjects").insert({
         id: `sub-${suffix}`,
         org_id: orgB.id,
         board: "cbse",
         class_level: 8,
-        subject_id: "maths",
+        subject_id: `probe-${stamp}`,
         name: "Probe",
       });
 
-      await admin.from("chapters").insert({
+      const chapterInsert = await admin.from("chapters").insert({
         id: `ch-${suffix}`,
         org_id: orgB.id,
         subject_ref: `sub-${suffix}`,
@@ -340,7 +355,7 @@ async function main() {
         title: "Probe chapter",
       });
 
-      await admin.from("topics").insert({
+      const topicInsert = await admin.from("topics").insert({
         id: `top-${suffix}`,
         org_id: orgB.id,
         chapter_ref: `ch-${suffix}`,
@@ -349,6 +364,20 @@ async function main() {
       });
 
       probeIds.push(`top-${suffix}`, `ch-${suffix}`, `sub-${suffix}`);
+
+      /* Checked, and checked BEFORE the policy assertions that depend on them.
+         A fixture that failed to insert makes every later check answer a
+         question nobody asked — and the answer looks like a privacy bug. */
+      const fixtureError =
+        subjectInsert.error?.message ??
+        chapterInsert.error?.message ??
+        topicInsert.error?.message;
+
+      check(
+        "the tenancy probe's own curriculum was created",
+        !fixtureError,
+        fixtureError ?? "",
+      );
 
       const acrossTenants = await alice.client
         .from("topics")

@@ -17,7 +17,6 @@ export const ONBOARDING_TOTAL_STEPS = 5;
 
 import {
   BOARDS,
-  CLASSES,
   chaptersFor,
   isCovered,
   subjectsFor,

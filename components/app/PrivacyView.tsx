@@ -56,7 +56,7 @@ export function PrivacyView({ userId }: { userId: string }) {
       const response = await fetch("/api/consent");
       const payload = await response.json();
       if (response.ok) setConsent(payload);
-      else setMessage(payload.error ?? "Load nahi ho paaya.");
+      else setMessage(payload.error ?? "That could not be loaded.");
     } catch {
       setMessage("Network problem.");
     }
@@ -106,8 +106,8 @@ export function PrivacyView({ userId }: { userId: string }) {
 
       setMessage(
         response.ok
-          ? `Request darj ho gayi. ${new Date(payload.hardDeleteAfter).toLocaleDateString("en-IN")} tak data hata diya jaayega. Us din se pehle sign in karke cancel kar sakte hain.${payload.retained ? ` ${payload.retained}` : ""}`
-          : (payload.error ?? "Request nahi ho paayi."),
+          ? `Request recorded. The data will be removed by ${new Date(payload.hardDeleteAfter).toLocaleDateString("en-IN")}. You can sign in and cancel any time before that day.${payload.retained ? ` ${payload.retained}` : ""}`
+          : (payload.error ?? "The request could not be made."),
       );
 
       setConfirmDelete(false);
@@ -177,13 +177,13 @@ export function PrivacyView({ userId }: { userId: string }) {
               </p>
               <p className="mt-1.5 text-[12px]" style={{ color: text(0.45) }}>
                 {purpose.granted
-                  ? `Di gayi${purpose.grantedAt ? ` ${new Date(purpose.grantedAt).toLocaleDateString("en-IN")}` : ""}`
-                  : "Nahi di gayi"}
-                {purpose.required ? " · zaroori" : ""}
+                  ? `Given${purpose.grantedAt ? ` ${new Date(purpose.grantedAt).toLocaleDateString("en-IN")}` : ""}`
+                  : "Not given"}
+                {purpose.required ? " · required" : ""}
                 {/* A grant made against an older policy is still a grant. Said
                     here rather than acted on — locking a child out over a
                     wording change would be worse than the drift. */}
-                {purpose.stale ? " · policy tab se badli hai" : ""}
+                {purpose.stale ? " · the policy has changed since" : ""}
               </p>
             </div>
 
@@ -197,7 +197,7 @@ export function PrivacyView({ userId }: { userId: string }) {
                 {busy === purpose.key ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
                 ) : (
-                  "Wapas lo"
+                  "Withdraw"
                 )}
               </Button>
             )}
@@ -277,7 +277,7 @@ export function PrivacyView({ userId }: { userId: string }) {
                   {busy === "delete" ? (
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   ) : (
-                    "Haan, delete karo"
+                    "Yes, delete it"
                   )}
                 </Button>
 
@@ -305,7 +305,7 @@ export function PrivacyView({ userId }: { userId: string }) {
             {GRIEVANCE_OFFICER.respondsWithinDays} din ke andar.
           </p>
         ) : (
-          <p className="text-[13px] text-amber-700 dark:text-amber-400">
+          <p className="text-[13px] text-[var(--warn)]">
             Grievance officer not configured. Set
             NEXT_PUBLIC_GRIEVANCE_OFFICER_NAME and
             NEXT_PUBLIC_GRIEVANCE_OFFICER_EMAIL — publishing this contact is

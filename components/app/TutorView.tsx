@@ -57,18 +57,18 @@ const BEAT_LABEL: Record<Beat, string> = {
   HOOK: "Shuruaat",
   TEACH: "Samjho",
   CHECK: "Check",
-  RETEACH: "Ek baar aur",
-  SUMMARY: "Nichod",
-  DONE: "Ho gaya",
+  RETEACH: "Once more",
+  SUMMARY: "Wrap-up",
+  DONE: "Done",
 };
 
 const BEAT_HINT: Record<Beat, string> = {
-  HOOK: "Padho, phir batao kya lagta hai.",
-  TEACH: "Samajh aaya to 'samajh gaya' likho — nahi aaya to bhi likho.",
-  CHECK: "Apna jawab likho. Galat hone se kuch nahi bigadta.",
-  RETEACH: "Ab dobara — is baar alag tareeke se.",
-  SUMMARY: "Aaj ka nichod.",
-  DONE: "Ye concept poora hua.",
+  HOOK: "Read it, then tell me what you think.",
+  TEACH: "Got it? Say so — and say so if you did not.",
+  CHECK: "Write your answer. Being wrong costs nothing here.",
+  RETEACH: "Again — a different way this time.",
+  SUMMARY: "What today came to.",
+  DONE: "This concept is done.",
 };
 
 export function TutorView({ topicId }: { topicId: string }) {
@@ -110,8 +110,8 @@ export function TutorView({ topicId }: { topicId: string }) {
 
           setError(
             payload.blockedBy?.length
-              ? `Pehle ye poora karo: ${payload.blockedBy.map((topic: { title: string }) => topic.title).join(", ")}`
-              : (payload.error ?? "Session shuru nahi ho paaya."),
+              ? `Finish these first: ${payload.blockedBy.map((topic: { title: string }) => topic.title).join(", ")}`
+              : (payload.error ?? "The session could not be started."),
           );
           return;
         }
@@ -127,7 +127,7 @@ export function TutorView({ topicId }: { topicId: string }) {
            screen. */
         if ((state.turns ?? []).length === 0) void send("", state.sessionId);
       } catch {
-        if (!cancelled) setError("Network problem. Dobara try karo.");
+        if (!cancelled) setError("Network problem. Try again.");
       }
     })();
 
@@ -175,7 +175,7 @@ export function TutorView({ topicId }: { topicId: string }) {
 
         if (!response.ok || !response.body) {
           const payload = await response.json().catch(() => ({}));
-          throw new Error(payload.error ?? "Jawab nahi aaya.");
+          throw new Error(payload.error ?? "No reply came back.");
         }
 
         const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
@@ -248,13 +248,13 @@ export function TutorView({ topicId }: { topicId: string }) {
             }
 
             if (event === "error") {
-              setError(String(data.message ?? "Kuch gadbad hui."));
+              setError(String(data.message ?? "Something went wrong."));
               setTurns((current) => current.filter((turn) => !turn.pending));
             }
           }
         }
       } catch (caught) {
-        setError(caught instanceof Error ? caught.message : "Kuch gadbad hui.");
+        setError(caught instanceof Error ? caught.message : "Something went wrong.");
         setTurns((current) => current.filter((turn) => !turn.pending));
       } finally {
         setStreaming(false);
@@ -302,7 +302,7 @@ export function TutorView({ topicId }: { topicId: string }) {
             className="rounded-full px-3 py-1 font-mono text-[11px] font-bold uppercase tracking-[0.14em]"
             style={{ background: acc(0.14), color: acc() }}
             role="status"
-            aria-label={`Abhi: ${BEAT_LABEL[beat]}`}
+            aria-label={`Now: ${BEAT_LABEL[beat]}`}
           >
             {BEAT_LABEL[beat]}
           </span>
@@ -321,7 +321,7 @@ export function TutorView({ topicId }: { topicId: string }) {
         role="log"
         aria-live="polite"
         aria-atomic="false"
-        aria-label="Tutor se baat-cheet"
+        aria-label="Conversation with the tutor"
         className="flex-1 space-y-4 overflow-y-auto rounded-2xl p-5"
         style={{ background: text(0.035), border: `1px solid ${text(0.08)}` }}
       >
@@ -352,7 +352,7 @@ export function TutorView({ topicId }: { topicId: string }) {
                     role="status"
                   >
                     <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
-                    <span className="text-[13px]">soch raha hoon…</span>
+                    <span className="text-[13px]">thinking…</span>
                   </div>
                 ) : (
                   <>
@@ -380,7 +380,7 @@ export function TutorView({ topicId }: { topicId: string }) {
         <Panel className="flex items-start gap-3 px-5 py-4">
           <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" style={{ color: text(0.6) }} />
           <p className="text-[14px]" style={{ color: text(0.7) }}>
-            Ye session yahin roka gaya hai. Kisi bade se baat karo — hum yahin hain jab tum wapas aao.
+            This session is paused here. Please talk to an adult — we will be here when you come back.
           </p>
         </Panel>
       )}
@@ -391,7 +391,7 @@ export function TutorView({ topicId }: { topicId: string }) {
       {done && !blocked && (
         <Panel className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
           <p className="text-[15px]" style={{ color: text(0.85) }}>
-            Ye concept ho gaya. Ab kuch sawal karke pakka karte hain.
+            That concept is done. Now let us lock it in with a few questions.
           </p>
 
           <Link
@@ -399,7 +399,7 @@ export function TutorView({ topicId }: { topicId: string }) {
             className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-[14px] font-semibold"
             style={{ background: acc(0.16), color: acc() }}
           >
-            Practice karo
+            Practise
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </Panel>
@@ -418,8 +418,8 @@ export function TutorView({ topicId }: { topicId: string }) {
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             disabled={streaming || done}
-            aria-label={`Jawab likho. ${BEAT_HINT[beat]}`}
-            placeholder={done ? "Ye concept poora ho gaya." : BEAT_HINT[beat]}
+            aria-label={`Write your answer. ${BEAT_HINT[beat]}`}
+            placeholder={done ? "This concept is finished." : BEAT_HINT[beat]}
             className="flex-1 rounded-xl px-4 py-3 text-[15px] outline-none"
             style={{
               background: text(0.04),

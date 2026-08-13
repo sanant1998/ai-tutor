@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Bell, CalendarDays, Map, RotateCw, TrendingUp, X } from "lucide-react";
 
 import { JourneyTab } from "@/components/app/roadmap/JourneyTab";
@@ -28,14 +28,26 @@ export function RoadmapModule() {
   const [tab, setTab] = useState<Tab>("journey");
   const { state, progress, now } = useAppData();
   const [reminderOpen, setReminderOpen] = useState(true);
-  /* Bumped by Regenerate, which re-derives the plan from the same answers. */
-  const [seed, setSeed] = useState(0);
+
+  /* Regenerate re-derives the plan against the CURRENT time.
+   *
+   * It used to bump a counter that was listed in the dependency array below
+   * and read by nothing. `buildSchedule` is deterministic in its three
+   * arguments, so recomputing with all three unchanged returned the identical
+   * plan — the button re-rendered the same days and looked, to a student who
+   * pressed it because they had fallen behind, exactly like a broken feature.
+   *
+   * The date is the input that has actually moved since the page loaded, and
+   * rebuilding from it is what "regenerate" was always supposed to mean: the
+   * remaining work redistributed over the days that are left. */
+  const [regeneratedAt, setRegeneratedAt] = useState<Date | null>(null);
+  const planFrom = regeneratedAt ?? now;
 
   const roadmap = useMemo(() => buildRoadmap(state), [state]);
 
   const days: PlannedDay[] = useMemo(
-    () => (now ? buildSchedule(state, roadmap, now) : []),
-    [state, roadmap, now, seed],
+    () => (planFrom ? buildSchedule(state, roadmap, planFrom) : []),
+    [state, roadmap, planFrom],
   );
 
   const sessions = totalSessions(days);
@@ -126,7 +138,7 @@ export function RoadmapModule() {
 
             <button
               type="button"
-              onClick={() => setSeed((value) => value + 1)}
+              onClick={() => setRegeneratedAt(new Date())}
               className="inline-flex items-center gap-2 rounded-lg px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-[0.14em] transition-colors"
               style={{ background: text(0.05), color: text(0.5) }}
             >

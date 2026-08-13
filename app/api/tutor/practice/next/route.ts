@@ -18,7 +18,7 @@ import { NextResponse } from "next/server";
 
 import { chapterAccess, chapterOfTopic, PAYWALL_MESSAGE } from "@/lib/billing/access";
 import { scoped, visibleTo } from "@/lib/tenancy";
-import { fail, requireUser } from "@/lib/ai/route";
+import { fail, requireStudent } from "@/lib/ai/route";
 import { createAdminClient, isAdminConfigured } from "@/lib/supabase/admin";
 
 
@@ -27,7 +27,7 @@ export const runtime = "nodejs";
 const LEVELS = ["L1", "L2", "L3", "L4"] as const;
 
 export async function GET(request: Request) {
-  const user = await requireUser();
+  const user = await requireStudent();
   if (!user.ok) return user.response;
 
   if (!isAdminConfigured()) {
@@ -105,21 +105,30 @@ export async function GET(request: Request) {
   let repeat = false;
 
   if (!question) {
-    const { data: any } = await scoped(
+    /* The same query without the "not already seen" filter — and, crucially,
+       WITH the concept filter still applied. Dropping it here (the fallback
+       used to rebuild the query from scratch and forget it) meant a student
+       working on one concept could be handed a repeat from a different one,
+       which reads as the app losing its place rather than as revision. */
+    let repeats = scoped(
       admin
         .from("bank_questions")
         .select("id, qtype, level, stem, options, marks, concept_ref, org_id")
         .eq("topic_ref", topicId)
         .eq("level", level),
       visibility,
-    ).limit(10);
+    );
 
-    question = pick(any ?? []);
+    if (conceptId) repeats = repeats.eq("concept_ref", conceptId);
+
+    const { data: seenBefore } = await repeats.limit(10);
+
+    question = pick(seenBefore ?? []);
     repeat = Boolean(question);
   }
 
   if (!question) {
-    return fail(`Is topic pe ${level} level ke questions abhi seed nahi hue.`, 404);
+    return fail(`No ${level} questions have been seeded for this topic yet.`, 404);
   }
 
   return NextResponse.json({

@@ -11,7 +11,7 @@ import { NextResponse } from "next/server";
 
 import { structured } from "@/lib/ai/client";
 import { consume, release } from "@/lib/ai/quota";
-import { aiFailure, fail, requireUser } from "@/lib/ai/route";
+import { aiFailure, fail, requireStudent } from "@/lib/ai/route";
 import { BOARD_CONTEXT, HOUSE_STYLE } from "@/lib/ai/style";
 import { errorKind, readinessFor, type Attempt, type ErrorType } from "@/lib/mastery";
 import { createClient } from "@/lib/supabase/server";
@@ -96,7 +96,7 @@ type FixSheet = {
 };
 
 export async function POST(request: Request) {
-  const user = await requireUser();
+  const user = await requireStudent();
   if (!user.ok) return user.response;
 
   let body: { subjectId?: unknown; chapterId?: unknown };

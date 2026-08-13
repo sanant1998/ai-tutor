@@ -20,6 +20,7 @@ import { useCallback, useEffect, useState } from "react";
 import { AlertTriangle, Check, Loader2, RefreshCw, X } from "lucide-react";
 
 import { Maths, TutorMessage } from "@/components/app/Maths";
+import { UploadDraft } from "@/components/admin/UploadDraft";
 import { Button } from "@/components/ui/button";
 
 type Issue = { severity: "error" | "warn"; where: string; message: string };
@@ -44,6 +45,7 @@ export function ContentConsole({
   reviewer,
   superAdmin,
   orgIds,
+  canAuthor,
 }: {
   reviewer: string;
   /* The vendor's queue mixes every customer together, so each row has to say
@@ -52,6 +54,8 @@ export function ContentConsole({
      label would be noise and the header line says it once instead. */
   superAdmin: boolean;
   orgIds: string[];
+  /* Resolved server-side from orgs.can_author. See app/admin/content/page.tsx. */
+  canAuthor: boolean;
 }) {
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [filter, setFilter] = useState<string>("in_review");
@@ -199,6 +203,13 @@ export function ContentConsole({
           {message}
         </p>
       )}
+
+      {/* Its own row rather than a header control: collapsed it is one button,
+          and open it is a full-width editor. Inside the header's flex group the
+          expanded panel would be squeezed into a column. */}
+      <div className="mb-5">
+        <UploadDraft canAuthor={canAuthor} onUploaded={() => void load()} />
+      </div>
 
       <div className="grid gap-5 lg:grid-cols-[280px_1fr]">
         <aside className="space-y-2">

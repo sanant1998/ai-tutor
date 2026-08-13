@@ -97,7 +97,7 @@ export function PracticeView({ topicId }: { topicId: string }) {
       }
 
       if (!response.ok) {
-        setError(payload.error ?? "Question load nahi hua.");
+        setError(payload.error ?? "The question did not load.");
         return;
       }
 
@@ -141,7 +141,7 @@ export function PracticeView({ topicId }: { topicId: string }) {
       const payload = await response.json();
 
       if (!response.ok) {
-        setError(payload.error ?? "Marking nahi ho paayi.");
+        setError(payload.error ?? "That could not be marked.");
         return;
       }
 
@@ -265,8 +265,8 @@ export function PracticeView({ topicId }: { topicId: string }) {
             onChange={(event) => setTyped(event.target.value)}
             disabled={answered}
             rows={5}
-            aria-label="Apna jawab likho"
-            placeholder="Apne shabdon me likho. Steps dikhaoge to behtar."
+            aria-label="Write your answer"
+            placeholder="In your own words. Showing your steps is better."
             className="w-full rounded-xl px-4 py-3 text-[15px] outline-none"
             style={{ background: text(0.04), border: `1px solid ${text(0.1)}`, color: text(0.9) }}
           />
@@ -343,7 +343,7 @@ export function PracticeView({ topicId }: { topicId: string }) {
             }
             className="px-5"
           >
-            {marking ? <Loader2 className="h-4 w-4 animate-spin" /> : "Check karo"}
+            {marking ? <Loader2 className="h-4 w-4 animate-spin" /> : "Check"}
           </Button>
         ) : (
           <Button type="button" onClick={() => void next()} className="px-5">

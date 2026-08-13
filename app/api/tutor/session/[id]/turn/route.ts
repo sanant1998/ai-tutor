@@ -26,7 +26,7 @@
  * costs about a second. So checks are held back until they have been read by
  * the leak detector, and nothing else is. */
 
-import { aiFailure, fail, requireUser } from "@/lib/ai/route";
+import { aiFailure, fail, requireStudent } from "@/lib/ai/route";
 import { trackFor, trackSystem } from "@/lib/analytics/server";
 import { consume, release } from "@/lib/ai/quota";
 import { makeSanitizer } from "@/lib/ai/sanitize";
@@ -45,7 +45,7 @@ import { createClient } from "@/lib/supabase/server";
 import { updateTopicMastery } from "@/lib/pedagogy/mastery";
 import {
   applyTransition,
-  expectedAnswerFor,
+  expectedAnswersFor,
   loadSession,
   loadStudentSnapshot,
   loadTeachingContext,
@@ -62,7 +62,7 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const user = await requireUser();
+  const user = await requireStudent();
   if (!user.ok) return user.response;
 
   const { id } = await params;
@@ -238,11 +238,13 @@ export async function POST(
         : null,
     },
     history,
-    studentMessage: message || "(student ne kuch nahi likha — shuru karo)",
+    studentMessage: message || "(the student wrote nothing — make a start)",
   });
 
   const buffered = session.current_beat === "CHECK";
-  const expectedAnswer = buffered ? await expectedAnswerFor(context.concept.id) : null;
+  /* Every answer this concept is examined on, not just the first question's —
+     the tutor writes its own check, so any of them is a leak. */
+  const expectedAnswers = buffered ? await expectedAnswersFor(context.concept.id) : [];
 
   /* --- 4-6 -------------------------------------------------------------- */
   return sse(async (send: Send) => {
@@ -312,7 +314,7 @@ export async function POST(
         .catch(() => null)) as { error?: string } | null;
 
       send("error", {
-        message: payload?.error ?? "Jawab nahi aa paaya. Thodi der me dobara try karo.",
+        message: payload?.error ?? "No reply came back. Try again in a moment.",
       });
       return;
     }
@@ -323,7 +325,7 @@ export async function POST(
 
     const leak = checkOutput(text, {
       beat: session.current_beat,
-      answer: expectedAnswer,
+      answers: expectedAnswers,
     });
 
     if (leak) {
@@ -337,8 +339,8 @@ export async function POST(
          just watched it produce one that did, is not a reliable fix. */
       text =
         leak === "answer_leak"
-          ? `${misconception?.probe ?? "Chalo ek sawal — apne shabdon me batao is concept ka matlab kya hai?"}`
-          : "Chalo ek chhota sawal — batao is concept ka matlab apne shabdon me kya hai?";
+          ? `${misconception?.probe ?? "Here is a question — in your own words, what does this concept mean?"}`
+          : "One short question — in your own words, what does this concept mean?";
     }
 
     /* Exact fractions first, then the symbolic service where one is
@@ -359,7 +361,7 @@ export async function POST(
       /* Already streamed, so the correction is additive. The client appends it
          to the same bubble; the student sees the tutor catch itself, which
          reads better than a message that silently rewrites itself. */
-      const correction = `\n\nEk minute — upar ek line galat likh di maine: $${badMaths[0].claim}$ theek nahi hai (${badMaths[0].detail}). Baaki samjhaana wahi hai.`;
+      const correction = `\n\nOne moment — I wrote a line wrong above: $${badMaths[0].claim}$ is not right (${badMaths[0].detail}). The rest of the explanation stands.`;
 
       text += correction;
       if (!buffered) send("text", correction);

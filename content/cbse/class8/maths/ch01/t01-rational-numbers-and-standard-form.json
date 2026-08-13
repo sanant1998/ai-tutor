@@ -5,9 +5,13 @@
   "provenance": {
     "source": "NCERT Mathematics Class 8, Chapter 1 'Rational Numbers'. Definitions and standard form follow the textbook; the misconception list is not from the book — it is the set of errors that show up when Class 8 students are asked these questions, and each one is written so a distractor can point at it.",
     "verifiedOn": "2026-08-12",
-    "note": "The mathematics here is self-checking and does not depend on which NCERT printing a school uses. The CHAPTER NUMBER does: NCERT is mid-transition under NCF-SE 2023 and the Class 8 book is being replaced. Confirm 'Rational Numbers' is still chapter 1 in the book your students hold before showing a chapter number in the UI."
+    "note": "The mathematics here is self-checking and does not depend on which NCERT printing a school uses. The CHAPTER NUMBER does: NCERT is mid-transition under NCF-SE 2023 and the Class 8 book is being replaced. Confirm 'Rational Numbers' is still chapter 1 in the book your students hold before showing a chapter number in the UI. Prose translated to en-IN by scripts/translate-pack.ts using gpt-5.5 (135 of 135 strings); LaTeX, answers and distractor maps unchanged by construction. Not read by a subject expert since."
   },
-  "subject": { "id": "cbse-8-maths", "name": "Mathematics", "language": "en-IN" },
+  "subject": {
+    "id": "cbse-8-maths",
+    "name": "Mathematics",
+    "language": "en-IN"
+  },
   "chapter": {
     "id": "c8-math-ch1",
     "no": 1,
@@ -22,272 +26,363 @@
     "title": "Rational Numbers and Standard Form",
     "prereqTopicIds": []
   },
-
   "concepts": [
     {
       "id": "c8-math-ch1-t1-c1",
       "seq": 1,
       "title": "What a rational number is",
-      "statement": "Rational number wo number hai jise $\\frac{p}{q}$ ke roop me likha ja sake, jahan $p$ aur $q$ dono integers hain aur $q \\neq 0$. Har integer bhi rational hai, kyunki $5$ ko $\\frac{5}{1}$ likha ja sakta hai.",
-      "hook": "Socho ek pizza ke 8 barabar tukde hain aur tumne 3 khaye. Tumne $\\frac{3}{8}$ pizza khaya. Ab socho tumne poora pizza khaya — wo $\\frac{8}{8}$ yaani 1 hua. Aur agar tumne ek bhi tukda nahi khaya to $\\frac{0}{8}$ yaani 0. Ye teeno — 3 tukde, poora, aur kuch nahi — teeno rational numbers hain. Sawal ye hai: kya pizza ko 0 tukdon me baanta ja sakta hai?",
+      "statement": "A rational number is a number that can be written in the form $\\frac{p}{q}$, where $p$ and $q$ are both integers and $q \\neq 0$. Every integer is also rational, because $5$ can be written as $\\frac{5}{1}$.",
+      "hook": "Think of a pizza cut into 8 equal pieces, and you ate 3 of them. You ate $\\frac{3}{8}$ of the pizza. Now think that you ate the whole pizza — that is $\\frac{8}{8}$, meaning 1. And if you did not eat even one piece, that is $\\frac{0}{8}$, meaning 0. All three — 3 pieces, the whole, and nothing — are rational numbers. The question is: can a pizza be divided into 0 pieces?",
       "analogies": [
         {
           "id": "a1",
-          "text": "Rupee aur paise: 75 paise matlab $\\frac{75}{100}$ rupaye. Har paisa ek rational number hai."
+          "text": "Rupees and paise: 75 paise means $\\frac{75}{100}$ rupees. Every paisa is a rational number."
         },
         {
           "id": "a2",
-          "text": "Cricket ka run rate: 240 run 50 over me matlab $\\frac{240}{50}$ = 4.8 runs per over. Run rate hamesha ek rational number hota hai."
+          "text": "Cricket run rate: 240 runs in 50 overs means $\\frac{240}{50}$ = 4.8 runs per over. Run rate is always a rational number."
         }
       ],
       "formulas": [
         {
           "id": "f1",
           "latex": "\\frac{p}{q},\\ p \\in \\mathbb{Z},\\ q \\in \\mathbb{Z},\\ q \\neq 0",
-          "note": "Ye definition hai. q ≠ 0 sabse important shart hai."
+          "note": "This is the definition. q ≠ 0 is the most important condition."
         },
         {
           "id": "f2",
           "latex": "n = \\frac{n}{1}",
-          "note": "Isi wajah se har integer rational hai."
+          "note": "That is why every integer is rational."
         }
       ],
       "misconceptions": [
         {
           "id": "m1",
-          "wrong_belief": "Sirf fractions rational numbers hote hain. 7 jaisa poora number rational nahi hai.",
-          "why_wrong": "Definition kehti hai ki number ko $\\frac{p}{q}$ ke roop me likha ja SAKE — ye nahi ki wo pehle se fraction jaisa dikhe. 7 ko $\\frac{7}{1}$ likha ja sakta hai, to 7 rational hai.",
-          "correction": "Har integer rational hai. Denominator 1 laga do, ho gaya.",
-          "probe": "7 ko $\\frac{p}{q}$ ke roop me likh sakte ho? Agar haan, to kya 7 rational hai?"
+          "wrong_belief": "Only fractions are rational numbers. A whole number like 7 is not rational.",
+          "why_wrong": "The definition says the number SHOULD BE ABLE to be written in the form $\\frac{p}{q}$ — not that it must already look like a fraction. 7 can be written as $\\frac{7}{1}$, so 7 is rational.",
+          "correction": "Every integer is rational. Put denominator 1, and it is done.",
+          "probe": "Can you write 7 in the form $\\frac{p}{q}$? If yes, then is 7 rational?"
         },
         {
           "id": "m2",
-          "wrong_belief": "$\\frac{5}{0}$ ka matlab 0 hota hai, ya bahut bada number hota hai.",
-          "why_wrong": "$\\frac{5}{0}$ ka koi matlab hi nahi hai. Bhaag ka matlab hai 'kitne barabar hisson me baanta' — 0 hisson me baantna ek kaam hi nahi hai. Isliye q ≠ 0 definition ka hissa hai, koi extra niyam nahi.",
-          "correction": "Denominator kabhi 0 nahi. $\\frac{5}{0}$ rational number hai hi nahi — wo undefined hai.",
-          "probe": "$\\frac{0}{5}$ aur $\\frac{5}{0}$ — in dono me kaunsa rational number hai aur kaunsa hai hi nahi?"
+          "wrong_belief": "$\\frac{5}{0}$ means 0, or it means a very large number.",
+          "why_wrong": "$\\frac{5}{0}$ has no meaning at all. Division means 'into how many equal parts it is divided' — dividing into 0 parts is not even a valid action. So q ≠ 0 is part of the definition, not an extra rule.",
+          "correction": "The denominator is never 0. $\\frac{5}{0}$ is not a rational number at all — it is undefined.",
+          "probe": "Between $\\frac{0}{5}$ and $\\frac{5}{0}$, which one is a rational number and which one is not a number at all?"
         },
         {
           "id": "m3",
-          "wrong_belief": "Negative numbers rational nahi hote, kyunki hum unhe tukdon me nahi dekh sakte.",
-          "why_wrong": "Definition me likha hai p aur q integers hain — aur integers me negative bhi aate hain. $-\\frac{3}{4}$ me p = -3 hai, jo ek integer hai.",
-          "correction": "$-\\frac{3}{4}$ poori tarah rational hai. Negative hona koi rukawat nahi.",
-          "probe": "$-\\frac{3}{4}$ me p kya hai aur q kya hai? Dono integers hain kya?"
+          "wrong_belief": "Negative numbers are not rational, because we cannot see them as pieces.",
+          "why_wrong": "The definition says p and q are integers — and integers include negative numbers too. In $-\\frac{3}{4}$, p = -3, which is an integer.",
+          "correction": "$-\\frac{3}{4}$ is completely rational. Being negative is not a problem.",
+          "probe": "In $-\\frac{3}{4}$, what is p and what is q? Are both integers?"
         },
         {
           "id": "m4",
-          "wrong_belief": "0 rational number nahi hai kyunki wo 'kuch bhi nahi' hai.",
-          "why_wrong": "0 ko $\\frac{0}{1}$ likha ja sakta hai — p = 0 ek integer hai, q = 1 ek integer hai aur 0 nahi hai. Dono shartein poori hain.",
-          "correction": "0 rational hai. Numerator 0 ho sakta hai; sirf denominator 0 nahi ho sakta.",
-          "probe": "$\\frac{0}{7}$ ka maan kya hai, aur kya wo rational number hai?"
+          "wrong_belief": "0 is not a rational number because it is 'nothing'.",
+          "why_wrong": "0 can be written as $\\frac{0}{1}$ — p = 0 is an integer, q = 1 is an integer and is not 0. Both conditions are satisfied.",
+          "correction": "0 is rational. The numerator can be 0; only the denominator cannot be 0.",
+          "probe": "What is the value of $\\frac{0}{7}$, and is it a rational number?"
         }
       ],
       "worked_examples": [
         {
           "id": "we1",
-          "problem": "Batao ki $-6$ ek rational number hai ya nahi. Kaaran ke saath.",
+          "problem": "Say whether $-6$ is a rational number or not. Give a reason.",
           "steps": [
-            "Rational hone ke liye number ko $\\frac{p}{q}$ me likhna hoga, p aur q integers, q ≠ 0",
-            "$-6$ ko $\\frac{-6}{1}$ likh sakte hain",
-            "Yahan p = -6 (integer hai) aur q = 1 (integer hai, aur 0 nahi hai)",
-            "Dono shartein poori hain"
+            "To be rational, the number must be writable as $\\frac{p}{q}$, with p and q as integers, q ≠ 0",
+            "$-6$ can be written as $\\frac{-6}{1}$",
+            "Here p = -6 (an integer) and q = 1 (an integer, and not 0)",
+            "Both conditions are satisfied"
           ],
           "answer": "Haan, $-6$ rational number hai, kyunki $-6 = \\frac{-6}{1}$."
         },
         {
           "id": "we2",
-          "problem": "$\\frac{0}{9}$ aur $\\frac{9}{0}$ me se kaunsa rational number hai?",
+          "problem": "Which of $\\frac{0}{9}$ and $\\frac{9}{0}$ is a rational number?",
           "steps": [
-            "$\\frac{0}{9}$: yahan q = 9, jo 0 nahi hai. Shart poori — ye rational hai, aur iska maan 0 hai",
-            "$\\frac{9}{0}$: yahan q = 0. Definition kehti hai q ≠ 0",
-            "Isliye $\\frac{9}{0}$ rational number hai hi nahi — wo undefined hai"
+            "$\\frac{0}{9}$: here q = 9, which is not 0. The condition is satisfied — this is rational, and its value is 0",
+            "$\\frac{9}{0}$: here q = 0. The definition says q ≠ 0",
+            "So $\\frac{9}{0}$ is not a rational number at all — it is undefined"
           ],
           "answer": "$\\frac{0}{9}$ rational hai (maan 0); $\\frac{9}{0}$ undefined hai."
         }
       ]
     },
-
     {
       "id": "c8-math-ch1-t1-c2",
       "seq": 2,
       "title": "Standard form of a rational number",
-      "statement": "Ek rational number standard form me tab hota hai jab uska denominator positive ho aur numerator-denominator me 1 ke alawa koi common factor na ho. Jaise $\\frac{-12}{18}$ ka standard form $\\frac{-2}{3}$ hai.",
-      "hook": "Socho tum dukaan pe gaye aur 500 gram cheeni maangi. Dukaandar ne kaha 'aadha kilo'. Dono baat ek hi hai, par 'aadha kilo' bolna aasan hai. Standard form bhi yahi hai — same number, sabse saaf tareeke se likha hua. Sawal: $\\frac{-12}{18}$ aur $\\frac{12}{-18}$ — kya ye do alag numbers hain?",
+      "statement": "A rational number is in standard form when its denominator is positive and the numerator and denominator have no common factor except 1. For example, the standard form of $\\frac{-12}{18}$ is $\\frac{-2}{3}$.",
+      "hook": "Think that you went to a shop and asked for 500 gram sugar. The shopkeeper said 'half kilo'. Both mean the same thing, but 'half kilo' is easier to say. Standard form is the same — the same number, written in the clearest way. Question: $\\frac{-12}{18}$ and $\\frac{12}{-18}$ — are these two different numbers?",
       "analogies": [
         {
           "id": "a1",
-          "text": "Address likhna: '3rd floor, flat 12' aur 'flat 12, 3rd floor' — ek hi ghar, par ek tareeka standard hai jise sab samajhte hain."
+          "text": "Writing an address: '3rd floor, flat 12' and 'flat 12, 3rd floor' — it is the same house, but one way is standard and everyone understands it."
         },
         {
           "id": "a2",
-          "text": "Score 6/10 aur 3/5 — ek hi performance, par 3/5 chhote numbers me likhi hui hai."
+          "text": "Score 6/10 and 3/5 — the same performance, but 3/5 is written with smaller numbers."
         }
       ],
       "formulas": [
         {
           "id": "f1",
           "latex": "\\frac{p}{q} = \\frac{p \\div h}{q \\div h},\\ h = \\text{HCF}(|p|, |q|)",
-          "note": "HCF se divide karne pe standard form aata hai."
+          "note": "Dividing by the HCF gives the standard form."
         },
         {
           "id": "f2",
           "latex": "\\frac{p}{-q} = \\frac{-p}{q}",
-          "note": "Denominator ko positive banane ke liye upar-neeche dono ka sign badlo."
+          "note": "To make the denominator positive, change the sign of both the numerator and the denominator."
         }
       ],
       "misconceptions": [
         {
           "id": "m1",
-          "wrong_belief": "Standard form matlab sirf denominator ko positive kar dena. HCF se divide karna zaroori nahi.",
-          "why_wrong": "Standard form ki do shartein hain, ek nahi: denominator positive HO, aur numerator-denominator coprime HON. $\\frac{-12}{18}$ ka denominator pehle se positive hai, phir bhi wo standard form me nahi hai.",
-          "correction": "Do kaam karo — sign theek karo, phir HCF se divide karo. Dono ke bina standard form nahi.",
-          "probe": "$\\frac{-12}{18}$ ka denominator positive hai. Phir bhi ye standard form me kyun nahi hai?"
+          "wrong_belief": "Standard form means only making the denominator positive. Dividing by the HCF is not needed.",
+          "why_wrong": "Standard form has two conditions, not one: the denominator MUST be positive, and the numerator and denominator MUST be coprime. The denominator of $\\frac{-12}{18}$ is already positive, but it is still not in standard form.",
+          "correction": "Do two things — fix the sign, then divide by the HCF. Without both, it is not standard form.",
+          "probe": "The denominator of $\\frac{-12}{18}$ is positive. Still, why is it not in standard form?"
         },
         {
           "id": "m2",
-          "wrong_belief": "Standard form me numerator hamesha positive hona chahiye.",
-          "why_wrong": "Shart denominator pe hai, numerator pe nahi. $\\frac{-2}{3}$ poori tarah standard form me hai — denominator 3 positive hai aur 2 aur 3 coprime hain.",
-          "correction": "Denominator positive hona chahiye. Numerator negative ho sakta hai.",
-          "probe": "$\\frac{-2}{3}$ standard form me hai ya nahi? Kaun si shart dekhni hai — numerator ya denominator?"
+          "wrong_belief": "In standard form, the numerator must always be positive.",
+          "why_wrong": "The condition is on the denominator, not on the numerator. $\\frac{-2}{3}$ is fully in standard form — denominator 3 is positive, and 2 and 3 are coprime.",
+          "correction": "The denominator must be positive. The numerator can be negative.",
+          "probe": "Is $\\frac{-2}{3}$ in standard form or not? Which condition should we check — numerator or denominator?"
         },
         {
           "id": "m3",
-          "wrong_belief": "$\\frac{2}{3}$ aur $\\frac{4}{6}$ do alag rational numbers hain.",
-          "why_wrong": "Dono ka maan bilkul ek hai — $\\frac{4}{6}$ me upar-neeche dono ko 2 se divide karo to $\\frac{2}{3}$ mil jaata hai. Alag likhawat, ek hi number.",
-          "correction": "Equivalent rational numbers alag numbers nahi hain, ek hi number ke alag roop hain. Number line pe dono ek hi jagah baithte hain.",
-          "probe": "$\\frac{4}{6}$ ko upar-neeche 2 se divide karo. Kya mila? To kya ye $\\frac{2}{3}$ se alag number hai?"
+          "wrong_belief": "$\\frac{2}{3}$ and $\\frac{4}{6}$ are two different rational numbers.",
+          "why_wrong": "Both have exactly the same value — in $\\frac{4}{6}$, divide the numerator and denominator by 2 and you get $\\frac{2}{3}$. Different writing, same number.",
+          "correction": "Equivalent rational numbers are not different numbers; they are different forms of the same number. On the number line, both sit at the same place.",
+          "probe": "Divide the numerator and denominator of $\\frac{4}{6}$ by 2. What do you get? So is it a different number from $\\frac{2}{3}$?"
         },
         {
           "id": "m4",
-          "wrong_belief": "Standard form nikalne ke liye numerator aur denominator me se koi bhi common number se divide kar do — chhota ho jaaye bas.",
-          "why_wrong": "Kisi bhi common factor se divide karne pe number chhota to ho jaata hai par standard form nahi aata. $\\frac{12}{18}$ ko 2 se divide karke $\\frac{6}{9}$ mila — 6 aur 9 me abhi bhi 3 common hai.",
-          "correction": "HCF se divide karo, kisi bhi common factor se nahi. HCF ke baad kuch common bachta hi nahi.",
-          "probe": "$\\frac{12}{18}$ ko 2 se divide karne pe $\\frac{6}{9}$ aaya. Kya ye standard form hai? 6 aur 9 me kuch common bacha hai kya?"
+          "wrong_belief": "To find the standard form, divide the numerator and denominator by any common number — it just has to become smaller.",
+          "why_wrong": "Dividing by any common factor makes the numbers smaller, but it may not give the standard form. Dividing $\\frac{12}{18}$ by 2 gives $\\frac{6}{9}$ — 6 and 9 still have 3 in common.",
+          "correction": "Divide by the HCF, not by just any common factor. After the HCF, nothing common is left.",
+          "probe": "When $\\frac{12}{18}$ is divided by 2, we get $\\frac{6}{9}$. Is this standard form? Is anything common left in 6 and 9?"
         }
       ],
       "worked_examples": [
         {
           "id": "we1",
-          "problem": "$\\frac{-12}{18}$ ko standard form me likho.",
+          "problem": "Write $\\frac{-12}{18}$ in standard form.",
           "steps": [
-            "Denominator 18 pehle se positive hai, to sign wala kaam nahi karna",
-            "HCF(12, 18) nikalo: 12 = 2×2×3, 18 = 2×3×3, common = 2×3 = 6",
-            "Upar aur neeche dono ko 6 se divide karo: $\\frac{-12 \\div 6}{18 \\div 6} = \\frac{-2}{3}$",
-            "Check: 2 aur 3 me 1 ke alawa kuch common nahi. Ho gaya"
+            "Denominator 18 is already positive, so we do not have to do the sign step",
+            "Find HCF(12, 18): 12 = 2×2×3, 18 = 2×3×3, common = 2×3 = 6",
+            "Divide both the numerator and the denominator by 6: $\\frac{-12 \\div 6}{18 \\div 6} = \\frac{-2}{3}$",
+            "Check: 2 and 3 have nothing common except 1. Done"
           ],
           "answer": "$\\frac{-2}{3}$"
         },
         {
           "id": "we2",
-          "problem": "$\\frac{14}{-35}$ ko standard form me likho.",
+          "problem": "Write $\\frac{14}{-35}$ in standard form.",
           "steps": [
-            "Denominator negative hai, to pehle upar-neeche dono ka sign badlo: $\\frac{14}{-35} = \\frac{-14}{35}$",
-            "Ab HCF(14, 35) nikalo: 14 = 2×7, 35 = 5×7, common = 7",
-            "Dono ko 7 se divide karo: $\\frac{-14 \\div 7}{35 \\div 7} = \\frac{-2}{5}$",
-            "Denominator 5 positive hai aur 2, 5 coprime hain"
+            "The denominator is negative, so first change the sign of both the numerator and the denominator: $\\frac{14}{-35} = \\frac{-14}{35}$",
+            "Now find HCF(14, 35): 14 = 2×7, 35 = 5×7, common = 7",
+            "Divide both by 7: $\\frac{-14 \\div 7}{35 \\div 7} = \\frac{-2}{5}$",
+            "Denominator 5 is positive, and 2 and 5 are coprime"
           ],
           "answer": "$\\frac{-2}{5}$"
         }
       ]
     }
   ],
-
   "questions": [
     {
       "id": "q-c8m-ch1-0001",
       "conceptId": "c8-math-ch1-t1-c1",
       "qtype": "mcq",
       "level": "L1",
-      "stem": "In me se kaunsa rational number NAHI hai?",
+      "stem": "Which of these is NOT a rational number?",
       "options": [
-        { "key": "A", "text": "$\\frac{7}{0}$" },
-        { "key": "B", "text": "$\\frac{0}{7}$" },
-        { "key": "C", "text": "$-7$" },
-        { "key": "D", "text": "$\\frac{-7}{2}$" }
+        {
+          "key": "A",
+          "text": "$\\frac{7}{0}$"
+        },
+        {
+          "key": "B",
+          "text": "$\\frac{0}{7}$"
+        },
+        {
+          "key": "C",
+          "text": "$-7$"
+        },
+        {
+          "key": "D",
+          "text": "$\\frac{-7}{2}$"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m4", "C": "m1", "D": "m3" },
-      "solution": "Rational number ki shart hai $q \\neq 0$. $\\frac{7}{0}$ me denominator 0 hai, isliye wo rational number hai hi nahi — undefined hai. Baaki teeno rational hain: $\\frac{0}{7} = 0$, $-7 = \\frac{-7}{1}$, aur $\\frac{-7}{2}$ pehle se $\\frac{p}{q}$ roop me hai."
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m4",
+        "C": "m1",
+        "D": "m3"
+      },
+      "solution": "The condition for a rational number is $q \\neq 0$. In $\\frac{7}{0}$, the denominator is 0, so it is not a rational number at all — it is undefined. The other three are rational: $\\frac{0}{7} = 0$, $-7 = \\frac{-7}{1}$, and $\\frac{-7}{2}$ is already in the form $\\frac{p}{q}$."
     },
     {
       "id": "q-c8m-ch1-0002",
       "conceptId": "c8-math-ch1-t1-c1",
       "qtype": "mcq",
       "level": "L1",
-      "stem": "$5$ ko $\\frac{p}{q}$ ke roop me kaise likhenge?",
+      "stem": "How will we write $5$ in the form $\\frac{p}{q}$?",
       "options": [
-        { "key": "A", "text": "$\\frac{5}{1}$" },
-        { "key": "B", "text": "$\\frac{1}{5}$" },
-        { "key": "C", "text": "$\\frac{5}{0}$" },
-        { "key": "D", "text": "$5$ ko $\\frac{p}{q}$ roop me likha hi nahi ja sakta" }
+        {
+          "key": "A",
+          "text": "$\\frac{5}{1}$"
+        },
+        {
+          "key": "B",
+          "text": "$\\frac{1}{5}$"
+        },
+        {
+          "key": "C",
+          "text": "$\\frac{5}{0}$"
+        },
+        {
+          "key": "D",
+          "text": "$5$ cannot be written in the form $\\frac{p}{q}$ at all"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m1", "C": "m2", "D": "m1" },
-      "solution": "$5 = \\frac{5}{1}$. Yahan p = 5 aur q = 1, dono integers hain aur q ≠ 0 — isliye 5 ek rational number hai."
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m1",
+        "C": "m2",
+        "D": "m1"
+      },
+      "solution": "$5 = \\frac{5}{1}$. Here p = 5 and q = 1, both are integers and q ≠ 0 — so 5 is a rational number."
     },
     {
       "id": "q-c8m-ch1-0003",
       "conceptId": "c8-math-ch1-t1-c1",
       "qtype": "mcq",
       "level": "L2",
-      "stem": "$\\frac{0}{9}$ ke baare me kaunsa kathan sahi hai?",
+      "stem": "Which statement about $\\frac{0}{9}$ is correct?",
       "options": [
-        { "key": "A", "text": "Ye rational number hai aur iska maan 0 hai" },
-        { "key": "B", "text": "Ye rational number nahi hai, kyunki 0 rational nahi hota" },
-        { "key": "C", "text": "Ye undefined hai" },
-        { "key": "D", "text": "Ye rational hai par iska maan 9 hai" }
+        {
+          "key": "A",
+          "text": "It is a rational number and its value is 0"
+        },
+        {
+          "key": "B",
+          "text": "It is not a rational number, because 0 is not rational"
+        },
+        {
+          "key": "C",
+          "text": "It is undefined"
+        },
+        {
+          "key": "D",
+          "text": "It is rational, but its value is 9"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m4", "C": "m2", "D": "m2" },
-      "solution": "$\\frac{0}{9}$ me denominator 9 hai, jo 0 nahi hai — to shart poori hai. Iska maan $0$ hai. Undefined tab hota jab denominator 0 hota, jaise $\\frac{9}{0}$."
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m4",
+        "C": "m2",
+        "D": "m2"
+      },
+      "solution": "In $\\frac{0}{9}$, the denominator is 9, which is not 0 — so the condition is satisfied. Its value is $0$. It would be undefined if the denominator were 0, like $\\frac{9}{0}$."
     },
     {
       "id": "q-c8m-ch1-0004",
       "conceptId": "c8-math-ch1-t1-c1",
       "qtype": "msq",
       "level": "L2",
-      "stem": "In me se kaun-kaun se rational numbers hain? (ek se zyada sahi ho sakte hain)",
+      "stem": "Which of these are rational numbers? (More than one can be correct)",
       "options": [
-        { "key": "A", "text": "$-4$" },
-        { "key": "B", "text": "$\\frac{0}{3}$" },
-        { "key": "C", "text": "$\\frac{3}{0}$" },
-        { "key": "D", "text": "$\\frac{-5}{8}$" }
+        {
+          "key": "A",
+          "text": "$-4$"
+        },
+        {
+          "key": "B",
+          "text": "$\\frac{0}{3}$"
+        },
+        {
+          "key": "C",
+          "text": "$\\frac{3}{0}$"
+        },
+        {
+          "key": "D",
+          "text": "$\\frac{-5}{8}$"
+        }
       ],
-      "correct": ["A", "B", "D"],
-      "distractor_map": { "C": "m2" },
-      "solution": "$-4 = \\frac{-4}{1}$ rational hai, $\\frac{0}{3} = 0$ rational hai, $\\frac{-5}{8}$ rational hai. Sirf $\\frac{3}{0}$ rational nahi hai kyunki denominator 0 hai."
+      "correct": [
+        "A",
+        "B",
+        "D"
+      ],
+      "distractor_map": {
+        "C": "m2"
+      },
+      "solution": "$-4 = \\frac{-4}{1}$ is rational, $\\frac{0}{3} = 0$ is rational, $\\frac{-5}{8}$ is rational. Only $\\frac{3}{0}$ is not rational because the denominator is 0."
     },
     {
       "id": "q-c8m-ch1-0005",
       "conceptId": "c8-math-ch1-t1-c1",
       "qtype": "nvt",
       "level": "L3",
-      "stem": "Agar $\\frac{p}{7}$ ek rational number hai aur uska maan $-2$ hai, to $p$ ka maan kya hoga?",
-      "correct": { "value": -14, "tol": 0, "exact": "-14" },
-      "solution": "$\\frac{p}{7} = -2$ ka matlab $p = -2 \\times 7 = -14$. Check: $\\frac{-14}{7} = -2$."
+      "stem": "If $\\frac{p}{7}$ is a rational number and its value is $-2$, then what will be the value of $p$?",
+      "correct": {
+        "value": -14,
+        "tol": 0,
+        "exact": "-14"
+      },
+      "solution": "$\\frac{p}{7} = -2$ means $p = -2 \\times 7 = -14$. Check: $\\frac{-14}{7} = -2$."
     },
     {
       "id": "q-c8m-ch1-0006",
       "conceptId": "c8-math-ch1-t1-c1",
       "qtype": "mcq",
       "level": "L3",
-      "stem": "Riya kehti hai: 'Har integer rational hai, par har rational integer nahi hai.' Ye kathan kaisa hai?",
+      "stem": "Riya says: 'Every integer is rational, but every rational number is not an integer.' What kind of statement is this?",
       "options": [
-        { "key": "A", "text": "Sahi hai — $5 = \\frac{5}{1}$ integer bhi hai aur rational bhi, par $\\frac{1}{2}$ rational hai aur integer nahi" },
-        { "key": "B", "text": "Galat hai — koi bhi integer rational nahi hota" },
-        { "key": "C", "text": "Galat hai — har rational number integer hota hai" },
-        { "key": "D", "text": "Sahi hai, par sirf positive numbers ke liye" }
+        {
+          "key": "A",
+          "text": "It is correct — $5 = \\frac{5}{1}$ is both an integer and rational, but $\\frac{1}{2}$ is rational and not an integer"
+        },
+        {
+          "key": "B",
+          "text": "It is wrong — no integer is rational"
+        },
+        {
+          "key": "C",
+          "text": "It is wrong — every rational number is an integer"
+        },
+        {
+          "key": "D",
+          "text": "It is correct, but only for positive numbers"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m1", "C": "m1", "D": "m3" },
-      "solution": "Har integer $n$ ko $\\frac{n}{1}$ likha ja sakta hai, to har integer rational hai. Ulta sach nahi: $\\frac{1}{2}$ rational hai par integer nahi. Negative numbers is baat ko nahi badalte."
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m1",
+        "C": "m1",
+        "D": "m3"
+      },
+      "solution": "Every integer $n$ can be written as $\\frac{n}{1}$, so every integer is rational. The reverse is not true: $\\frac{1}{2}$ is rational but not an integer. Negative numbers do not change this."
     },
     {
       "id": "q-c8m-ch1-0007",
       "conceptId": "c8-math-ch1-t1-c1",
       "qtype": "subjective",
       "level": "L4",
-      "stem": "Samjhao ki $\\frac{a}{0}$ kisi bhi $a$ ke liye rational number kyun nahi ho sakta, chahe $a$ kitna bhi bada ho.",
+      "stem": "Explain why $\\frac{a}{0}$ cannot be a rational number for any $a$, no matter how large $a$ is.",
       "correct": {
         "rubric": [
           "Rational number ki definition batayi: $\\frac{p}{q}$ jahan q ≠ 0",
@@ -296,104 +391,197 @@
           "Nateeja: $\\frac{a}{0}$ undefined hai, bada number nahi"
         ]
       },
-      "solution": "Maan lo $\\frac{a}{0} = x$. Bhaag ki definition se $a = x \\times 0 = 0$. Yaani ye sirf tab ban sakta jab $a = 0$ ho, aur tab bhi $x$ koi bhi number ho sakta hai — ek hi jawab nahi milta. Isliye $\\frac{a}{0}$ ka koi maan hai hi nahi. Ye 'bahut bada number' nahi hai, ye undefined hai."
+      "solution": "Suppose $\\frac{a}{0} = x$. By the definition of division, $a = x \\times 0 = 0$. This means it can happen only when $a = 0$, and even then $x$ can be any number — there is no single answer. So $\\frac{a}{0}$ has no value at all. It is not a 'very large number'; it is undefined."
     },
-
     {
       "id": "q-c8m-ch1-0008",
       "conceptId": "c8-math-ch1-t1-c2",
       "qtype": "mcq",
       "level": "L1",
-      "stem": "$\\frac{-12}{18}$ ka standard form kya hai?",
+      "stem": "What is the standard form of $\\frac{-12}{18}$?",
       "options": [
-        { "key": "A", "text": "$\\frac{-2}{3}$" },
-        { "key": "B", "text": "$\\frac{-6}{9}$" },
-        { "key": "C", "text": "$\\frac{-12}{18}$ pehle se standard form me hai" },
-        { "key": "D", "text": "$\\frac{2}{3}$" }
+        {
+          "key": "A",
+          "text": "$\\frac{-2}{3}$"
+        },
+        {
+          "key": "B",
+          "text": "$\\frac{-6}{9}$"
+        },
+        {
+          "key": "C",
+          "text": "$\\frac{-12}{18}$ is already in standard form"
+        },
+        {
+          "key": "D",
+          "text": "$\\frac{2}{3}$"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m4", "C": "m1", "D": "m2" },
-      "solution": "HCF(12, 18) = 6. Upar-neeche dono ko 6 se divide karo: $\\frac{-12 \\div 6}{18 \\div 6} = \\frac{-2}{3}$. 2 se divide karne pe $\\frac{-6}{9}$ milta hai, jisme abhi bhi 3 common hai — wo standard form nahi hai."
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m4",
+        "C": "m1",
+        "D": "m2"
+      },
+      "solution": "HCF(12, 18) = 6. Divide both the numerator and the denominator by 6: $\\frac{-12 \\div 6}{18 \\div 6} = \\frac{-2}{3}$. Dividing by 2 gives $\\frac{-6}{9}$, in which 3 is still common — that is not standard form."
     },
     {
       "id": "q-c8m-ch1-0009",
       "conceptId": "c8-math-ch1-t1-c2",
       "qtype": "mcq",
       "level": "L1",
-      "stem": "$\\frac{4}{-9}$ ko standard form me likho.",
+      "stem": "Write $\\frac{4}{-9}$ in standard form.",
       "options": [
-        { "key": "A", "text": "$\\frac{-4}{9}$" },
-        { "key": "B", "text": "$\\frac{4}{-9}$ pehle se standard form me hai" },
-        { "key": "C", "text": "$\\frac{4}{9}$" },
-        { "key": "D", "text": "$\\frac{-9}{4}$" }
+        {
+          "key": "A",
+          "text": "$\\frac{-4}{9}$"
+        },
+        {
+          "key": "B",
+          "text": "$\\frac{4}{-9}$ is already in standard form"
+        },
+        {
+          "key": "C",
+          "text": "$\\frac{4}{9}$"
+        },
+        {
+          "key": "D",
+          "text": "$\\frac{-9}{4}$"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m1", "C": "m2", "D": "m3" },
-      "solution": "Standard form me denominator positive hona chahiye. Upar-neeche dono ka sign badlo: $\\frac{4}{-9} = \\frac{-4}{9}$. 4 aur 9 me 1 ke alawa kuch common nahi, to yahi standard form hai."
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m1",
+        "C": "m2",
+        "D": "m3"
+      },
+      "solution": "In standard form, the denominator must be positive. Change the sign of both the numerator and the denominator: $\\frac{4}{-9} = \\frac{-4}{9}$. 4 and 9 have nothing common except 1, so this is the standard form."
     },
     {
       "id": "q-c8m-ch1-0010",
       "conceptId": "c8-math-ch1-t1-c2",
       "qtype": "mcq",
       "level": "L2",
-      "stem": "Kaunsa rational number $\\frac{2}{3}$ ke barabar NAHI hai?",
+      "stem": "Which rational number is NOT equal to $\\frac{2}{3}$?",
       "options": [
-        { "key": "A", "text": "$\\frac{-4}{6}$" },
-        { "key": "B", "text": "$\\frac{4}{6}$" },
-        { "key": "C", "text": "$\\frac{-2}{-3}$" },
-        { "key": "D", "text": "$\\frac{10}{15}$" }
+        {
+          "key": "A",
+          "text": "$\\frac{-4}{6}$"
+        },
+        {
+          "key": "B",
+          "text": "$\\frac{4}{6}$"
+        },
+        {
+          "key": "C",
+          "text": "$\\frac{-2}{-3}$"
+        },
+        {
+          "key": "D",
+          "text": "$\\frac{10}{15}$"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m3", "C": "m2", "D": "m3" },
-      "solution": "$\\frac{4}{6}$, $\\frac{-2}{-3}$ aur $\\frac{10}{15}$ — teenon ka maan $\\frac{2}{3}$ hai. $\\frac{-4}{6}$ ka maan $\\frac{-2}{3}$ hai, jo negative hai."
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m3",
+        "C": "m2",
+        "D": "m3"
+      },
+      "solution": "$\\frac{4}{6}$, $\\frac{-2}{-3}$ and $\\frac{10}{15}$ — all three have value $\\frac{2}{3}$. The value of $\\frac{-4}{6}$ is $\\frac{-2}{3}$, which is negative."
     },
     {
       "id": "q-c8m-ch1-0011",
       "conceptId": "c8-math-ch1-t1-c2",
       "qtype": "mcq",
       "level": "L2",
-      "stem": "In me se kaunsa pehle se standard form me hai?",
+      "stem": "Which of these is already in standard form?",
       "options": [
-        { "key": "A", "text": "$\\frac{-5}{7}$" },
-        { "key": "B", "text": "$\\frac{5}{-7}$" },
-        { "key": "C", "text": "$\\frac{10}{14}$" },
-        { "key": "D", "text": "$\\frac{-10}{14}$" }
+        {
+          "key": "A",
+          "text": "$\\frac{-5}{7}$"
+        },
+        {
+          "key": "B",
+          "text": "$\\frac{5}{-7}$"
+        },
+        {
+          "key": "C",
+          "text": "$\\frac{10}{14}$"
+        },
+        {
+          "key": "D",
+          "text": "$\\frac{-10}{14}$"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m1", "C": "m4", "D": "m4" },
-      "solution": "$\\frac{-5}{7}$: denominator 7 positive hai aur HCF(5, 7) = 1. Dono shartein poori. $\\frac{5}{-7}$ ka denominator negative hai; $\\frac{10}{14}$ aur $\\frac{-10}{14}$ me 2 common hai."
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m1",
+        "C": "m4",
+        "D": "m4"
+      },
+      "solution": "$\\frac{-5}{7}$: denominator 7 is positive and HCF(5, 7) = 1. Both conditions are satisfied. The denominator of $\\frac{5}{-7}$ is negative; $\\frac{10}{14}$ and $\\frac{-10}{14}$ have 2 in common."
     },
     {
       "id": "q-c8m-ch1-0012",
       "conceptId": "c8-math-ch1-t1-c2",
       "qtype": "nvt",
       "level": "L3",
-      "stem": "$\\frac{-45}{60}$ ka standard form $\\frac{p}{q}$ hai. $p + q$ ka maan kya hoga?",
-      "correct": { "value": 1, "tol": 0, "exact": "-3 + 4 = 1" },
-      "solution": "HCF(45, 60) = 15. $\\frac{-45 \\div 15}{60 \\div 15} = \\frac{-3}{4}$. To p = -3 aur q = 4, aur $p + q = -3 + 4 = 1$."
+      "stem": "The standard form of $\\frac{-45}{60}$ is $\\frac{p}{q}$. What will be the value of $p + q$?",
+      "correct": {
+        "value": 1,
+        "tol": 0,
+        "exact": "-3 + 4 = 1"
+      },
+      "solution": "HCF(45, 60) = 15. $\\frac{-45 \\div 15}{60 \\div 15} = \\frac{-3}{4}$. So p = -3 and q = 4, and $p + q = -3 + 4 = 1$."
     },
     {
       "id": "q-c8m-ch1-0013",
       "conceptId": "c8-math-ch1-t1-c2",
       "qtype": "mcq",
       "level": "L3",
-      "stem": "Arjun ne $\\frac{24}{-36}$ ka standard form $\\frac{-4}{6}$ nikala. Uski galti kya hai?",
+      "stem": "Arjun found the standard form of $\\frac{24}{-36}$ as $\\frac{-4}{6}$. What is his mistake?",
       "options": [
-        { "key": "A", "text": "Usne 6 se divide kiya, par HCF 12 hai — 4 aur 6 me abhi bhi 2 common hai" },
-        { "key": "B", "text": "Koi galti nahi, $\\frac{-4}{6}$ hi sahi jawab hai" },
-        { "key": "C", "text": "Usne sign galat kar diya, jawab $\\frac{4}{6}$ hona chahiye" },
-        { "key": "D", "text": "Usne ulta kar diya, jawab $\\frac{-6}{4}$ hona chahiye" }
+        {
+          "key": "A",
+          "text": "He divided by 6, but the HCF is 12 — 4 and 6 still have 2 in common"
+        },
+        {
+          "key": "B",
+          "text": "There is no mistake, $\\frac{-4}{6}$ is the correct answer"
+        },
+        {
+          "key": "C",
+          "text": "He made the sign wrong; the answer should be $\\frac{4}{6}$"
+        },
+        {
+          "key": "D",
+          "text": "He reversed it; the answer should be $\\frac{-6}{4}$"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m4", "C": "m2", "D": "m3" },
-      "solution": "HCF(24, 36) = 12, 6 nahi. Sahi jawab $\\frac{24}{-36} = \\frac{-24}{36} = \\frac{-2}{3}$ hai. Arjun ka sign sahi tha — galti sirf ye thi ki poora HCF nahi nikala."
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m4",
+        "C": "m2",
+        "D": "m3"
+      },
+      "solution": "HCF(24, 36) = 12, not 6. The correct answer is $\\frac{24}{-36} = \\frac{-24}{36} = \\frac{-2}{3}$. Arjun got the sign right — the only mistake was that he did not find the full HCF."
     },
     {
       "id": "q-c8m-ch1-0014",
       "conceptId": "c8-math-ch1-t1-c2",
       "qtype": "subjective",
       "level": "L4",
-      "stem": "Ek rational number ke anant (infinite) equivalent roop hote hain, par standard form sirf ek. Samjhao aisa kyun hai.",
+      "stem": "A rational number has infinitely many equivalent forms, but only one standard form. Explain why this is so.",
       "correct": {
         "rubric": [
           "Equivalent roop banane ka tareeka: upar-neeche dono ko kisi bhi non-zero integer se guna karo",
@@ -402,7 +590,7 @@
           "In dono shartein ek saath sirf ek hi jodi (p, q) pe poori hoti hain, isliye standard form unique hai"
         ]
       },
-      "solution": "$\\frac{2}{3}$ ko $\\frac{4}{6}, \\frac{6}{9}, \\frac{8}{12}, \\dots$ likha ja sakta hai — upar-neeche dono ko kisi bhi non-zero integer se guna karke. Aise guna karne wale integers anant hain, to roop bhi anant. Par jab hum kehte hain ki denominator positive ho AUR HCF 1 ho, to har baar ek hi jodi bachti hai — is case me (2, 3). Isiliye standard form unique hota hai aur do numbers ko compare karne ka bharosemand tareeka hai."
+      "solution": "$\\frac{2}{3}$ can be written as $\\frac{4}{6}, \\frac{6}{9}, \\frac{8}{12}, \\dots$ — by multiplying both the numerator and the denominator by any non-zero integer. There are infinitely many such integers to multiply by, so there are infinitely many forms too. But when we say that the denominator must be positive AND the HCF must be 1, only one pair is left each time — in this case, (2, 3). That is why the standard form is unique and is a reliable way to compare two numbers."
     }
   ]
 }

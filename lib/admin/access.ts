@@ -105,7 +105,7 @@ export async function canPublishInto(
     return {
       ok: false,
       message:
-        "Aapke plan me apna content publish karna shaamil nahi hai. Platform team se baat karein.",
+        "Your plan does not include publishing your own content. Please talk to the platform team.",
     };
   }
 

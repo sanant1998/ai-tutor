@@ -43,6 +43,11 @@ const ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const ORDER: { file: string; needs: string }[] = [
   { file: "tutor.sql", needs: "schema.sql — adds columns to its `attempts` table" },
   { file: "compliance.sql", needs: "schema.sql for profiles, tutor.sql for the retention job's tables" },
+  {
+    file: "roles.sql",
+    needs:
+      "compliance.sql, which adds profiles.role — this closes it to ('student','teacher') and migrates the old 'parent' rows",
+  },
   { file: "schools.sql", needs: "tutor.sql for topics and topic_mastery" },
   { file: "billing.sql", needs: "schools.sql — can_access_chapter reads org_members" },
   { file: "ratelimit.sql", needs: "nothing, but compliance.sql's purge calls into it" },
@@ -50,7 +55,24 @@ const ORDER: { file: string; needs: string }[] = [
   {
     file: "tenancy.sql",
     needs:
-      "schools.sql (extends org_members) and billing.sql (replaces can_access_chapter) — LAST, because it rewrites what came before",
+      "schools.sql (extends org_members) and billing.sql (replaces can_access_chapter) — it rewrites what came before",
+  },
+  {
+    file: "schoolops.sql",
+    needs:
+      "tenancy.sql for is_org_admin and my_org_ids — and it replaces teaches_section, so it must come after the copy in tenancy.sql",
+  },
+  {
+    file: "licensing.sql",
+    needs:
+      "schoolops.sql for boards and grades, and tenancy.sql — LAST word on can_access_chapter, which three files now touch",
+  },
+  { file: "assessment.sql", needs: "schoolops.sql for the corrected teaches_section, tutor.sql for bank_questions" },
+  { file: "comms.sql", needs: "tenancy.sql for is_org_admin, schools.sql for sections" },
+  {
+    file: "onboarding.sql",
+    needs:
+      "all of the above — it creates an org, a licence, a year and an audit row in one transaction, so it is genuinely last",
   },
 ];
 

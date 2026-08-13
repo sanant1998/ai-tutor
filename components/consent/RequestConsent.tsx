@@ -43,7 +43,7 @@ export function RequestConsent({
   const [error, setError] = useState("");
 
   /* Once the code has gone out, watch for the parent granting it on THEIR
-     phone. Without this the student sits on "message bhej diya" for ever —
+     phone. Without this the student sits on "message sent" for ever —
      the grant happens on a different device and nothing here would ever know.
 
      Five seconds. A parent takes a minute or two to read four purposes, so
@@ -95,13 +95,13 @@ export function RequestConsent({
 
       const payload = await response.json();
       if (!response.ok) {
-        setError(payload.error ?? "Code nahi bhej paaye.");
+        setError(payload.error ?? "The code could not be sent.");
         return;
       }
 
       setSent(payload);
     } catch {
-      setError("Network problem. Dobara try karo.");
+      setError("Network problem. Try again.");
     } finally {
       setBusy(false);
     }
@@ -137,7 +137,7 @@ export function RequestConsent({
 
       const payload = await response.json();
       if (!response.ok) {
-        setError(payload.error ?? "Code galat hai.");
+        setError(payload.error ?? "That code is wrong.");
         return;
       }
 
@@ -147,7 +147,7 @@ export function RequestConsent({
          onboarding" with nothing to click is a dead end. */
       window.location.href = "/parent-consent";
     } catch {
-      setError("Network problem. Dobara try karo.");
+      setError("Network problem. Try again.");
     } finally {
       setBusy(false);
     }
@@ -160,7 +160,7 @@ export function RequestConsent({
       </h1>
 
       <p className="mt-3 text-[15px] leading-relaxed opacity-75">
-        Tum 18 se kam ke ho, to shuru karne se pehle tumhare parent ki anumati
+        You are under 18, so before you start we need your parent’s permission
         chahiye — ye kanoon hai. Unka number do, hum unhe ek message bhejenge.
         Ek minute ka kaam hai.
       </p>
@@ -178,7 +178,7 @@ export function RequestConsent({
                 onChange={(event) => setDob(event.target.value)}
                 required
                 max={new Date().toISOString().slice(0, 10)}
-                className="w-full rounded-xl border border-black/10 bg-transparent px-3 py-2.5 text-[15px] dark:border-white/15"
+                className="w-full rounded-xl border border-[rgb(var(--text-rgb)/0.12)] bg-transparent px-3 py-2.5 text-[15px]"
               />
             </label>
           )}
@@ -193,18 +193,18 @@ export function RequestConsent({
               inputMode="tel"
               required
               placeholder="98765 43210"
-              className="w-full rounded-xl border border-black/10 bg-transparent px-3 py-2.5 text-[15px] dark:border-white/15"
+              className="w-full rounded-xl border border-[rgb(var(--text-rgb)/0.12)] bg-transparent px-3 py-2.5 text-[15px]"
             />
             <span className="mt-1.5 block text-[12px] opacity-55">
-              Isi number pe har hafte ek chhota progress report bhi jaayega.
-              Koi promotional message nahi.
+              A short weekly progress report also goes to this number.
+              No promotional messages.
             </span>
           </label>
 
           {error && (
             <p
               role="alert"
-              className="rounded-xl bg-red-500/10 px-4 py-3 text-[14px] text-red-700 dark:text-red-300"
+              className="rounded-xl bg-red-500/10 px-4 py-3 text-[14px] text-[var(--danger)]"
             >
               {error}
             </p>
@@ -216,13 +216,13 @@ export function RequestConsent({
         </form>
       ) : (
         <div className="mt-7 space-y-5">
-          <div className="flex items-start gap-3 rounded-xl border border-black/10 p-4 dark:border-white/10">
+          <div className="flex items-start gap-3 rounded-xl border border-[rgb(var(--text-rgb)/0.12)] p-4">
             <MessageCircle className="mt-0.5 h-4 w-4 shrink-0 opacity-60" />
             <p className="text-[14px] opacity-75">
               {sent.delivered
-                ? `${sent.sentTo} pe link bhej diya. Parent us link ko kholkar anumati de sakte hain.`
+                ? `A link has been sent to ${sent.sentTo}. Your parent can open it and give permission there.`
                 : (sent.note ??
-                  "Message nahi ja paaya — parent ke saath baithe ho to neeche wala tareeka use karo.")}
+                  "The message did not go through — if your parent is with you, use the option below instead.")}
             </p>
           </div>
 
@@ -243,22 +243,22 @@ export function RequestConsent({
               inputMode="numeric"
               autoComplete="one-time-code"
               placeholder="000000"
-              className="w-full rounded-xl border border-black/10 bg-transparent px-3 py-2.5 text-center font-mono text-[18px] tracking-[0.3em] dark:border-white/15"
+              className="w-full rounded-xl border border-[rgb(var(--text-rgb)/0.12)] bg-transparent px-3 py-2.5 text-center font-mono text-[18px] tracking-[0.3em]"
             />
 
             {error && (
-              <p className="rounded-xl bg-red-500/10 px-4 py-3 text-[14px] text-red-700 dark:text-red-300">
+              <p className="rounded-xl bg-red-500/10 px-4 py-3 text-[14px] text-[var(--danger)]">
                 {error}
               </p>
             )}
 
             <Button type="submit" disabled={busy || code.length !== 6} className="w-full py-3">
-              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirm karo"}
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirm"}
             </Button>
 
             <p className="text-[12px] opacity-55">
-              Is tareeke se sirf zaroori do anumatiyan milti hain. Voice parent
-              apne link se baad me chalu kar sakte hain.
+              This way gives only the two required permissions. Your parent can
+              switch voice on later from their own link.
             </p>
           </form>
 
@@ -271,7 +271,7 @@ export function RequestConsent({
             }}
             className="text-[13px] underline opacity-60"
           >
-            Number galat tha? Badlo
+            Wrong number? Change it
           </button>
         </div>
       )}

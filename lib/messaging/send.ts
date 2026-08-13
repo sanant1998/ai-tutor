@@ -185,7 +185,7 @@ export async function sendConsentCode(input: {
 
   return sendSms(
     input.phone,
-    `PaperPath: ${input.studentName} ke account ke liye aapki anumati chahiye. Code ${input.code}. Details: ${input.link}`,
+    `PaperPath: your permission is needed for ${input.studentName}’s account. Code ${input.code}. Details: ${input.link}`,
   );
 }
 

@@ -27,11 +27,7 @@ import {
   readA11y,
   type A11yState,
 } from "@/lib/a11y";
-import {
-  DEFAULT_ONBOARDING,
-  ONBOARDING_STORAGE_KEY,
-  type OnboardingState,
-} from "@/lib/onboarding";
+import { ONBOARDING_STORAGE_KEY } from "@/lib/onboarding";
 import { persistProfile } from "@/lib/repository";
 import { useAppData } from "@/lib/useAppData";
 import {
@@ -40,7 +36,6 @@ import {
   TOUR_STORAGE_KEY,
   chosenSubjects,
   chosenUnits,
-  type ExamEntry,
 } from "@/lib/study";
 import {
   DEFAULT_THEME,
@@ -142,7 +137,7 @@ export function SettingsView() {
               Tutor kis bhasha me padhaye. Agle session se lagoo hoga — beech
               me badalne se baat-cheet ka sira toot jaata hai.
             </p>
-            <LanguagePicker />
+            <LanguagePicker align="left" />
           </div>
         </Card>
 

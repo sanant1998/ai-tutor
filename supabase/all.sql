@@ -13,11 +13,17 @@
 -- Order below is dependency order, not alphabetical:
 --   tutor.sql        needs schema.sql — adds columns to its `attempts` table
 --   compliance.sql   needs schema.sql for profiles, tutor.sql for the retention job's tables
+--   roles.sql        needs compliance.sql, which adds profiles.role — this closes it to ('student','teacher') and migrates the old 'parent' rows
 --   schools.sql      needs tutor.sql for topics and topic_mastery
 --   billing.sql      needs schools.sql — can_access_chapter reads org_members
 --   ratelimit.sql    needs nothing, but compliance.sql's purge calls into it
 --   analytics.sql    needs tutor.sql for llm_calls and error_events
---   tenancy.sql      needs schools.sql (extends org_members) and billing.sql (replaces can_access_chapter) — LAST, because it rewrites what came before
+--   tenancy.sql      needs schools.sql (extends org_members) and billing.sql (replaces can_access_chapter) — it rewrites what came before
+--   schoolops.sql    needs tenancy.sql for is_org_admin and my_org_ids — and it replaces teaches_section, so it must come after the copy in tenancy.sql
+--   licensing.sql    needs schoolops.sql for boards and grades, and tenancy.sql — LAST word on can_access_chapter, which three files now touch
+--   assessment.sql   needs schoolops.sql for the corrected teaches_section, tutor.sql for bank_questions
+--   comms.sql        needs tenancy.sql for is_org_admin, schools.sql for sections
+--   onboarding.sql   needs all of the above — it creates an org, a licence, a year and an audit row in one transaction, so it is genuinely last
 
 
 
@@ -266,6 +272,87 @@ create policy "sessions are self-service" on public.learning_sessions
 drop policy if exists "session turns are self-service" on public.session_turns;
 create policy "session turns are self-service" on public.session_turns
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- --- Handing out turn numbers ----------------------------------------------
+--
+-- `unique (session_id, seq)` above is the constraint that makes a transcript
+-- ordered and gapless, and it is also the one the application kept losing to.
+-- The route did `select max(seq)` and then inserted `max + 1`, which is a
+-- read-modify-write across two round trips: a double tap, a retry after a slow
+-- reply, or two tabs on the same session, and both requests read the same
+-- maximum and both write it. One insert wins, the other violates the
+-- constraint — and the error was being discarded, so the losing turn simply
+-- vanished from the transcript with nothing logged.
+--
+-- Doing the arithmetic inside one statement, behind a lock on the session row,
+-- removes the window. The lock is on learning_sessions rather than on the
+-- turns, because that is the thing being serialised: one turn at a time per
+-- session is exactly the intended behaviour, and it is a row nobody else
+-- contends for.
+--
+-- A LOCK WOULD NOT HAVE BEEN ENOUGH
+--
+-- The obvious repair is `select max(seq) ... for update` inside a function.
+-- It does not work here: PostgREST runs each RPC in its own transaction, so
+-- the lock is released the moment the function returns — which is before the
+-- application inserts anything. The window closes and reopens in the same
+-- round trip.
+--
+-- So the sequence is a counter that is advanced by the reservation itself. A
+-- single UPDATE ... RETURNING is atomic on its own; concurrent callers
+-- serialise on the row and each one leaves with a distinct block. Nothing has
+-- to stay locked between statements because nothing after the UPDATE can hand
+-- out the same numbers again.
+alter table public.learning_sessions
+  add column if not exists seq_cursor int not null default 0;
+
+-- Returns the FIRST number of a reserved run of p_count, so a caller writing
+-- the student's message and the tutor's reply gets both in one round trip.
+create or replace function public.reserve_turn_seq(p_session uuid, p_count int default 2)
+returns int
+language plpgsql
+volatile
+security definer set search_path = public
+as $$
+declare
+  v_owner uuid;
+  v_first int;
+begin
+  if p_count < 1 then
+    raise exception 'p_count must be at least 1';
+  end if;
+
+  update public.learning_sessions
+     set seq_cursor =
+           -- greatest(...) is the migration path. Sessions that already have
+           -- turns start with seq_cursor at 0, and handing out 1 again would
+           -- collide with rows written before this function existed.
+           greatest(
+             seq_cursor,
+             coalesce(
+               (select max(seq) from public.session_turns where session_id = p_session),
+               0
+             )
+           ) + p_count
+   where id = p_session
+   returning user_id, seq_cursor - p_count + 1
+   into v_owner, v_first;
+
+  if v_owner is null then
+    raise exception 'no such session';
+  end if;
+
+  -- security definer, so ownership is this function's problem. service_role
+  -- has no auth.uid() and is trusted; a signed-in caller must own the session.
+  if auth.uid() is not null and auth.uid() <> v_owner then
+    raise exception 'not your session';
+  end if;
+
+  return v_first;
+end;
+$$;
+
+grant execute on function public.reserve_turn_seq(uuid, int) to authenticated, service_role;
 
 -- --- Attempts against the bank ---------------------------------------------
 --
@@ -1034,6 +1121,125 @@ on conflict (id) do nothing;
 
 
 -- ===========================================================================
+-- roles.sql
+-- ===========================================================================
+
+-- ---------------------------------------------------------------------------
+-- Three roles, and a column that finally says so.
+--
+-- Run after compliance.sql, which is where profiles.role was added.
+--
+-- ---------------------------------------------------------------------------
+-- WHAT WAS WRONG WITH IT
+--
+-- compliance.sql created the column like this:
+--
+--   add column if not exists role text not null default 'student';  -- student | parent
+--
+-- No CHECK. The comment said two values; the application wrote three, because
+-- scripts/seed-accounts.ts and app/api/consent/adult/route.ts both write
+-- 'teacher'. So the set of roles that actually existed was whatever any code
+-- path had ever happened to store, and the one place that branched on it —
+-- app/parent-consent/page.tsx — was matching string literals against a column
+-- with no agreed vocabulary.
+--
+-- A typo in any writer ('Teacher', 'techer') would not have failed. It would
+-- have produced an account that silently fell through every branch to the
+-- student default, which is the least alarming and least debuggable outcome
+-- available.
+--
+-- ---------------------------------------------------------------------------
+-- WHY 'parent' IS BEING REMOVED RATHER THAN ADDED TO THE CHECK
+--
+-- A parent has never needed an account. app/api/consent/grant/route.ts is
+-- explicit about it at the top: the parent is a person holding a phone that
+-- received a link, and requiring them to register first would mean the consent
+-- never arrives and the child stays locked out. Both parent-facing things the
+-- product does already work without one:
+--
+--   consent        an OTP to the number the student named
+--   weekly report  WhatsApp, keyed off the phone stored on the consent row,
+--                  not off any parent account
+--
+-- So the role bought a login and a dashboard for people who mostly never
+-- signed in twice, and a fourth branch everywhere that asks what kind of
+-- account this is. Rows that still say 'parent' become students: that is the
+-- least-privileged value, and an adult with a student account sees an empty
+-- revision plan rather than anything they should not.
+--
+-- ---------------------------------------------------------------------------
+-- SUPER ADMIN IS NOT IN HERE, ON PURPOSE
+--
+-- It stays in ADMIN_EMAILS. The reasoning is in lib/admin/guard.ts and it has
+-- not changed: a super admin can rewrite what every student in the product is
+-- taught, and a role column granting that is one bad UPDATE away from being
+-- self-granted. An environment allowlist cannot be reached from inside the
+-- database at all.
+-- ---------------------------------------------------------------------------
+
+-- The migration first, then the constraint. The other order fails on any
+-- database that has a parent on it, which is every database that has been
+-- used.
+--
+-- ---------------------------------------------------------------------------
+-- WHAT THE ROW SAID BEFORE, KEPT
+--
+-- The UPDATE below is the only irreversible statement in any of these
+-- migrations: it runs against live rows, outside any transaction anybody can
+-- roll back, and afterwards nothing in the database remembers that an account
+-- was ever a parent. The project this was written against has one such row.
+--
+-- That matters because the conversion is a judgement, not a fact. 'student' is
+-- chosen as the least-privileged landing place, not because the person IS a
+-- student — and the first question anyone asks afterwards is "which accounts
+-- did this touch?". Without this column the answer is gone, and the only
+-- remaining copy is a screenshot in a chat log.
+--
+-- One nullable column, written once, readable by the account it belongs to and
+-- writable by nobody: the grants at the bottom of this file do not include it.
+-- ---------------------------------------------------------------------------
+alter table public.profiles add column if not exists legacy_role text;
+
+comment on column public.profiles.legacy_role is
+  'What role said before roles.sql closed the set to student|teacher. Null for every account created since.';
+
+update public.profiles
+   set legacy_role = role
+ where role not in ('student', 'teacher')
+   and legacy_role is null;
+
+update public.profiles set role = 'student' where role not in ('student', 'teacher');
+
+alter table public.profiles drop constraint if exists profiles_role_check;
+alter table public.profiles
+  add constraint profiles_role_check check (role in ('student', 'teacher'));
+
+comment on column public.profiles.role is
+  'student | teacher. Super admin is ADMIN_EMAILS in the environment, never a row here — see lib/admin/guard.ts.';
+
+-- Belt and braces on top of compliance.sql, which already does
+-- `revoke update on public.profiles` and grants back only first_name,
+-- last_name and language. Restated because the whole role model rests on it:
+-- if a future migration re-grants update on the table, a student can make
+-- themselves a teacher and read a class's marks.
+revoke update on public.profiles from authenticated;
+grant update (first_name, last_name, language) on public.profiles to authenticated;
+
+-- A teacher is a teacher OF an organisation. profiles.role says what kind of
+-- screen they land on; org_members.role says which classes they can see, and
+-- the two have to agree or a teacher signs in to a teacher shell with nothing
+-- in it. Nothing enforces that automatically — a teacher with no org is a
+-- legitimate state during onboarding — so this is the query to run when
+-- somebody reports an empty class list:
+--
+--   select p.id, p.email, p.role, m.org_id, m.role as org_role
+--     from public.profiles p
+--     left join public.org_members m on m.user_id = p.id
+--    where p.role = 'teacher' and m.user_id is null;
+
+
+
+-- ===========================================================================
 -- schools.sql
 -- ===========================================================================
 
@@ -1513,7 +1719,21 @@ as $$
        where s.user_id = p_user
          and (s.subject_ref is null or s.subject_ref = c.subject_ref)
          and (
-           s.status = 'active'
+           (
+             s.status = 'active'
+             -- The period has to still be running.
+             --
+             -- Without this, 'active' was open-ended: the row only ever leaves
+             -- that state when a webhook says so, and a webhook that stops
+             -- arriving is not a rare failure — a rotated secret, a paused
+             -- endpoint, an expired mandate Razorpay gave up retrying. Every
+             -- one of those looked exactly like a subscription that renews
+             -- free forever, and nothing in the product would have shown it.
+             --
+             -- Null is treated as open. A mandate that is authorised but not
+             -- yet charged has no period end, and that student has paid.
+             and (s.current_period_end is null or s.current_period_end > now())
+           )
            -- A failed charge inside its grace window still opens the app.
            or (s.status = 'past_due' and s.grace_until > now())
          )
@@ -2223,7 +2443,17 @@ as $$
        where s.user_id = p_user
          and (s.subject_ref is null or s.subject_ref = c.subject_ref)
          and (
-           s.status = 'active'
+           (
+             s.status = 'active'
+             -- The period has to still be running. Without this, 'active' was
+             -- open-ended: the row only leaves that state when a webhook says
+             -- so, and a webhook that stops arriving — rotated secret, paused
+             -- endpoint, a mandate Razorpay gave up retrying — looked exactly
+             -- like a subscription that renews free forever. Null is treated
+             -- as open: a mandate authorised but not yet charged has no period
+             -- end, and that student has paid.
+             and (s.current_period_end is null or s.current_period_end > now())
+           )
            or (s.status = 'past_due' and s.grace_until > now())
          )
     )
@@ -2238,3 +2468,2203 @@ as $$
 $$;
 
 grant execute on function public.can_access_chapter(uuid, text) to authenticated;
+
+
+
+-- ===========================================================================
+-- schoolops.sql
+-- ===========================================================================
+
+-- PaperPath — school operations
+--
+-- Run after tenancy.sql. It reads orgs, sections, org_members and is_org_admin,
+-- and it replaces teaches_section — so anything that runs before it will be
+-- overwritten by the version in tenancy.sql if the order is wrong.
+--
+-- ---------------------------------------------------------------------------
+-- WHAT WAS MISSING, AND WHY EACH PIECE IS HERE
+--
+-- schools.sql gave an org sections, students and one teacher per section. That
+-- is enough to pilot with one class. It is not enough to run a school for a
+-- year, and the gaps are all the same gap: nothing in the database knows what
+-- a school year IS.
+--
+--   A section has no year, so 8-A in 2026-27 and 8-A in 2027-28 are the same
+--   row. Last year's results silently reattach to this year's children.
+--
+--   A student has no admission number, so the only identifier the school
+--   actually uses in its own registers — the one written on the fee receipt
+--   and the report card — cannot be searched here.
+--
+--   A teacher is scoped by sections.teacher_id, which is one teacher per
+--   section. A real timetable is many: the Maths teacher and the Science
+--   teacher both teach 8-A, and neither should see the other's subject.
+--
+-- ---------------------------------------------------------------------------
+-- THE ONE THAT IS A SECURITY FIX, NOT A FEATURE
+--
+-- teacher_assignments closes the hole named at the bottom of this file. Until
+-- now a section had a single teacher_id and everyone else in the org with the
+-- org_admin role could see everything; a subject teacher had no way to be
+-- given one section without being given the whole school. Scope now comes from
+-- an assignment row, which is the shape the timetable already has on paper.
+-- ---------------------------------------------------------------------------
+
+-- ---------------------------------------------------------------------------
+-- Run in the right order?
+--
+-- Pasting one migration on its own is the ordinary mistake. Said here, once,
+-- rather than as whichever constraint happens to fail first.
+-- ---------------------------------------------------------------------------
+do $$
+begin
+  if to_regprocedure('public.is_org_admin(uuid)') is null then
+    raise exception 'supabase/tenancy.sql has not been run'
+      using hint = 'Paste supabase/all.sql — every migration, already in dependency order.';
+  end if;
+end $$;
+
+-- ---------------------------------------------------------------------------
+-- Masters: boards and grades
+--
+-- subjects.board and subjects.class_level have always been loose text and int,
+-- validated only by lib/syllabus.ts — which the server trusts and the database
+-- has never seen. A typo'd board in an import writes a subject nobody can find
+-- and nothing rejects it.
+--
+-- These two tables are small, shared by every org, and exist mainly so the
+-- foreign keys at the bottom of this section can. There is no org_id: a board
+-- is not a tenant's property.
+-- ---------------------------------------------------------------------------
+create table if not exists public.boards (
+  code      text primary key,           -- cbse | icse | upboard, matching lib/syllabus.ts
+  name      text not null,
+  is_active boolean not null default true
+);
+
+-- Stream is deliberately NOT modelled.
+--
+-- The blueprint keyed grades on (rank, stream) so that Class 11 Commerce and
+-- Class 11 Science could differ. Here they already do, one level down: the
+-- subject list for a class is (board, class_level, subject_id), and
+-- accountancy simply does not exist for the science stream. Adding a stream
+-- column would give two places to answer the same question, and they would
+-- disagree the first time somebody edited one of them.
+create table if not exists public.grades (
+  class_level int primary key,          -- 8, matching subjects.class_level
+  label       text not null,            -- 'Class 8'
+  is_active   boolean not null default true
+);
+
+insert into public.boards (code, name) values
+  ('cbse',    'CBSE'),
+  ('icse',    'ICSE'),
+  ('upboard', 'UP Board')
+on conflict (code) do nothing;
+
+-- Anything already in the curriculum that this file did not anticipate. Without
+-- it the foreign key below fails on a database that has been seeded with a
+-- board added after this migration was written, which is a migration that
+-- refuses to run for a reason nobody can see from the error.
+insert into public.boards (code, name)
+  select distinct s.board, upper(s.board)
+    from public.subjects s
+   where s.board is not null and s.board <> ''
+on conflict (code) do nothing;
+
+-- 1 to 12, not the 5-12 the blueprint assumed.
+--
+-- lib/syllabus.ts types ClassLevel as 1..10 and CLASSES offers all ten, with
+-- classBand() treating 1-5 as a different product read by a parent — so a
+-- school CAN have a Class 3 section today. Seeding only 5-12 would leave the
+-- foreign key on subjects.class_level rejecting Class 3 content the moment
+-- somebody authored it, and the error would name a constraint rather than the
+-- gap in this list. 11 and 12 are here because a coaching centre sells to them
+-- even though no curriculum exists for them yet.
+insert into public.grades (class_level, label)
+  select g, 'Class ' || g from generate_series(1, 12) g
+on conflict (class_level) do nothing;
+
+insert into public.grades (class_level, label)
+  select distinct s.class_level, 'Class ' || s.class_level
+    from public.subjects s
+   where s.class_level is not null
+on conflict (class_level) do nothing;
+
+-- Added after the seed, and guarded, because `add constraint if not exists`
+-- does not exist in Postgres and a second run of this file must not fail.
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'subjects_board_fkey'
+  ) then
+    alter table public.subjects
+      add constraint subjects_board_fkey
+      foreign key (board) references public.boards(code);
+  end if;
+
+  if not exists (
+    select 1 from pg_constraint where conname = 'subjects_class_level_fkey'
+  ) then
+    alter table public.subjects
+      add constraint subjects_class_level_fkey
+      foreign key (class_level) references public.grades(class_level);
+  end if;
+end $$;
+
+alter table public.boards enable row level security;
+alter table public.grades enable row level security;
+
+-- Readable by everyone signed in: a board list is not a secret, and every
+-- picker in the app needs it.
+drop policy if exists "boards are readable" on public.boards;
+create policy "boards are readable" on public.boards
+  for select to authenticated using (true);
+
+drop policy if exists "grades are readable" on public.grades;
+create policy "grades are readable" on public.grades
+  for select to authenticated using (true);
+
+-- ---------------------------------------------------------------------------
+-- Which board a school teaches
+--
+-- The one fact about a school that every student in it shares, and until now
+-- the only place it existed was in each child's own onboarding answers — so
+-- four hundred students at one CBSE school each told the app, separately, that
+-- they were CBSE, and any of them could say ICSE by mistake and be believed.
+--
+-- Nullable, because a coaching centre that prepares children from three boards
+-- is a real customer and null means "ask the student", which is what the app
+-- does today.
+-- ---------------------------------------------------------------------------
+alter table public.orgs
+  add column if not exists board text references public.boards(code);
+
+-- ---------------------------------------------------------------------------
+-- The academic year
+--
+-- Per org, not per platform. Indian school years mostly start in April, but a
+-- coaching centre running a one-year crash course starts when it sells the
+-- batch, and a database that assumes April tells that customer their year is
+-- wrong.
+-- ---------------------------------------------------------------------------
+create table if not exists public.academic_years (
+  id         uuid primary key default gen_random_uuid(),
+  org_id     uuid not null references public.orgs on delete cascade,
+  label      text not null,                        -- '2026-27'
+  starts_on  date not null,
+  ends_on    date not null,
+  is_current boolean not null default false,
+  created_at timestamptz not null default now(),
+  unique (org_id, label),
+  check (ends_on > starts_on)
+);
+
+-- One current year per org, enforced by the database rather than by whichever
+-- console last wrote to it. Two current years is not a display bug: promotion
+-- picks the wrong source class and moves the whole school into the wrong rooms.
+create unique index if not exists academic_years_current_idx
+  on public.academic_years (org_id) where is_current;
+
+-- ---------------------------------------------------------------------------
+-- Sections gain a year
+--
+-- Nullable, because every section that exists today predates this column and
+-- guessing a year for it would be inventing history. Null reads as "the
+-- section this org was piloting with", and new ones get a year.
+-- ---------------------------------------------------------------------------
+alter table public.sections
+  add column if not exists academic_year_id uuid references public.academic_years on delete set null;
+
+create index if not exists sections_year_idx
+  on public.sections (org_id, academic_year_id);
+
+-- ---------------------------------------------------------------------------
+-- The school's own record of a student
+--
+-- Named student_records and not student_profiles, because `profiles` already
+-- means something in this database — the account-level row every user has,
+-- self-service under RLS, holding the name, language, dob and consent state.
+-- This is the other thing: what the SCHOOL knows about the child, which is a
+-- different owner and a different lifetime. A student who leaves the school
+-- keeps their profile and loses this.
+--
+-- dob is deliberately not repeated here. compliance.sql put it on profiles and
+-- is_minor() reads it to decide whether parental consent is required; a second
+-- copy that a school admin can edit is a second answer to "is this child under
+-- 18", and the wrong one would be the editable one.
+-- ---------------------------------------------------------------------------
+create table if not exists public.student_records (
+  org_id           uuid not null references public.orgs on delete cascade,
+  student_id       uuid not null references auth.users on delete cascade,
+  admission_number text not null,
+  roll_number      text,
+  section_id       uuid references public.sections on delete set null,
+  admission_date   date,
+  created_at       timestamptz not null default now(),
+  primary key (org_id, student_id),
+  unique (org_id, admission_number)
+);
+
+create index if not exists student_records_section_idx
+  on public.student_records (section_id);
+
+-- ---------------------------------------------------------------------------
+-- Who teaches what, where
+--
+-- The table the teacher screens should have been reading from the start.
+-- sections.teacher_id stays: it is the class teacher, a real and separate role
+-- in an Indian school — the one who takes attendance and talks to the parent.
+-- Subject teaching is this table.
+-- ---------------------------------------------------------------------------
+create table if not exists public.teacher_assignments (
+  id               uuid primary key default gen_random_uuid(),
+  org_id           uuid not null references public.orgs on delete cascade,
+  teacher_id       uuid not null references auth.users on delete cascade,
+  section_id       uuid not null references public.sections on delete cascade,
+  subject_ref      text not null references public.subjects on delete cascade,
+  academic_year_id uuid references public.academic_years on delete cascade,
+  created_at       timestamptz not null default now(),
+  unique (teacher_id, section_id, subject_ref, academic_year_id)
+);
+
+create index if not exists teacher_assignments_section_idx
+  on public.teacher_assignments (section_id, subject_ref);
+
+create index if not exists teacher_assignments_teacher_idx
+  on public.teacher_assignments (teacher_id);
+
+-- ---------------------------------------------------------------------------
+-- Where a student sat, each year
+--
+-- section_students is the present tense and stays that way — every query that
+-- asks "who is in this class" reads it and should not have to filter by year.
+-- This is the past, written once at promotion.
+--
+-- Without it, a report card from Class 8 is indistinguishable from one from
+-- Class 9 the moment the child moves up, because the only link between a
+-- student and a class is a membership row that promotion overwrites.
+-- ---------------------------------------------------------------------------
+create table if not exists public.student_section_history (
+  id               uuid primary key default gen_random_uuid(),
+  org_id           uuid not null references public.orgs on delete cascade,
+  student_id       uuid not null references auth.users on delete cascade,
+  academic_year_id uuid not null references public.academic_years on delete cascade,
+  section_id       uuid not null references public.sections on delete cascade,
+  -- active | promoted | repeated | transferred | left
+  status           text not null default 'active'
+                   check (status in ('active', 'promoted', 'repeated', 'transferred', 'left')),
+  created_at       timestamptz not null default now(),
+  unique (student_id, academic_year_id)
+);
+
+create index if not exists student_section_history_section_idx
+  on public.student_section_history (section_id);
+
+-- ---------------------------------------------------------------------------
+-- Bulk imports
+--
+-- The existing roster import in app/api/admin/schools/route.ts posts a list of
+-- addresses and returns the failures in its response. That is fine for forty
+-- and useless for five hundred: the tab gets closed, the response is gone, and
+-- nobody can answer "which twelve did not go in".
+--
+-- No file_url. The blueprint stored an uploaded spreadsheet and an error report
+-- as two more URLs in object storage; this repository already treats every
+-- stored artefact as something that has to be purged on erasure
+-- (compliance.sql), and a school roster is the single most identifying file in
+-- the product. The rows come in over the request and there is nothing at rest
+-- to forget about.
+--
+-- And the errors are row numbers, not values. The route that writes them
+-- already refuses to store the addresses of children who have not signed up —
+-- "a list of children's email addresses held for a purpose nobody consented
+-- to" is the note it was written with — and a failed row is one of those
+-- addresses with a typo in it. The person fixing the import has the
+-- spreadsheet open in front of them, so "row 14" is the whole fix.
+-- ---------------------------------------------------------------------------
+create table if not exists public.import_jobs (
+  id           uuid primary key default gen_random_uuid(),
+  org_id       uuid not null references public.orgs on delete cascade,
+  uploaded_by  uuid references auth.users on delete set null,
+  kind         text not null check (kind in ('students', 'teachers', 'parents')),
+  source_name  text,                              -- 'class-8-a.csv', for the console only
+  total_rows   int not null default 0,
+  success_rows int not null default 0,
+  failed_rows  int not null default 0,
+  -- [{"row": 14, "reason": "not an email address"}] — positions and reasons.
+  errors       jsonb not null default '[]'::jsonb,
+  status       text not null default 'queued'
+               check (status in ('queued', 'processing', 'completed', 'failed')),
+  created_at   timestamptz not null default now(),
+  completed_at timestamptz
+);
+
+create index if not exists import_jobs_org_idx
+  on public.import_jobs (org_id, created_at desc);
+
+-- ---------------------------------------------------------------------------
+-- org_id must agree with what the row points at
+--
+-- Every table above carries org_id AND a reference to a section or an academic
+-- year, and until now nothing checked that the two agreed. A row could name
+-- School A's section and carry School B's org_id, and no constraint would
+-- object — the section FK is satisfied, the org FK is satisfied, and the pair
+-- is nonsense.
+--
+-- That is not a theoretical tidiness problem. Every policy on these tables
+-- reads org_id: `is_org_admin(org_id)` on student_records, `my_org_ids()` on
+-- academic_years. So a mismatched row is handed to whichever school the org_id
+-- names, carrying another school's data — the cross-tenant leak this codebase
+-- is otherwise careful about, arriving through the back door of a denormalised
+-- column rather than a missing WHERE clause.
+--
+-- One trigger function rather than composite foreign keys, because a composite
+-- FK on (section_id, org_id) collides with the single-column FK already there:
+-- both fire on delete, one wants SET NULL and the other NO ACTION, and the
+-- column-list form of ON DELETE SET NULL is PostgreSQL 15+. A trigger says the
+-- same thing in one place and works everywhere.
+-- ---------------------------------------------------------------------------
+create or replace function public.assert_row_org()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  v_ref uuid := (to_jsonb(new) ->> tg_argv[0])::uuid;
+  v_org uuid := (to_jsonb(new) ->> 'org_id')::uuid;
+  v_owner uuid;
+begin
+  -- Nothing to check: an unset reference, or a platform-level row on one of
+  -- the tables where org_id is nullable and null means "the vendor's".
+  if v_ref is null or v_org is null then
+    return new;
+  end if;
+
+  execute format('select org_id from public.%I where id = $1', tg_argv[1])
+    into v_owner using v_ref;
+
+  if v_owner is distinct from v_org then
+    raise exception 'that % belongs to another organisation', tg_argv[1]
+      using hint = 'org_id must match the row it points at.';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists teacher_assignments_org on public.teacher_assignments;
+create trigger teacher_assignments_org
+  before insert or update of section_id, org_id on public.teacher_assignments
+  for each row execute function public.assert_row_org('section_id', 'sections');
+
+drop trigger if exists teacher_assignments_year_org on public.teacher_assignments;
+create trigger teacher_assignments_year_org
+  before insert or update of academic_year_id, org_id on public.teacher_assignments
+  for each row execute function public.assert_row_org('academic_year_id', 'academic_years');
+
+drop trigger if exists student_records_org on public.student_records;
+create trigger student_records_org
+  before insert or update of section_id, org_id on public.student_records
+  for each row execute function public.assert_row_org('section_id', 'sections');
+
+drop trigger if exists student_section_history_org on public.student_section_history;
+create trigger student_section_history_org
+  before insert or update of section_id, org_id on public.student_section_history
+  for each row execute function public.assert_row_org('section_id', 'sections');
+
+drop trigger if exists student_section_history_year_org on public.student_section_history;
+create trigger student_section_history_year_org
+  before insert or update of academic_year_id, org_id on public.student_section_history
+  for each row execute function public.assert_row_org('academic_year_id', 'academic_years');
+
+-- ---------------------------------------------------------------------------
+-- Import errors do not live for ever
+--
+-- Belt and braces. As written, the route stores row numbers and reasons and no
+-- values at all, so there should be nothing here that names anybody — but this
+-- is a jsonb column on the one table a school fills in about children who do
+-- not have accounts yet, and "should be nothing" is a property of the current
+-- version of one route.
+--
+-- The counts stay, which is what the console shows a month later. The detail
+-- goes at ninety days, long enough for the office to fix the rows that failed,
+-- which is the only thing it is for.
+-- ---------------------------------------------------------------------------
+create or replace function public.purge_import_errors()
+returns int
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  v_rows int;
+begin
+  update public.import_jobs
+     set errors = '[]'::jsonb
+   where created_at < now() - interval '90 days'
+     and errors <> '[]'::jsonb;
+
+  get diagnostics v_rows = row_count;
+  return v_rows;
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- Row-level security
+--
+-- Reads only. Every table here is written by the admin console with the
+-- service-role key, which RLS does not apply to — so an insert policy would
+-- describe a path nothing takes, and the only thing it could do is let a
+-- student take it. The console's own authorisation is lib/admin/access.ts.
+-- ---------------------------------------------------------------------------
+alter table public.academic_years          enable row level security;
+alter table public.student_records         enable row level security;
+alter table public.teacher_assignments     enable row level security;
+alter table public.student_section_history enable row level security;
+alter table public.import_jobs             enable row level security;
+
+drop policy if exists "members can see their org's years" on public.academic_years;
+create policy "members can see their org's years" on public.academic_years
+  for select using (org_id = any(public.my_org_ids()));
+
+-- A student sees their own record. A teacher does not read the register this
+-- way — admission numbers for the whole school through one policy is exactly
+-- the broad grant schools.sql refused to write — they get the roster through
+-- section_roster() below, which re-checks the assignment every time.
+drop policy if exists "students can see their own record" on public.student_records;
+create policy "students can see their own record" on public.student_records
+  for select using (
+    student_id = auth.uid() or public.is_org_admin(org_id)
+  );
+
+drop policy if exists "teachers can see their own assignments" on public.teacher_assignments;
+create policy "teachers can see their own assignments" on public.teacher_assignments
+  for select using (
+    teacher_id = auth.uid() or public.is_org_admin(org_id)
+  );
+
+drop policy if exists "students can see their own history" on public.student_section_history;
+create policy "students can see their own history" on public.student_section_history
+  for select using (
+    student_id = auth.uid() or public.is_org_admin(org_id)
+  );
+
+-- Import jobs name other people's children in their error rows. Org admins
+-- only, and no student policy at all.
+drop policy if exists "org admins can see their imports" on public.import_jobs;
+create policy "org admins can see their imports" on public.import_jobs
+  for select using (public.is_org_admin(org_id));
+
+-- ---------------------------------------------------------------------------
+-- Teacher scope, corrected
+--
+-- The version in tenancy.sql answered yes for the class teacher and for every
+-- org_admin. A subject teacher assigned to 8-A for Maths got nothing, so the
+-- only way to give them their own class was to make them an org admin — which
+-- hands them every class in the school and the ability to publish curriculum.
+--
+-- That is the failure mode the blueprint's "Rule #2" describes, and it was
+-- live here: scope has to come from the assignment, not from the role.
+-- ---------------------------------------------------------------------------
+create or replace function public.teaches_section(p_section uuid)
+returns boolean
+language sql
+stable
+security definer set search_path = public
+as $$
+  select exists (
+    select 1
+      from public.sections s
+      join public.org_members m on m.org_id = s.org_id and m.user_id = auth.uid()
+     where s.id = p_section
+       and (s.teacher_id = auth.uid() or m.role = 'org_admin')
+  )
+  or exists (
+    select 1
+      from public.teacher_assignments ta
+     where ta.section_id = p_section
+       and ta.teacher_id = auth.uid()
+  );
+$$;
+
+grant execute on function public.teaches_section(uuid) to authenticated;
+
+-- The same hole, in the one policy that inlined its own version of the check.
+--
+-- schools.sql wrote "or the section's teacher_id is me" directly into the
+-- assignments policy instead of calling the function, so correcting the
+-- function above would have left this one behind — a subject teacher who could
+-- not see the homework set for their own class, and could not see it come back
+-- either, because assignment_submissions reads through this policy.
+--
+-- This is the argument for the function existing at all: a check that is
+-- written twice is a check that gets fixed once.
+drop policy if exists "students see assignments set for them" on public.assignments;
+create policy "students see assignments set for them" on public.assignments
+  for select using (
+    exists (select 1 from public.section_students ss
+             where ss.section_id = assignments.section_id and ss.student_id = auth.uid())
+    or public.teaches_section(section_id)
+  );
+
+-- ---------------------------------------------------------------------------
+-- The roster, for whoever actually teaches the class
+--
+-- A function rather than a policy, for the reason schools.sql gives at length:
+-- a policy is written once and read never, and one that says "teachers may see
+-- students" keeps saying it after the teacher leaves. This checks at the
+-- moment of asking.
+--
+-- It returns the register — name, admission number, roll number — and nothing
+-- about how the child is doing. Performance is section_overview(), already
+-- written, and keeping the two apart means the school-office view and the
+-- teaching view can be granted separately later without splitting a function.
+-- ---------------------------------------------------------------------------
+create or replace function public.section_roster(p_section uuid)
+returns table (
+  student_id       uuid,
+  name             text,
+  admission_number text,
+  roll_number      text
+)
+language plpgsql
+stable
+security definer set search_path = public
+as $$
+begin
+  if not public.teaches_section(p_section) then
+    raise exception 'not your section';
+  end if;
+
+  return query
+  select
+    ss.student_id,
+    coalesce(nullif(trim(p.first_name || ' ' || p.last_name), ''), 'Student') as name,
+    sr.admission_number,
+    sr.roll_number
+  from public.section_students ss
+  left join public.profiles p on p.id = ss.student_id
+  left join public.student_records sr on sr.student_id = ss.student_id
+   and sr.org_id = (select s.org_id from public.sections s where s.id = p_section)
+  where ss.section_id = p_section
+  -- Roll numbers are text and a register sorted as text puts 10 before 2.
+  -- The digits decide; anything without digits, and anyone with no record
+  -- yet, falls to the bottom under their name. Ordinal 2 rather than `name`
+  -- because that is also this function's OUT parameter, and a name that is
+  -- both is one PostgreSQL version away from resolving to the wrong one.
+  order by nullif(regexp_replace(coalesce(sr.roll_number, ''), '\D', '', 'g'), '')::int
+             nulls last,
+           2;
+end;
+$$;
+
+grant execute on function public.section_roster(uuid) to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Promotion
+--
+-- The year-end job, as one transaction, because the half-done version is a
+-- school where some children are in Class 9 and some are still in Class 8 and
+-- no screen tells you which.
+--
+-- It writes history first and moves memberships second, so a failure leaves
+-- the school where it started rather than mid-move. Students already recorded
+-- for the target year are skipped, which makes a second run after a partial
+-- failure safe — the operator's instinct is to press it again, and that has to
+-- be the harmless choice.
+-- ---------------------------------------------------------------------------
+create or replace function public.promote_section(
+  p_from_section uuid,
+  p_to_section uuid,
+  p_academic_year uuid
+)
+returns int
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  v_org uuid;
+  v_moved int := 0;
+begin
+  select org_id into v_org from public.sections where id = p_from_section;
+
+  if v_org is null then
+    raise exception 'no such section';
+  end if;
+
+  if not public.is_org_admin(v_org) then
+    raise exception 'not your organisation';
+  end if;
+
+  -- Both ends in the same org, or promotion becomes a way to move a child into
+  -- another customer's school.
+  if not exists (
+    select 1 from public.sections where id = p_to_section and org_id = v_org
+  ) then
+    raise exception 'sections belong to different organisations';
+  end if;
+
+  if not exists (
+    select 1 from public.academic_years where id = p_academic_year and org_id = v_org
+  ) then
+    raise exception 'that academic year belongs to another organisation';
+  end if;
+
+  insert into public.student_section_history (org_id, student_id, academic_year_id, section_id, status)
+    select v_org, ss.student_id, p_academic_year, p_from_section, 'promoted'
+      from public.section_students ss
+     where ss.section_id = p_from_section
+  on conflict (student_id, academic_year_id) do nothing;
+
+  insert into public.section_students (section_id, student_id)
+    select p_to_section, ss.student_id
+      from public.section_students ss
+     where ss.section_id = p_from_section
+  on conflict do nothing;
+
+  get diagnostics v_moved = row_count;
+
+  delete from public.section_students where section_id = p_from_section;
+
+  update public.student_records
+     set section_id = p_to_section
+   where org_id = v_org and section_id = p_from_section;
+
+  return v_moved;
+end;
+$$;
+
+grant execute on function public.promote_section(uuid, uuid, uuid) to authenticated;
+
+
+
+-- ===========================================================================
+-- licensing.sql
+-- ===========================================================================
+
+-- PaperPath — licences, seats and school invoicing
+--
+-- Run after schoolops.sql (plan access rows reference boards and grades) and
+-- after tenancy.sql, because it replaces can_access_chapter and tenancy.sql
+-- has the previous word on it.
+--
+-- ---------------------------------------------------------------------------
+-- WHY THE COLUMNS ON orgs WERE NOT ENOUGH
+--
+-- An org carries seats, expires_at, licence_inr and licence_starts_on. One
+-- deal, in place, expressed as four columns — which works exactly until the
+-- second deal:
+--
+--   A renewal overwrites the year that was just delivered, so nobody can say
+--   what the school paid last year or when it lapsed.
+--
+--   A school that buys 200 seats in April and 60 more in October has one seat
+--   count and one price, and the second sale has nowhere to go.
+--
+--   Nothing records WHICH children are on the seats. seats_used was a count,
+--   and a count cannot answer "the school says it has 40 spare, why is this
+--   child locked out" — the question every support call is actually about.
+--
+-- ---------------------------------------------------------------------------
+-- THIS FILE DOES NOT TAKE ANYTHING AWAY
+--
+-- The columns on orgs still work and still grant access. Every org that exists
+-- today was sold that way, and a migration that made them stop working would
+-- lock out every pilot on the day it ran. So the new path is additive: a live
+-- licence with an assigned seat grants access, and so does the old expiry
+-- date, until an org is moved across.
+--
+-- The backfill at the bottom moves them. It is a separate statement rather
+-- than part of the migration because it should be read before it is run.
+-- ---------------------------------------------------------------------------
+
+-- Run in the right order? boards and grades come from schoolops.sql, and the
+-- plan access table below has foreign keys into both.
+do $$
+begin
+  if to_regclass('public.boards') is null then
+    raise exception 'supabase/schoolops.sql has not been run'
+      using hint = 'Paste supabase/all.sql — every migration, already in dependency order.';
+  end if;
+end $$;
+
+-- ---------------------------------------------------------------------------
+-- What is for sale
+--
+-- licence_plans, not plans, because lib/plans.ts already means the parent's
+-- monthly subscription. Both revenue paths run side by side — a school buys
+-- seats, a parent who found the app buys a subscription — and the two price
+-- lists have never been the same list.
+-- ---------------------------------------------------------------------------
+create table if not exists public.licence_plans (
+  code               text primary key,          -- 'school-standard'
+  name               text not null,
+  price_per_seat_inr numeric(10,2) not null,
+  billing_cycle      text not null default 'yearly'
+                     check (billing_cycle in ('yearly', 'half-yearly', 'quarterly')),
+  -- The daily AI credit a student on this plan gets. ai_usage and
+  -- consume_ai_quota already enforce a limit; this is where the number comes
+  -- from when the org has a licence rather than the app-wide default.
+  ai_credits_per_day int not null default 5,
+  -- Whether the org may publish its own curriculum. orgs.can_author is the
+  -- live switch and stays authoritative; this is the default a new licence
+  -- sets, so the commercial line lives with the price rather than next to it.
+  can_author         boolean not null default false,
+  is_active          boolean not null default true,
+  created_at         timestamptz not null default now()
+);
+
+-- What a plan unlocks. Every column nullable, and null means "all of them":
+-- the common plan is "everything we publish for CBSE Class 8", which is one
+-- row, and the restrictive plan is several.
+--
+-- No rows at all for a plan means no restriction. That is the permissive
+-- default on purpose — a plan whose access list somebody forgot to fill in
+-- should sell the whole catalogue and be noticed in the numbers, not lock a
+-- school out of everything on a Monday morning.
+create table if not exists public.licence_plan_access (
+  id          uuid primary key default gen_random_uuid(),
+  plan_code   text not null references public.licence_plans on delete cascade,
+  board       text references public.boards(code) on delete cascade,
+  class_level int  references public.grades(class_level) on delete cascade,
+  subject_id  text,                             -- maths | science, per lib/syllabus.ts
+  unique (plan_code, board, class_level, subject_id)
+);
+
+insert into public.licence_plans (code, name, price_per_seat_inr, ai_credits_per_day, can_author) values
+  ('school-standard', 'School Standard', 600.00, 5,  false),
+  ('school-premium',  'School Premium',  900.00, 15, true)
+on conflict (code) do nothing;
+
+-- ---------------------------------------------------------------------------
+-- The deal itself
+-- ---------------------------------------------------------------------------
+create table if not exists public.licences (
+  id              uuid primary key default gen_random_uuid(),
+  org_id          uuid not null references public.orgs on delete cascade,
+  plan_code       text not null references public.licence_plans,
+  seats_purchased int  not null check (seats_purchased >= 0),
+  price_per_seat_inr numeric(10,2),             -- null = the plan's list price
+  starts_on       date not null,
+  expires_on      date not null,
+  status          text not null default 'active'
+                  check (status in ('active', 'expired', 'cancelled')),
+  po_number       text,                          -- schools pay against one
+  created_at      timestamptz not null default now(),
+  check (expires_on >= starts_on)
+);
+
+create index if not exists licences_org_idx on public.licences (org_id, status);
+
+-- ---------------------------------------------------------------------------
+-- Who is sitting on the seats
+--
+-- A row per student per licence, with a revocation date rather than a delete:
+-- "this child had access from June to November" is a question a school asks
+-- when a parent disputes a bill, and a deleted row cannot answer it.
+-- ---------------------------------------------------------------------------
+create table if not exists public.licence_seats (
+  id          uuid primary key default gen_random_uuid(),
+  licence_id  uuid not null references public.licences on delete cascade,
+  org_id      uuid not null references public.orgs on delete cascade,
+  student_id  uuid not null references auth.users on delete cascade,
+  assigned_at timestamptz not null default now(),
+  revoked_at  timestamptz,
+  unique (licence_id, student_id)
+);
+
+create index if not exists licence_seats_student_idx
+  on public.licence_seats (student_id) where revoked_at is null;
+
+create index if not exists licence_seats_org_idx
+  on public.licence_seats (org_id, licence_id);
+
+-- ---------------------------------------------------------------------------
+-- The seat count is enforced here, not in the console
+--
+-- The blueprint kept seats_used as a column with a CHECK against it. A counter
+-- maintained by application code drifts the first time an assignment fails
+-- halfway, and then the check is guarding a number that is already wrong.
+--
+-- Counting the live rows cannot drift. It costs an indexed count per
+-- assignment, which happens at most a few hundred times a year per school.
+-- ---------------------------------------------------------------------------
+create or replace function public.enforce_seat_rules()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  v_purchased int;
+  v_licence_org uuid;
+  v_used int;
+begin
+  select seats_purchased, org_id into v_purchased, v_licence_org
+    from public.licences where id = new.licence_id;
+
+  -- The seat, the licence and the school must be the same school. Without
+  -- this, a seat row could carry School B's org_id against School A's licence
+  -- — and since the RLS policy on this table is is_org_admin(org_id), School B
+  -- would be reading and revoking seats it does not own.
+  if v_licence_org is distinct from new.org_id then
+    raise exception 'that licence belongs to another organisation';
+  end if;
+
+  -- A seat is a seat AT a school, and can_access_chapter grants the whole
+  -- covered curriculum to whoever holds one. Handing it to somebody who is not
+  -- a member of that school is how an ex-student, or a stranger whose id was
+  -- pasted into the wrong field, keeps full access — with a valid-looking row
+  -- and nothing to notice it by.
+  if not exists (
+    select 1 from public.org_members m
+     where m.org_id = new.org_id and m.user_id = new.student_id
+  ) then
+    raise exception 'that student is not a member of this organisation';
+  end if;
+
+  select count(*) into v_used
+    from public.licence_seats
+   where licence_id = new.licence_id
+     and revoked_at is null
+     and id <> new.id;
+
+  if v_used >= v_purchased then
+    raise exception 'licence has % seats and all of them are in use', v_purchased
+      using hint = 'Revoke a seat or sell more.';
+  end if;
+
+  return new;
+end;
+$$;
+
+-- licence_id and student_id are in the column list, not just revoked_at.
+-- Moving a live seat to a different licence is an UPDATE that changes who is
+-- consuming which allowance, and a trigger watching only revoked_at sleeps
+-- through it — so a two-seat licence can be filled from another one's rows.
+drop trigger if exists licence_seats_limit on public.licence_seats;
+drop trigger if exists licence_seats_rules on public.licence_seats;
+create trigger licence_seats_rules
+  before insert or update of revoked_at, licence_id, student_id, org_id
+  on public.licence_seats
+  for each row when (new.revoked_at is null)
+  execute function public.enforce_seat_rules();
+
+-- What an admin is actually paying for. org_seat_usage in schools.sql counts
+-- memberships; this counts seats, which is the number on the invoice.
+create or replace view public.licence_seat_usage as
+  select l.id as licence_id,
+         l.org_id,
+         o.name as org_name,
+         l.plan_code,
+         l.seats_purchased,
+         count(s.id) filter (where s.revoked_at is null) as seats_used,
+         l.starts_on,
+         l.expires_on,
+         l.status
+    from public.licences l
+    join public.orgs o on o.id = l.org_id
+    left join public.licence_seats s on s.licence_id = l.id
+   group by l.id, l.org_id, o.name, l.plan_code, l.seats_purchased,
+            l.starts_on, l.expires_on, l.status;
+
+-- ---------------------------------------------------------------------------
+-- Does this plan cover this chapter?
+--
+-- Empty access list means everything, as above. Otherwise the chapter's
+-- subject decides, and a null column in the access row is a wildcard for that
+-- dimension — so ('cbse', 8, null) is "everything we teach Class 8 CBSE".
+-- ---------------------------------------------------------------------------
+create or replace function public.licence_covers_chapter(p_plan text, p_chapter text)
+returns boolean
+language sql
+stable
+security definer set search_path = public
+as $$
+  select
+    not exists (select 1 from public.licence_plan_access a where a.plan_code = p_plan)
+    or exists (
+      select 1
+        from public.licence_plan_access a
+        join public.chapters c on c.id = p_chapter
+        join public.subjects s on s.id = c.subject_ref
+       where a.plan_code = p_plan
+         and (a.board is null       or a.board = s.board)
+         and (a.class_level is null or a.class_level = s.class_level)
+         and (a.subject_id is null  or a.subject_id = s.subject_id)
+    );
+$$;
+
+grant execute on function public.licence_covers_chapter(text, text) to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- School invoices
+--
+-- Separate from public.invoices, which is the parent's receipt: user_id not
+-- null, one line, paid by card through Razorpay before it is ever issued. A
+-- school invoice is raised BEFORE payment, against a purchase order, with a
+-- due date and a state that can be overdue. Forcing both through one table
+-- would mean a nullable user_id and a status column the B2C path ignores —
+-- and the first bug would be a parent's receipt appearing in an ageing report.
+--
+-- GST is added here, not extracted. The parent agreed to a price inclusive of
+-- tax; a school agrees a per-seat rate and expects tax on top of it, which is
+-- what the purchase order says.
+-- ---------------------------------------------------------------------------
+create table if not exists public.org_invoices (
+  id             uuid primary key default gen_random_uuid(),
+  org_id         uuid not null references public.orgs on delete cascade,
+  licence_id     uuid references public.licences on delete set null,
+
+  -- PP/S/2026-27/000123 — S for school, a separate series from the parent one.
+  number         text not null unique,
+  financial_year text not null,
+
+  base_inr       numeric(12,2) not null,
+  gst_inr        numeric(12,2) not null,
+  total_inr      numeric(12,2) not null,
+  gst_rate       numeric(5,2)  not null default 18.00,
+  sac_code       text not null default '999293',
+
+  po_number      text,
+  status         text not null default 'pending'
+                 check (status in ('pending', 'paid', 'overdue', 'void')),
+  issued_on      date not null default current_date,
+  due_on         date,
+  paid_at        timestamptz,
+  payment_ref    text,
+  created_at     timestamptz not null default now()
+);
+
+create index if not exists org_invoices_org_idx
+  on public.org_invoices (org_id, issued_on desc);
+
+-- Its own sequence. Sharing invoice_seq would leave gaps in both series, and a
+-- gapless per-series number is the thing the auditor actually checks.
+create sequence if not exists public.org_invoice_seq;
+
+create or replace function public.issue_org_invoice(
+  p_org uuid,
+  p_licence uuid,
+  p_base_inr numeric,
+  p_po text default null,
+  p_due_days int default 30
+)
+returns public.org_invoices
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  v_row public.org_invoices;
+  v_fy text := public.financial_year();
+  v_gst numeric(12,2);
+begin
+  v_gst := round(p_base_inr * 0.18, 2);
+
+  insert into public.org_invoices (
+    org_id, licence_id, number, financial_year,
+    base_inr, gst_inr, total_inr, po_number, due_on
+  )
+  values (
+    p_org, p_licence,
+    'PP/S/' || v_fy || '/' || lpad(nextval('public.org_invoice_seq')::text, 6, '0'),
+    v_fy, p_base_inr, v_gst, p_base_inr + v_gst, p_po,
+    current_date + make_interval(days => p_due_days)
+  )
+  returning * into v_row;
+
+  return v_row;
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- Row-level security
+--
+-- Prices and purchase orders are the customer's commercial terms. An org admin
+-- sees their own; a student sees whether they hold a seat and nothing else,
+-- because "am I locked out or is the school" is a question worth answering on
+-- the screen rather than on the phone.
+-- ---------------------------------------------------------------------------
+alter table public.licence_plans       enable row level security;
+alter table public.licence_plan_access enable row level security;
+alter table public.licences            enable row level security;
+alter table public.licence_seats       enable row level security;
+alter table public.org_invoices        enable row level security;
+
+drop policy if exists "plans are readable" on public.licence_plans;
+create policy "plans are readable" on public.licence_plans
+  for select to authenticated using (is_active);
+
+drop policy if exists "plan access is readable" on public.licence_plan_access;
+create policy "plan access is readable" on public.licence_plan_access
+  for select to authenticated using (true);
+
+drop policy if exists "org admins can see their licences" on public.licences;
+create policy "org admins can see their licences" on public.licences
+  for select using (public.is_org_admin(org_id));
+
+drop policy if exists "students can see their own seat" on public.licence_seats;
+create policy "students can see their own seat" on public.licence_seats
+  for select using (
+    student_id = auth.uid() or public.is_org_admin(org_id)
+  );
+
+drop policy if exists "org admins can see their invoices" on public.org_invoices;
+create policy "org admins can see their invoices" on public.org_invoices
+  for select using (public.is_org_admin(org_id));
+
+-- ---------------------------------------------------------------------------
+-- Access, extended once more
+--
+-- Identical to the version in tenancy.sql plus one branch: a student holding a
+-- live seat on a live licence, if the plan covers the chapter.
+--
+-- Note what is NOT here. There is no rule that a member of an org WITHOUT a
+-- seat is denied — the legacy branch below still lets every member of an org
+-- with a future expires_at in. Making seats mandatory is a one-line change
+-- (delete the last branch) and it must not happen on the same day as this
+-- migration: every existing org has zero seat rows, so it would lock out every
+-- school at once, and the symptom would be indistinguishable from an outage.
+-- ---------------------------------------------------------------------------
+create or replace function public.can_access_chapter(p_user uuid, p_chapter text)
+returns boolean
+language sql
+stable
+security definer set search_path = public
+as $$
+  select
+    -- The org's own material, to its own members with a live licence.
+    exists (
+      select 1
+        from public.chapters c
+        join public.org_members m on m.org_id = c.org_id
+        join public.orgs o on o.id = c.org_id
+       where c.id = p_chapter
+         and c.org_id is not null
+         and m.user_id = p_user
+         and public.licence_is_live(o.licence_starts_on, o.expires_at)
+    )
+    -- The free chapter of the base curriculum.
+    or coalesce(
+      (select c.is_free from public.chapters c
+        where c.id = p_chapter and c.org_id is null),
+      false)
+    -- A direct subscription.
+    or exists (
+      select 1
+        from public.subscriptions s
+        left join public.chapters c on c.id = p_chapter
+       where s.user_id = p_user
+         and (s.subject_ref is null or s.subject_ref = c.subject_ref)
+         and (
+           (
+             s.status = 'active'
+             -- The period has to still be running. Without this, 'active' was
+             -- open-ended: the row only leaves that state when a webhook says
+             -- so, and a webhook that stops arriving — rotated secret, paused
+             -- endpoint, a mandate Razorpay gave up retrying — looked exactly
+             -- like a subscription that renews free forever. Null is treated
+             -- as open: a mandate authorised but not yet charged has no period
+             -- end, and that student has paid.
+             and (s.current_period_end is null or s.current_period_end > now())
+           )
+           or (s.status = 'past_due' and s.grace_until > now())
+         )
+    )
+    -- A seat on a live licence, for content the plan covers.
+    or exists (
+      select 1
+        from public.licence_seats ls
+        join public.licences l on l.id = ls.licence_id
+       where ls.student_id = p_user
+         and ls.revoked_at is null
+         and l.status = 'active'
+         and public.licence_is_live(l.starts_on, l.expires_on)
+         and public.licence_covers_chapter(l.plan_code, p_chapter)
+    )
+    -- Legacy: a seat count and an expiry date on the org itself.
+    --
+    -- `o.expires_at is not null` is new, and it is a fix rather than a
+    -- tightening. licence_is_live treats a null expiry as "never expires",
+    -- which is right for licence_starts_on — an org created before that column
+    -- existed has already started — and wrong at this end: the admin console
+    -- writes `expires_at: body.expiresOn ?? null`, so an org onboarded without
+    -- a date typed into the form was granting every member of that school
+    -- permanent free access to the entire base curriculum, with nothing on any
+    -- screen saying so. A sold licence always has an end date. One that does
+    -- not is an org that was set up carelessly, and the safe reading of that
+    -- is "not yet paid for", not "paid for forever".
+    or exists (
+      select 1
+        from public.org_members m
+        join public.orgs o on o.id = m.org_id
+       where m.user_id = p_user
+         and o.expires_at is not null
+         and public.licence_is_live(o.licence_starts_on, o.expires_at)
+    );
+$$;
+
+grant execute on function public.can_access_chapter(uuid, text) to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Backfill — READ THIS BEFORE RUNNING IT
+--
+-- Turns each org's four columns into one licence row so that the new path and
+-- the old one describe the same deal. It does NOT assign seats: which children
+-- hold them is a decision the school makes, and inventing it here would fill
+-- every licence to its limit with whoever happened to sign up first.
+--
+-- Commented out because a migration that silently creates commercial records
+-- is one nobody can audit afterwards. Run it deliberately, once.
+-- ---------------------------------------------------------------------------
+-- insert into public.licences (org_id, plan_code, seats_purchased, price_per_seat_inr,
+--                              starts_on, expires_on, status)
+--   select o.id,
+--          case when o.can_author then 'school-premium' else 'school-standard' end,
+--          o.seats,
+--          case when o.seats > 0 then round(o.licence_inr / o.seats, 2) end,
+--          coalesce(o.licence_starts_on, o.created_at::date),
+--          o.expires_at,
+--          case when o.expires_at >= current_date then 'active' else 'expired' end
+--     from public.orgs o
+--    where o.expires_at is not null
+--      and not exists (select 1 from public.licences l where l.org_id = o.id);
+
+
+
+-- ===========================================================================
+-- assessment.sql
+-- ===========================================================================
+
+-- PaperPath — homework and tests
+--
+-- Run after schoolops.sql (teaches_section is the corrected version there) and
+-- after tutor.sql, which owns bank_questions.
+--
+-- ---------------------------------------------------------------------------
+-- WHAT WAS HALF-BUILT
+--
+-- schools.sql gave a teacher assignments: a chapter or a topic, a section, a
+-- due date. What it never gave them was the other half — the work coming back.
+-- A teacher could set homework and then had no screen, table or endpoint that
+-- said who had done it. In a B2B pilot that is the first thing asked for and
+-- the first thing missing.
+--
+-- Tests are the second. `attempts` records practice, one question at a time,
+-- as the student works through a topic. A test is a different object: a fixed
+-- set of questions, a window it can be taken in, a number of attempts, and a
+-- score that goes on a report. Bending the practice table into that shape
+-- would mean every practice query learning to exclude test rows, and one that
+-- forgot would put an exam question into the spaced-repetition queue.
+--
+-- ---------------------------------------------------------------------------
+-- THE RULE THAT DIFFERS FROM EVERY OTHER TABLE HERE
+--
+-- `attempts` is self-service: the student's browser writes its own practice
+-- rows, and that is fine, because the only person a student can mislead by
+-- faking practice is themselves.
+--
+-- Nothing on this page is self-service. A test score is read by a teacher and
+-- sent to a parent, so a row the student can write is a grade the student can
+-- award themselves. Marking happens on the server with the service-role key;
+-- the policies below are select-only, and that is deliberate rather than
+-- unfinished.
+-- ---------------------------------------------------------------------------
+
+-- Run in the right order? The policies below call the corrected
+-- teaches_section, and the tables reference bank_questions.
+do $$
+begin
+  if to_regclass('public.bank_questions') is null then
+    raise exception 'supabase/tutor.sql has not been run'
+      using hint = 'Paste supabase/all.sql — every migration, already in dependency order.';
+  end if;
+
+  if to_regprocedure('public.assert_row_org()') is null then
+    raise exception 'supabase/schoolops.sql has not been run'
+      using hint = 'Paste supabase/all.sql — every migration, already in dependency order.';
+  end if;
+end $$;
+
+-- Homework has a mark out of something. Nullable, because most of the
+-- assignments this repository can already create are "read this chapter", and
+-- a default of 100 would put a mark scheme on all of them.
+alter table public.assignments
+  add column if not exists max_marks int check (max_marks > 0);
+
+-- ---------------------------------------------------------------------------
+-- Work coming back
+-- ---------------------------------------------------------------------------
+create table if not exists public.assignment_submissions (
+  id             uuid primary key default gen_random_uuid(),
+  assignment_id  uuid not null references public.assignments on delete cascade,
+  student_id     uuid not null references auth.users on delete cascade,
+  content        text,
+  submitted_at   timestamptz,
+  marks_obtained numeric(5,2),
+  feedback       text,
+  graded_by      uuid references auth.users on delete set null,
+  graded_at      timestamptz,
+  status         text not null default 'pending'
+                 check (status in ('pending', 'submitted', 'late', 'graded')),
+  created_at     timestamptz not null default now(),
+  unique (assignment_id, student_id)
+);
+
+create index if not exists assignment_submissions_student_idx
+  on public.assignment_submissions (student_id);
+
+create index if not exists assignment_submissions_grading_idx
+  on public.assignment_submissions (assignment_id, status);
+
+-- ---------------------------------------------------------------------------
+-- Tests
+--
+-- org_id nullable, matching how curriculum already works in tenancy.sql: null
+-- is the vendor's ready-made test, visible to everyone; a uuid is the school's
+-- own, visible to that school. section_id nullable for the same reason — a
+-- ready-made test belongs to no class until a teacher sets it.
+-- ---------------------------------------------------------------------------
+create table if not exists public.tests (
+  id               uuid primary key default gen_random_uuid(),
+  org_id           uuid references public.orgs on delete cascade,
+  section_id       uuid references public.sections on delete cascade,
+  chapter_ref      text references public.chapters on delete set null,
+  topic_ref        text references public.topics on delete set null,
+  created_by       uuid references auth.users on delete set null,
+  title            text not null,
+  kind             text not null default 'practice'
+                   check (kind in ('practice', 'quiz', 'exam')),
+  duration_minutes int,
+  total_marks      int,
+  passing_marks    int,
+  attempts_allowed int not null default 1 check (attempts_allowed > 0),
+  opens_at         timestamptz,
+  closes_at        timestamptz,
+  status           text not null default 'draft'
+                   check (status in ('draft', 'published', 'closed')),
+  created_at       timestamptz not null default now(),
+  check (closes_at is null or opens_at is null or closes_at > opens_at)
+);
+
+create index if not exists tests_section_idx on public.tests (section_id, status);
+create index if not exists tests_org_idx on public.tests (org_id) where org_id is not null;
+
+-- Same rule as everywhere else org_id sits next to a section: the two must
+-- name the same school. Not enforced when org_id is null, which is the
+-- vendor's ready-made test before a teacher has set it for anyone.
+drop trigger if exists tests_org on public.tests;
+create trigger tests_org
+  before insert or update of section_id, org_id on public.tests
+  for each row execute function public.assert_row_org('section_id', 'sections');
+
+-- The paper. marks here rather than on the question, because the same bank
+-- question is worth one mark in a quiz and four in an exam.
+create table if not exists public.test_questions (
+  id           uuid primary key default gen_random_uuid(),
+  test_id      uuid not null references public.tests on delete cascade,
+  question_ref text not null references public.bank_questions on delete cascade,
+  sort_order   int  not null,
+  marks        int  not null default 1 check (marks > 0),
+  unique (test_id, question_ref),
+  unique (test_id, sort_order) deferrable initially deferred
+);
+
+-- ---------------------------------------------------------------------------
+-- A sitting
+-- ---------------------------------------------------------------------------
+create table if not exists public.test_attempts (
+  id             uuid primary key default gen_random_uuid(),
+  test_id        uuid not null references public.tests on delete cascade,
+  student_id     uuid not null references auth.users on delete cascade,
+  attempt_no     int  not null default 1,
+  started_at     timestamptz not null default now(),
+  submitted_at   timestamptz,
+  score          numeric(6,2),
+  max_score      numeric(6,2),
+  time_taken_sec int,
+  status         text not null default 'in_progress'
+                 check (status in ('in_progress', 'submitted', 'evaluated', 'abandoned')),
+  unique (test_id, student_id, attempt_no)
+);
+
+create index if not exists test_attempts_student_idx
+  on public.test_attempts (student_id, submitted_at desc);
+
+create table if not exists public.test_answers (
+  id            uuid primary key default gen_random_uuid(),
+  attempt_id    uuid not null references public.test_attempts on delete cascade,
+  question_ref  text not null references public.bank_questions on delete cascade,
+  given         jsonb,
+  is_correct    boolean,
+  marks_awarded numeric(5,2) not null default 0,
+  -- The wrong belief behind the wrong answer, taken from the question's
+  -- distractor_map. Written here as well as in error_events so that a test
+  -- paper can be handed back with the diagnosis on it, and so section_heatmap
+  -- keeps working off one vocabulary of misconception ids.
+  misconception_id text,
+  time_spent_sec int,
+  unique (attempt_id, question_ref)
+);
+
+-- ---------------------------------------------------------------------------
+-- Row-level security
+-- ---------------------------------------------------------------------------
+alter table public.assignment_submissions enable row level security;
+alter table public.tests                  enable row level security;
+alter table public.test_questions         enable row level security;
+alter table public.test_attempts          enable row level security;
+alter table public.test_answers           enable row level security;
+
+-- A student reads their own submission; whoever teaches the section reads the
+-- lot, because collecting homework is the entire job.
+drop policy if exists "submissions are visible to the student and the teacher" on public.assignment_submissions;
+create policy "submissions are visible to the student and the teacher" on public.assignment_submissions
+  for select using (
+    student_id = auth.uid()
+    or exists (
+      select 1 from public.assignments a
+       where a.id = assignment_submissions.assignment_id
+         and public.teaches_section(a.section_id)
+    )
+  );
+
+-- Submitting is the one write a browser makes on this page.
+drop policy if exists "students submit their own work" on public.assignment_submissions;
+create policy "students submit their own work" on public.assignment_submissions
+  for insert with check (
+    student_id = auth.uid()
+    and exists (
+      select 1
+        from public.assignments a
+        join public.section_students ss on ss.section_id = a.section_id
+       where a.id = assignment_id and ss.student_id = auth.uid()
+    )
+  );
+
+-- Editing before it is marked. The policy limits WHICH ROWS, the grant below
+-- limits WHICH COLUMNS — both are needed, and the policy alone is the version
+-- of this that lets a student award themselves full marks with one PATCH.
+drop policy if exists "students may edit work that is not yet marked" on public.assignment_submissions;
+create policy "students may edit work that is not yet marked" on public.assignment_submissions
+  for update using (student_id = auth.uid() and graded_at is null)
+          with check (student_id = auth.uid() and graded_at is null);
+
+revoke update on public.assignment_submissions from authenticated;
+grant update (content, submitted_at, status) on public.assignment_submissions to authenticated;
+
+-- A published test, to the class it was set for. Drafts stay invisible: a
+-- teacher building tomorrow's paper is doing it in the same table.
+drop policy if exists "students see published tests set for them" on public.tests;
+create policy "students see published tests set for them" on public.tests
+  for select using (
+    (
+      status = 'published'
+      and (
+        section_id is null
+        or exists (
+          select 1 from public.section_students ss
+           where ss.section_id = tests.section_id and ss.student_id = auth.uid()
+        )
+      )
+      and public.can_see_content(org_id)
+    )
+    or (section_id is not null and public.teaches_section(section_id))
+  );
+
+-- test_questions has NO select policy, exactly as bank_questions has none.
+-- The paper is assembled on the server, which strips `correct` before it goes
+-- to a browser; a readable join table is a list of question ids that can then
+-- be asked for one at a time.
+
+drop policy if exists "attempts are visible to the student and the teacher" on public.test_attempts;
+create policy "attempts are visible to the student and the teacher" on public.test_attempts
+  for select using (
+    student_id = auth.uid()
+    or exists (
+      select 1 from public.tests t
+       where t.id = test_attempts.test_id
+         and t.section_id is not null
+         and public.teaches_section(t.section_id)
+    )
+  );
+
+-- Only after submission. Mid-attempt, is_correct on a row the student can read
+-- is a marking key delivered one question at a time.
+drop policy if exists "answers are visible once the attempt is in" on public.test_answers;
+create policy "answers are visible once the attempt is in" on public.test_answers
+  for select using (
+    exists (
+      select 1 from public.test_attempts a
+       where a.id = test_answers.attempt_id
+         and a.student_id = auth.uid()
+         and a.submitted_at is not null
+    )
+    or exists (
+      select 1
+        from public.test_attempts a
+        join public.tests t on t.id = a.test_id
+       where a.id = test_answers.attempt_id
+         and t.section_id is not null
+         and public.teaches_section(t.section_id)
+    )
+  );
+
+-- ---------------------------------------------------------------------------
+-- How the class did
+--
+-- The teacher's screen after a test, and the one place the individual answers
+-- are aggregated. Same shape as section_heatmap: the question everyone got
+-- wrong is a lesson plan, and the child who got it wrong alone is a
+-- conversation.
+-- ---------------------------------------------------------------------------
+create or replace function public.test_results(p_test uuid)
+returns table (
+  student_id  uuid,
+  name        text,
+  score       numeric,
+  max_score   numeric,
+  submitted_at timestamptz,
+  status      text
+)
+language plpgsql
+stable
+security definer set search_path = public
+as $$
+declare
+  v_section uuid;
+begin
+  select section_id into v_section from public.tests where id = p_test;
+
+  if v_section is null or not public.teaches_section(v_section) then
+    raise exception 'not your test';
+  end if;
+
+  return query
+  select
+    a.student_id,
+    coalesce(nullif(trim(p.first_name || ' ' || p.last_name), ''), 'Student'),
+    a.score,
+    a.max_score,
+    a.submitted_at,
+    a.status
+  from public.test_attempts a
+  left join public.profiles p on p.id = a.student_id
+  where a.test_id = p_test
+  order by a.score asc nulls first;
+end;
+$$;
+
+grant execute on function public.test_results(uuid) to authenticated;
+
+-- Which questions the class fell over. Question text included because a list
+-- of ids is not a lesson plan; the answer is not, because this is readable by
+-- a teacher over the wire and there is no reason for it to carry one.
+create or replace function public.test_question_breakdown(p_test uuid)
+returns table (
+  question_ref text,
+  stem         text,
+  attempted    int,
+  correct      int,
+  top_misconception text
+)
+language plpgsql
+stable
+security definer set search_path = public
+as $$
+declare
+  v_section uuid;
+begin
+  select section_id into v_section from public.tests where id = p_test;
+
+  if v_section is null or not public.teaches_section(v_section) then
+    raise exception 'not your test';
+  end if;
+
+  return query
+  select
+    tq.question_ref,
+    q.stem,
+    count(ta.id)::int,
+    count(*) filter (where ta.is_correct)::int,
+    (
+      select ta2.misconception_id
+        from public.test_answers ta2
+        join public.test_attempts att2 on att2.id = ta2.attempt_id
+       where att2.test_id = p_test
+         and ta2.question_ref = tq.question_ref
+         and ta2.misconception_id is not null
+       group by ta2.misconception_id
+       order by count(*) desc
+       limit 1
+    )
+  from public.test_questions tq
+  join public.bank_questions q on q.id = tq.question_ref
+  left join public.test_answers ta on ta.question_ref = tq.question_ref
+   and ta.attempt_id in (select id from public.test_attempts where test_id = p_test)
+  where tq.test_id = p_test
+  group by tq.question_ref, q.stem, tq.sort_order
+  order by tq.sort_order;
+end;
+$$;
+
+grant execute on function public.test_question_breakdown(uuid) to authenticated;
+
+
+
+-- ===========================================================================
+-- comms.sql
+-- ===========================================================================
+
+-- PaperPath — announcements, notifications and the audit trail
+--
+-- Run after tenancy.sql (is_org_admin, my_org_ids) and after compliance.sql,
+-- whose retention job this file deliberately does not modify — see the purge
+-- function at the bottom.
+--
+-- ---------------------------------------------------------------------------
+-- THE ONE THAT SELLS THE DEAL
+--
+-- audit_logs. Every other table here is convenience; this is the one a school's
+-- IT head asks about in the second meeting, and "we log to the application
+-- console" is the answer that ends it. What happened to a child's record, who
+-- did it, and when — with the before and after, because "updated student" is
+-- not an audit trail, it is a timestamp.
+--
+-- It is also the table with the sharpest conflict against everything else in
+-- this repository. compliance.sql erases personal data on request; an audit log
+-- exists precisely so that things cannot be quietly removed. The resolution is
+-- at the bottom of this file and it is a decision, not a default.
+-- ---------------------------------------------------------------------------
+
+-- Run in the right order? The announcements trigger below calls
+-- assert_row_org, which schoolops.sql defines.
+do $$
+begin
+  if to_regprocedure('public.assert_row_org()') is null then
+    raise exception 'supabase/schoolops.sql has not been run'
+      using hint = 'Paste supabase/all.sql — every migration, already in dependency order.';
+  end if;
+end $$;
+
+-- ---------------------------------------------------------------------------
+-- Announcements
+--
+-- org_id null is a platform-wide notice from the vendor. Anything else is the
+-- school talking to its own people, optionally to one section.
+-- ---------------------------------------------------------------------------
+create table if not exists public.announcements (
+  id         uuid primary key default gen_random_uuid(),
+  org_id     uuid references public.orgs on delete cascade,
+  section_id uuid references public.sections on delete cascade,
+  created_by uuid references auth.users on delete set null,
+  title      text not null,
+  body       text not null,
+  audience   text not null default 'all'
+             check (audience in ('all', 'students', 'teachers', 'parents', 'section')),
+  publish_at timestamptz not null default now(),
+  expires_at timestamptz,
+  created_at timestamptz not null default now(),
+  -- A section announcement without a section is addressed to nobody, and shows
+  -- up as a notice that silently reaches no one.
+  check (audience <> 'section' or section_id is not null)
+);
+
+create index if not exists announcements_org_idx
+  on public.announcements (org_id, publish_at desc);
+
+-- A school announcing into another school's classroom. org_id is what the read
+-- policy filters on and section_id is what it delivers to, so a row where the
+-- two disagree is addressed to the wrong children. Skipped when org_id is null,
+-- which is the vendor's platform-wide notice.
+drop trigger if exists announcements_org on public.announcements;
+create trigger announcements_org
+  before insert or update of section_id, org_id on public.announcements
+  for each row execute function public.assert_row_org('section_id', 'sections');
+
+-- ---------------------------------------------------------------------------
+-- Notifications
+--
+-- The in-app bell. Not the messaging layer: lib/messaging/send.ts sends
+-- WhatsApp to a consent-verified number and is governed by the consent rules
+-- in compliance.sql. This is a row a signed-in person sees when they open the
+-- app, which needs no consent because they came looking.
+--
+-- Deliberately without a body long enough to hold a transcript. A notification
+-- that quotes what a child asked the tutor would put it on a parent's lock
+-- screen, and lib/safety/escalate.ts already argues that case at length.
+-- ---------------------------------------------------------------------------
+create table if not exists public.notifications (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid not null references auth.users on delete cascade,
+  org_id     uuid references public.orgs on delete cascade,
+  kind       text not null,                      -- assignment_due | test_result | announcement | licence
+  title      text not null,
+  body       text,
+  link       text,                               -- in-app path, e.g. /tutor/t-8-1-2
+  read_at    timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists notifications_user_idx
+  on public.notifications (user_id, created_at desc) where read_at is null;
+
+-- ---------------------------------------------------------------------------
+-- The audit trail
+--
+-- actor_role is copied in rather than joined out, because the answer wanted is
+-- "what were they when they did it". A teacher who later becomes an org admin
+-- must not retroactively have been one in the log.
+--
+-- entity_id is text, not uuid: half the things worth logging are keyed by the
+-- curriculum's text ids (chapters, topics, bank questions) and half by uuid.
+-- One column that holds both beats two that are each null half the time.
+-- ---------------------------------------------------------------------------
+create table if not exists public.audit_logs (
+  id          uuid primary key default gen_random_uuid(),
+  org_id      uuid references public.orgs on delete set null,
+  actor_id    uuid references auth.users on delete set null,
+  actor_role  text,
+  action      text not null,                     -- 'roster.import', 'licence.assign_seat'
+  entity_type text,
+  entity_id   text,
+  before      jsonb,
+  after       jsonb,
+  ip_address  text,
+  user_agent  text,
+  created_at  timestamptz not null default now()
+);
+
+create index if not exists audit_logs_org_idx
+  on public.audit_logs (org_id, created_at desc);
+
+create index if not exists audit_logs_entity_idx
+  on public.audit_logs (entity_type, entity_id);
+
+-- One way in, so that every call site records the same fields and a later
+-- "who changed this" query does not depend on which route wrote the row.
+create or replace function public.record_audit(
+  p_org uuid,
+  p_actor uuid,
+  p_actor_role text,
+  p_action text,
+  p_entity_type text default null,
+  p_entity_id text default null,
+  p_before jsonb default null,
+  p_after jsonb default null,
+  p_ip text default null,
+  p_user_agent text default null
+)
+returns uuid
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  v_id uuid;
+begin
+  insert into public.audit_logs (
+    org_id, actor_id, actor_role, action, entity_type, entity_id,
+    before, after, ip_address, user_agent
+  )
+  values (
+    p_org, p_actor, p_actor_role, p_action, p_entity_type, p_entity_id,
+    p_before, p_after, p_ip, p_user_agent
+  )
+  returning id into v_id;
+
+  return v_id;
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- Row-level security
+-- ---------------------------------------------------------------------------
+alter table public.announcements enable row level security;
+alter table public.notifications enable row level security;
+alter table public.audit_logs    enable row level security;
+
+-- Published, unexpired, and addressed to an org the reader belongs to — or to
+-- everybody. Audience is not filtered here: which role a notice is for is a
+-- display concern, and a policy that got it wrong would hide a school closure
+-- from the people it was closing on.
+drop policy if exists "announcements are readable when live" on public.announcements;
+create policy "announcements are readable when live" on public.announcements
+  for select to authenticated using (
+    publish_at <= now()
+    and (expires_at is null or expires_at > now())
+    and (org_id is null or org_id = any(public.my_org_ids()))
+    and (
+      section_id is null
+      or exists (
+        select 1 from public.section_students ss
+         where ss.section_id = announcements.section_id and ss.student_id = auth.uid()
+      )
+      or public.teaches_section(section_id)
+      or public.is_org_admin(org_id)
+    )
+  );
+
+drop policy if exists "notifications are readable by their owner" on public.notifications;
+create policy "notifications are readable by their owner" on public.notifications
+  for select using (user_id = auth.uid());
+
+-- Marking as read is the only write, and it is the only column the grant
+-- allows — the policy limits the rows, the grant limits the columns, and
+-- without the second one "mark as read" is also "rewrite the message".
+drop policy if exists "owners may mark notifications read" on public.notifications;
+create policy "owners may mark notifications read" on public.notifications
+  for update using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+revoke update on public.notifications from authenticated;
+grant update (read_at) on public.notifications to authenticated;
+
+-- An org admin reads their own school's trail. Nobody reads the vendor's rows
+-- (org_id null) from a browser, and there is no insert policy at all: the log
+-- is written by the server with the service-role key, and a log a client can
+-- append to is a log that can be flooded with plausible entries.
+drop policy if exists "org admins can read their audit trail" on public.audit_logs;
+create policy "org admins can read their audit trail" on public.audit_logs
+  for select using (org_id is not null and public.is_org_admin(org_id));
+
+-- ---------------------------------------------------------------------------
+-- Retention
+--
+-- A separate function rather than another branch inside purge_expired_data,
+-- which compliance.sql owns. Redefining that function here would mean keeping
+-- two copies of its body in step, and the copy that lost the race would
+-- silently stop deleting whatever the other one had learned to delete.
+--
+-- Add it to the nightly job in cron.sql alongside the existing purge.
+--
+-- ---------------------------------------------------------------------------
+-- WHAT THE AUDIT LOG KEEPS WHEN A CHILD IS ERASED
+--
+-- Notifications go: they are copies of things said elsewhere, they name the
+-- child, and nothing depends on them after they are read.
+--
+-- Audit rows stay, with the payload emptied. Under the DPDP Act a record kept
+-- to demonstrate compliance with the law is a legitimate purpose to retain,
+-- and an audit trail with holes cut in it is not evidence of anything — but
+-- `before`/`after` on a student row is the child's data sitting inside the
+-- thing that was supposed to protect them, so it is the payload that is
+-- dropped and the fact of the action that survives. Who did what and when
+-- remains provable; what the row said does not.
+--
+-- Two years, matching the retention window compliance.sql already applies to
+-- learning data.
+-- ---------------------------------------------------------------------------
+create or replace function public.purge_comms()
+returns table (notifications_deleted int, audit_rows_redacted int)
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  v_notifications int;
+  v_audit int;
+begin
+  delete from public.notifications
+   where created_at < now() - interval '180 days';
+  get diagnostics v_notifications = row_count;
+
+  update public.audit_logs
+     set before = null, after = null, ip_address = null, user_agent = null
+   where created_at < now() - interval '2 years'
+     and (before is not null or after is not null
+          or ip_address is not null or user_agent is not null);
+  get diagnostics v_audit = row_count;
+
+  return query select v_notifications, v_audit;
+end;
+$$;
+
+-- Erasure, on request, for one person. Called by the erasure job in
+-- compliance.sql's terms: the notifications go, the audit rows keep the fact
+-- and lose the content, and actor_id is left in place because a member of
+-- staff who performed an action is not the subject of that action.
+create or replace function public.forget_user_comms(p_user uuid)
+returns void
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  delete from public.notifications where user_id = p_user;
+
+  -- Two passes, because a child appears in this table in two ways.
+  --
+  -- Directly, as the subject of an action: entity_type 'user'. That was the
+  -- only case this function handled, and it is the smaller one.
+  --
+  -- And indirectly, inside somebody else's payload — 'roster.import' with the
+  -- imported ids in `after`, 'licence.assign_seat' with the student in the
+  -- body. Those rows are not about the child by entity_type and were surviving
+  -- an erasure request with the child's id still in them, which is precisely
+  -- the data the request was made about.
+  --
+  -- The containment test is on the id, so it cannot find an email address that
+  -- was written into a payload without one. Payloads should carry ids; this
+  -- catches what they do carry, and the honest limit is written down here
+  -- rather than assumed away.
+  update public.audit_logs
+     set before = null, after = null, ip_address = null, user_agent = null
+   where (entity_type = 'user' and entity_id = p_user::text)
+      or before::text like '%' || p_user::text || '%'
+      or after::text  like '%' || p_user::text || '%';
+end;
+$$;
+
+
+
+-- ===========================================================================
+-- onboarding.sql
+-- ===========================================================================
+
+-- PaperPath — onboarding a school in one step
+--
+-- Run last, after comms.sql. It is last because it is the only file that
+-- touches every other one: orgs from schools.sql, licences from licensing.sql,
+-- academic years from schoolops.sql, and record_audit from comms.sql.
+--
+-- ---------------------------------------------------------------------------
+-- WHY THIS IS ONE FUNCTION AND NOT FIVE CONSOLE CALLS
+--
+-- Onboarding a school was five separate writes from the admin console, each
+-- its own request, with no transaction across them. That shape has one failure
+-- mode and it is the expensive one: the org is created, the licence request
+-- fails, and what exists now is a school with no licence — indistinguishable
+-- on every screen from a school whose licence has not been entered yet.
+-- Somebody finds it in a month, when the students cannot open anything.
+--
+-- The blueprint's closing note is that B2B deals die on onboarding friction
+-- rather than on missing features. The friction is not the number of fields.
+-- It is that a half-onboarded school looks exactly like a working one.
+--
+-- So: one call, one transaction. Either the school exists with a licence, a
+-- year and an audit trail, or nothing was written at all.
+--
+-- ---------------------------------------------------------------------------
+-- WHAT IT REFUSES
+--
+-- No expiry date. This is the bug licensing.sql fixed at the read end — an org
+-- with a null expires_at was granting permanent free access to everything —
+-- and this is the write end of the same bug. The console let the field be left
+-- blank because `expiresOn ?? null` is what the route wrote. A licence with no
+-- end date is not a licence, so it is rejected here rather than defaulted:
+-- defaulting it would invent commercial terms nobody agreed to.
+-- ---------------------------------------------------------------------------
+
+-- ---------------------------------------------------------------------------
+-- Is this file being run in the right order?
+--
+-- Pasting one migration on its own is the ordinary mistake, and without this
+-- the first symptom is `column o.board does not exist` on line 300 — which is
+-- true, unhelpful, and points at the wrong file. A `language sql` function
+-- body is parsed when it is created, so the failure lands here rather than at
+-- the call site, and the message may as well say what to do about it.
+-- ---------------------------------------------------------------------------
+do $$
+begin
+  if to_regclass('public.orgs') is null then
+    raise exception 'supabase/schools.sql has not been run'
+      using hint = 'Paste supabase/all.sql — every migration, already in dependency order.';
+  end if;
+
+  if not exists (
+    select 1 from information_schema.columns
+     where table_schema = 'public' and table_name = 'orgs' and column_name = 'board'
+  ) then
+    raise exception 'supabase/schoolops.sql has not been run'
+      using hint = 'Paste supabase/all.sql — every migration, already in dependency order.';
+  end if;
+
+  if to_regclass('public.licences') is null then
+    raise exception 'supabase/licensing.sql has not been run'
+      using hint = 'Paste supabase/all.sql — every migration, already in dependency order.';
+  end if;
+
+  if to_regprocedure('public.record_audit(uuid, uuid, text, text, text, text, jsonb, jsonb, text, text)') is null then
+    raise exception 'supabase/comms.sql has not been run'
+      using hint = 'Paste supabase/all.sql — every migration, already in dependency order.';
+  end if;
+end $$;
+
+create or replace function public.onboard_school(
+  p_name text,
+  p_plan_code text,
+  p_seats int,
+  p_starts_on date,
+  p_expires_on date,
+  p_kind text default 'school',
+  p_board text default null,
+  p_price_per_seat_inr numeric default null,
+  p_po_number text default null,
+  p_billing_email text default null,
+  p_billing_contact text default null,
+  p_year_label text default null,
+  p_actor uuid default null,
+  p_raise_invoice boolean default false
+)
+returns jsonb
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  v_org uuid;
+  v_licence uuid;
+  v_year uuid;
+  v_invoice public.org_invoices;
+  v_plan public.licence_plans;
+  v_year_label text;
+  v_year_start date;
+begin
+  -- ----- What cannot be guessed --------------------------------------------
+  if coalesce(trim(p_name), '') = '' then
+    raise exception 'a school needs a name';
+  end if;
+
+  if p_expires_on is null then
+    raise exception 'a licence needs an expiry date'
+      using hint = 'An org with no expiry is not a sold licence. See licensing.sql.';
+  end if;
+
+  if p_starts_on is null then
+    raise exception 'a licence needs a start date';
+  end if;
+
+  if p_expires_on < p_starts_on then
+    raise exception 'the licence ends before it starts';
+  end if;
+
+  if coalesce(p_seats, 0) < 1 then
+    raise exception 'a school licence needs at least one seat';
+  end if;
+
+  select * into v_plan from public.licence_plans where code = p_plan_code;
+
+  if v_plan.code is null then
+    raise exception 'no such plan: %', p_plan_code
+      using hint = 'Plans are rows in licence_plans, not strings in the console.';
+  end if;
+
+  if not v_plan.is_active then
+    raise exception 'plan % is no longer sold', p_plan_code;
+  end if;
+
+  -- ----- The school --------------------------------------------------------
+  --
+  -- expires_at and seats are still written to orgs. They are the legacy path
+  -- and half the app reads them — org_seat_usage, the console's expiry
+  -- warning, can_access_chapter's last branch. Writing the licence without
+  -- them would leave a school that works and reports nothing.
+  insert into public.orgs (
+    name, kind, board, seats, expires_at,
+    licence_inr, licence_starts_on, billing_email, billing_contact, can_author
+  )
+  values (
+    trim(p_name),
+    case when p_kind = 'coaching' then 'coaching' else 'school' end,
+    p_board,
+    p_seats,
+    p_expires_on,
+    coalesce(p_price_per_seat_inr, v_plan.price_per_seat_inr) * p_seats,
+    p_starts_on,
+    p_billing_email,
+    p_billing_contact,
+    -- From the plan, not from a checkbox somebody ticks twice. Authoring is a
+    -- commercial line and the plan is where the commercial lines live.
+    v_plan.can_author
+  )
+  returning id into v_org;
+
+  -- ----- The licence -------------------------------------------------------
+  insert into public.licences (
+    org_id, plan_code, seats_purchased, price_per_seat_inr,
+    starts_on, expires_on, status, po_number
+  )
+  values (
+    v_org, p_plan_code, p_seats,
+    coalesce(p_price_per_seat_inr, v_plan.price_per_seat_inr),
+    p_starts_on, p_expires_on,
+    case when p_expires_on >= current_date then 'active' else 'expired' end,
+    p_po_number
+  )
+  returning id into v_licence;
+
+  -- ----- The year ----------------------------------------------------------
+  --
+  -- Derived from the licence start unless told otherwise. An Indian school
+  -- year runs April to March, so a licence starting in June 2026 belongs to
+  -- 2026-27 and one starting in February 2027 belongs to 2026-27 as well.
+  -- financial_year() already encodes exactly that boundary for invoicing, and
+  -- the school year and the financial year are the same year in India.
+  v_year_label := coalesce(p_year_label, public.financial_year(p_starts_on::timestamptz));
+
+  v_year_start := make_date(split_part(v_year_label, '-', 1)::int, 4, 1);
+
+  insert into public.academic_years (org_id, label, starts_on, ends_on, is_current)
+  values (
+    v_org, v_year_label, v_year_start, v_year_start + interval '1 year' - interval '1 day',
+    true
+  )
+  returning id into v_year;
+
+  -- ----- The invoice, if the sale is ready to be billed ---------------------
+  --
+  -- Off by default. A purchase order often arrives after the account is set
+  -- up, and an invoice raised against a PO number nobody has yet is one the
+  -- school's accounts team will reject and somebody will have to void.
+  if p_raise_invoice then
+    v_invoice := public.issue_org_invoice(
+      v_org, v_licence,
+      coalesce(p_price_per_seat_inr, v_plan.price_per_seat_inr) * p_seats,
+      p_po_number
+    );
+  end if;
+
+  -- ----- What happened -----------------------------------------------------
+  perform public.record_audit(
+    v_org, p_actor, 'super_admin', 'school.onboard', 'org', v_org::text, null,
+    jsonb_build_object(
+      'name', trim(p_name),
+      'plan', p_plan_code,
+      'seats', p_seats,
+      'starts_on', p_starts_on,
+      'expires_on', p_expires_on,
+      'po_number', p_po_number,
+      'invoice', v_invoice.number
+    )
+  );
+
+  return jsonb_build_object(
+    'org_id', v_org,
+    'licence_id', v_licence,
+    'academic_year_id', v_year,
+    'invoice_id', v_invoice.id,
+    'invoice_number', v_invoice.number
+  );
+end;
+$$;
+
+-- The vendor's own operation, and the vendor is a person in ADMIN_EMAILS —
+-- something the database cannot check, because it deliberately does not know
+-- who that is (lib/admin/access.ts explains why it is an environment file and
+-- not a role column).
+--
+-- So authorisation lives in the route, and the function is taken away from
+-- everybody who reaches the database through PostgREST. Without this revoke,
+-- `POST /rest/v1/rpc/onboard_school` from any signed-in student's browser
+-- creates a school with a licence.
+revoke execute on function public.onboard_school(
+  text, text, int, date, date, text, text, numeric, text, text, text, text, uuid, boolean
+) from public, anon, authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Seats, allotted in a batch
+--
+-- The console allots a class at a time, and the interesting part is what does
+-- NOT get a seat: a student who left, a licence that is already full, an id
+-- that belongs to another school. Failing the whole batch on the first of
+-- those would make a forty-child class un-allottable because one child has
+-- transferred out.
+--
+-- So each seat is attempted on its own and the refusals come back with their
+-- reasons, for the admin to read. The rules themselves are not repeated here —
+-- they are the trigger on licence_seats, which is the only place they exist.
+-- ---------------------------------------------------------------------------
+create or replace function public.assign_seats(
+  p_licence uuid,
+  p_students uuid[]
+)
+returns jsonb
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  v_org uuid;
+  v_student uuid;
+  v_assigned int := 0;
+  v_skipped jsonb := '[]'::jsonb;
+begin
+  select org_id into v_org from public.licences where id = p_licence;
+
+  if v_org is null then
+    raise exception 'no such licence';
+  end if;
+
+  if not public.is_org_admin(v_org) and auth.uid() is not null then
+    raise exception 'not your organisation';
+  end if;
+
+  foreach v_student in array coalesce(p_students, '{}'::uuid[])
+  loop
+    begin
+      insert into public.licence_seats (licence_id, org_id, student_id)
+        values (p_licence, v_org, v_student)
+      on conflict (licence_id, student_id) do update
+        set revoked_at = null
+        where public.licence_seats.revoked_at is not null;
+
+      v_assigned := v_assigned + 1;
+    exception when others then
+      -- One student's refusal is not the batch's failure. The reason is the
+      -- trigger's own message, which is written to be read by the person
+      -- doing the allotting.
+      v_skipped := v_skipped || jsonb_build_object(
+        'student_id', v_student,
+        'reason', sqlerrm
+      );
+    end;
+  end loop;
+
+  return jsonb_build_object('assigned', v_assigned, 'skipped', v_skipped);
+end;
+$$;
+
+grant execute on function public.assign_seats(uuid, uuid[]) to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- What a school student should not be asked
+--
+-- Student onboarding asks for board, class and subjects. For a child whose
+-- school bought the licence, all three are already known — the org has a
+-- board, the section has a class level, and the subjects follow from the two.
+-- Asking anyway is not merely five wasted taps: the child can answer wrongly,
+-- and then their roadmap is for a class they are not in while the teacher's
+-- heatmap says they have done nothing.
+--
+-- One function, called by the onboarding route, so that "what does the school
+-- already know about this child" has a single answer. Returns nulls for a
+-- direct signup, which is the parent who found the app — they still answer
+-- every question, because for them nobody else knows.
+-- ---------------------------------------------------------------------------
+create or replace function public.school_defaults(p_user uuid default null)
+returns table (
+  org_id      uuid,
+  org_name    text,
+  board       text,
+  class_level int,
+  section_id  uuid,
+  section_name text
+)
+language sql
+stable
+security definer set search_path = public
+as $$
+  select
+    o.id,
+    o.name,
+    o.board,
+    s.class_level,
+    s.id,
+    s.name
+  from public.org_members m
+  join public.orgs o on o.id = m.org_id
+  left join public.section_students ss on ss.student_id = m.user_id
+  left join public.sections s on s.id = ss.section_id and s.org_id = o.id
+  where m.user_id = coalesce(p_user, auth.uid())
+    and m.role = 'student'
+  -- A child in two sections is a mid-year transfer that was never tidied up.
+  -- The one with a class level wins, then the newest.
+  order by s.class_level nulls last, s.created_at desc nulls last
+  limit 1;
+$$;
+
+grant execute on function public.school_defaults(uuid) to authenticated;

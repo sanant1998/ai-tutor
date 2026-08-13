@@ -10,7 +10,9 @@
 
 import { NextResponse } from "next/server";
 
-import { fail, requireUser } from "@/lib/ai/route";
+import { consume, release } from "@/lib/ai/quota";
+import { fail, requireStudent } from "@/lib/ai/route";
+import { callerIp, LIMIT_MESSAGE, takeLimit } from "@/lib/ratelimit";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -25,7 +27,7 @@ const VOICE = process.env.AI_TTS_VOICE ?? "alloy";
 const TTS_MODEL = process.env.AI_TTS_MODEL ?? "tts-1";
 
 export async function POST(request: Request) {
-  const user = await requireUser();
+  const user = await requireStudent();
   if (!user.ok) return user.response;
 
   let body: { topicId?: unknown; boardId?: unknown };
@@ -75,6 +77,17 @@ export async function POST(request: Request) {
   const key = process.env.AI_API_KEY ?? process.env.OPENAI_API_KEY ?? "";
   if (!key) return fail("Speech is not configured on this deployment.", 503);
 
+  /* --- Limits, and only for a real synthesis -----------------------------
+     Four thousand characters of text-to-speech is one of the more expensive
+     single calls in the product, and this route had no ceiling of any kind on
+     it. Taken after the cache check above, so replaying a stored narration
+     stays free — the student is not charged twice for one recording. */
+  const ipLimit = await takeLimit("audio", callerIp(request));
+  if (!ipLimit.allowed) return fail(LIMIT_MESSAGE, 429);
+
+  const slot = await consume(supabase, user.value, "speak");
+  if (!slot.ok) return fail(slot.message, slot.status);
+
   const base = (process.env.AI_BASE_URL || "https://api.openai.com/v1").replace(
     /\/$/,
     "",
@@ -96,11 +109,14 @@ export async function POST(request: Request) {
       }),
     });
   } catch {
+    /* Nothing was synthesised, so the slot goes back. */
+    await release(supabase, "speak");
     return fail("Could not reach the speech provider.", 502);
   }
 
   if (!speech.ok) {
     const detail = await speech.text().catch(() => "");
+    await release(supabase, "speak");
     return fail(
       detail.slice(0, 200) || `Speech provider returned ${speech.status}.`,
       speech.status,

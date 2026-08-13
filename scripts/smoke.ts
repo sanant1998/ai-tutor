@@ -80,7 +80,6 @@ const CASES: Expect[] = [
   { path: "/dashboard", status: [200, 307, 302], why: "middleware sends a signed-out visitor to login" },
   { path: "/tutor", status: [200, 307, 302], why: "guarded" },
   { path: "/practice/c8-math-ch1-t2", status: [200, 307, 302], why: "guarded — and it is NOT in the nav, which is how it went unguarded once" },
-  { path: "/parent", status: [200, 307, 302], why: "guarded" },
   { path: "/teacher", status: [200, 307, 302], why: "guarded" },
   { path: "/privacy", status: [200, 307, 302], why: "guarded" },
 
@@ -105,7 +104,6 @@ const CASES: Expect[] = [
   },
   { path: "/api/consent", status: [401, 503], why: "consent state is per account" },
   { path: "/api/billing/status", status: [401, 503], why: "subscription state is per account" },
-  { path: "/api/parent/link", status: [401, 503], why: "links are per account" },
   { path: "/api/admin/content", status: [401, 404, 503], why: "admin only, and 404 rather than 403" },
   { path: "/api/admin/safety", status: [401, 404, 503], why: "admin only" },
 

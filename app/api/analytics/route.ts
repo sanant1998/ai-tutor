@@ -22,7 +22,6 @@ import { NextResponse } from "next/server";
 
 import { callerIp, takeLimit } from "@/lib/ratelimit";
 import { createAdminClient, isAdminConfigured } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -69,7 +68,10 @@ export async function POST(request: Request) {
     return new NextResponse(null, { status: 204 });
   }
 
-  const limit = await takeLimit("practice_attempt", callerIp(request));
+  /* Its own bucket. This used to share `practice_attempt` with text-to-speech,
+     so a page emitting events normally could use up the allowance for a call
+     that costs money. */
+  const limit = await takeLimit("analytics", callerIp(request));
   if (!limit.allowed) return new NextResponse(null, { status: 204 });
 
   let body: { event?: string; properties?: Record<string, unknown>; at?: string };

@@ -38,27 +38,39 @@ export type Purpose = {
   detail: string;
 };
 
+/* Written in the plainest English available, not in legal English.
+ *
+ * These moved from Hinglish with the rest of the product, and this is the one
+ * place where that is a decision worth flagging rather than a translation. The
+ * DPDP Act asks for consent that is informed, and a parent who reads the words
+ * more comfortably in Hinglish is better informed by Hinglish, whatever the
+ * rest of the app is in.
+ *
+ * So: short sentences, no legal register, concrete about what is stored and
+ * for how long. If a pilot shows parents skipping these, the answer is not
+ * shorter English — it is putting these three strings through the same
+ * language switch the tutor already has. */
 export const PURPOSES: Purpose[] = [
   {
     key: "account",
     required: true,
-    label: "Account banana aur padhai ka record rakhna",
+    label: "Create an account and keep a record of their study",
     detail:
-      "Naam, class, board aur padhai ka progress store hoga taaki agli baar wahin se shuru ho sake. Account band karne ke 30 din baad sab delete.",
+      "Name, class, board and study progress are stored so your child can pick up where they left off. Everything is deleted 30 days after the account is closed.",
   },
   {
     key: "ai_processing",
     required: true,
-    label: "AI tutor se baat-cheet process karna",
+    label: "Send their questions to the AI tutor",
     detail:
-      "Bachche ke likhe hue sawal AI model ko bheje jaayenge taaki jawab mil sake. Ye baat-cheet 24 mahine baad apne aap delete ho jaati hai.",
+      "What your child types is sent to an AI model so it can answer. These conversations are deleted automatically after 24 months.",
   },
   {
     key: "voice",
     required: false,
-    label: "Awaaz se sawal poochhna (microphone)",
+    label: "Ask questions by voice (microphone)",
     detail:
-      "Bachcha bol kar sawal poochh sakega. Recording 30 din me delete ho jaati hai; sirf likha hua text rehta hai. Ye feature band bhi rakh sakte hain.",
+      "Your child can ask questions out loud. The recording is deleted within 30 days; only the written text is kept. You can leave this switched off.",
   },
   /* There is no 'analytics' purpose, and its absence is the design.
    *

@@ -48,18 +48,38 @@ export async function POST(request: Request) {
 
   /* Already paying. Charging a second mandate for the same thing is the kind
      of bug a parent only finds on a bank statement, and it costs the account
-     whatever trust the product had. */
-  const { data: existing } = await admin
+     whatever trust the product had.
+   *
+   * `.limit(1)` is load-bearing, not tidiness. `maybeSingle()` on a filter that
+   * can match more than one row does not return the first — it returns an
+   * ERROR, and this call only destructures `data`. So the exact account most
+   * at risk of a double charge, the one with an old `past_due` row alongside a
+   * live `active` one, was the account where the guard silently evaluated to
+   * "no subscription found" and let a second mandate through. */
+  const { data: existing, error: existingError } = await admin
     .from("subscriptions")
     .select("id, status, plan, current_period_end")
     .eq("user_id", user.value)
     .in("status", ["active", "past_due"])
+    .order("updated_at", { ascending: false })
+    .limit(1)
     .maybeSingle();
+
+  /* And if the lookup itself failed, refuse rather than charge. Not being able
+     to tell whether they are already paying is not a reason to assume they are
+     not. */
+  if (existingError) {
+    console.error("[billing] could not check for an existing subscription", existingError);
+    return fail(
+      "We could not check whether you already have a subscription. Please try again in a little while.",
+      503,
+    );
+  }
 
   if (existing) {
     return NextResponse.json(
       {
-        error: "Is account pe pehle se ek subscription chalu hai.",
+        error: "This account already has an active subscription.",
         subscription: {
           plan: existing.plan as string,
           status: existing.status as string,
@@ -84,7 +104,7 @@ export async function POST(request: Request) {
        into a support ticket every time. */
     console.error("[billing] subscription create failed", error);
     return fail(
-      "Payment shuru nahi ho paaya. Thodi der baad try karein, ya doosra tareeka chunein.",
+      "The payment could not be started. Try again shortly, or choose another method.",
       502,
     );
   }

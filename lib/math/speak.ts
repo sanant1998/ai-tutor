@@ -124,7 +124,7 @@ export function speakExpression(latex: string, language: LanguageId): string | n
   /* Anything left that is not a word, a number or ordinary punctuation means
      notation this does not handle — a root, an integral, a matrix. Better to
      say nothing than to read symbols aloud. */
-  if (/[\^_&|~<>\[\]]/.test(text)) return null;
+  if (/[\^_&|~<>[\]]/.test(text)) return null;
   if (!text) return null;
 
   return text;

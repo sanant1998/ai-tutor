@@ -239,6 +239,50 @@ export const SYLLABUS: Record<string, SyllabusEntry> = {
     ]),
   },
 
+  /* Class 8 was replaced too, and more completely than Class 9 was.
+   *
+   * "Ganita Prakash" is the NCF-SE 2023 book: two parts of seven chapters
+   * each, titles rewritten from scratch. It is not a rationalisation of the
+   * old sixteen-chapter Mathematics book — "Rational Numbers", "Linear
+   * Equations in One Variable", "Mensuration" and the rest are gone as chapter
+   * headings, and the material is redistributed under names like "A Story of
+   * Numbers" and "Algebra Play".
+   *
+   * That matters beyond this file: the concept packs in content/cbse/class8/
+   * are written against the OLD book — ch01 Rational Numbers, ch02 Linear
+   * Equations in One Variable — so the seeded curriculum and this chapter list
+   * describe different textbooks. The material still gets taught somewhere in
+   * the new book; the chapter a student is told to revise is what has moved.
+   * Recorded here rather than quietly reconciled, because the honest list and
+   * the seeded content genuinely disagree and only a person with the printed
+   * book can say where each concept now lives. */
+  "cbse:8:maths": {
+    book: "NCERT Ganita Prakash Parts 1 and 2, Class 8 (new for 2026-27 under NEP 2020 / NCF-SE 2023)",
+    source:
+      "careers360 NCERT Class 8 Maths book page and educart.co Class 8 Maths chapter listing, fetched independently and agreeing on all fourteen titles",
+    verifiedOn: "2026-08-13",
+    caveat:
+      "Replaced the older sixteen-chapter Mathematics book completely; every chapter title is new. Sources still in circulation give 16 chapters (the old book) or 7 (one part only) — both are wrong for 2026-27. The two parts each number their chapters from 1; they are numbered 1-14 straight through here because the revision plan needs one ordering. content/cbse/class8/maths/ is written against the OLD book and does not match this list.",
+    chapters: chapters([
+      /* Part 1 */
+      "A Square and A Cube",
+      "Power Play",
+      "A Story of Numbers",
+      "Quadrilaterals",
+      "Number Play",
+      "We Distribute, Yet Things Multiply",
+      "Proportional Reasoning – 1",
+      /* Part 2 */
+      "Fractions in Disguise",
+      "The Baudhayana–Pythagoras Theorem",
+      "Proportional Reasoning – 2",
+      "Exploring Some Geometric Themes",
+      "Tales by Dots and Lines",
+      "Algebra Play",
+      "Area",
+    ]),
+  },
+
   "cbse:9:maths": {
     book: "NCERT Ganita Manjari Part 1, Class 9 (new for 2026-27 under NEP 2020)",
     source: "tiwariacademy / learncbse.in / boundlessmaths listings, cross-checked against learncbse.net",
@@ -262,6 +306,7 @@ export const SYLLABUS: Record<string, SyllabusEntry> = {
    the same lists rather than copies that can drift apart. Only mapped where
    the CBSE entry itself is sourced. */
 const UP_BOARD_FOLLOWS_NCERT: [ClassLevel, string][] = [
+  [8, "maths"],
   [9, "science"],
   [9, "maths"],
   [9, "sst"],

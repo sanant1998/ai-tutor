@@ -14,6 +14,7 @@ import {
   GoogleIcon,
   PasswordField,
 } from "@/components/auth/parts";
+import { claimLocalFor } from "@/lib/repository";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { text } from "@/lib/theme";
 
@@ -24,7 +25,9 @@ export function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
   /* The middleware puts the page they were headed for in ?next. */
-  const next = params.get("next") || "/dashboard";
+  /* /home resolves the role and forwards. Defaulting to /dashboard sent a
+     teacher to a student's revision plan on every sign-in. */
+  const next = params.get("next") || "/home";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +44,7 @@ export function LoginForm() {
 
     setPending("email");
     const supabase = createClient();
-    const { error: signInError } = await supabase.auth.signInWithPassword({
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -51,6 +54,12 @@ export function LoginForm() {
       setError(signInError.message);
       return;
     }
+
+    /* Sign-in is one of the two moments the local cache changes hands. Claim
+       it now, so a shared phone does not carry the previous student's streak,
+       exam dates and name into this account — and, worse, upload them to it on
+       the first write. */
+    await claimLocalFor(data.user?.id ?? null);
 
     router.push(next);
     router.refresh();

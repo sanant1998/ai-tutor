@@ -33,11 +33,27 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      # Added late, which is why it found things: `npm run lint` used to invoke
+      # `next lint` against no configuration and open an interactive prompt, so
+      # this job never called it and nothing here was ever linted. --max-warnings
+      # is deliberately absent: the warnings are advisory (see eslint.config.mjs)
+      # and a gate that fails on them is a gate somebody deletes.
+      - name: Lint
+        run: npm run lint
+
       # The four things that are easy to get subtly wrong and impossible to
       # notice when they are: the streaming sanitizer, verdict parsing, exact
       # fraction arithmetic, and answer-leak detection.
       - name: Unit tests
         run: npm run test
+
+      # supabase/verify/*.sql is pasted into a PRODUCTION database — there is
+      # no throwaway one — and it is only safe because it opens with BEGIN,
+      # closes with ROLLBACK, and has nothing after it. A section appended past
+      # the teardown does not fail: it runs, outside the transaction, and its
+      # fixtures stay. That has already happened once and was caught by luck.
+      - name: Check the verification SQL is safe to run
+        run: npm run db:lint
 
       # Content is the product. A pack whose distractors point at
       # misconceptions that do not exist still runs — it just quietly makes the
@@ -84,6 +100,29 @@ jobs:
     # who did nothing wrong.
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
 
+    # Hoisted to the JOB, and that is the whole point.
+    #
+    # These used to live on the step, next to `if: ${{ env.AI_API_KEY != '' }}`,
+    # which reads correctly and never worked: a step's `if:` is evaluated
+    # BEFORE its own `env:` block exists, so that expression saw an empty
+    # string every time. The golden set was skipped on every run — including
+    # runs where the secret was set — and the "no key configured" warning fired
+    # on every run to match. Both steps agreed, and both were wrong.
+    #
+    # At job level the value exists before any step is evaluated, so the
+    # condition means what it says.
+    env:
+      AI_API_KEY: ${{ secrets.AI_API_KEY }}
+      AI_PROVIDER: ${{ secrets.AI_PROVIDER }}
+      AI_MODEL_STRONG: ${{ secrets.AI_MODEL_STRONG }}
+      AI_BASE_URL: ${{ secrets.AI_BASE_URL }}
+      # A different provider for the judge. A model grading its own output
+      # rates it about half a point too high, consistently.
+      AI_FALLBACK_API_KEY: ${{ secrets.AI_FALLBACK_API_KEY }}
+      AI_FALLBACK_PROVIDER: ${{ secrets.AI_FALLBACK_PROVIDER }}
+      AI_FALLBACK_MODEL: ${{ secrets.AI_FALLBACK_MODEL }}
+      AI_FALLBACK_BASE_URL: ${{ secrets.AI_FALLBACK_BASE_URL }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -109,25 +148,12 @@ jobs:
           else
             npm run evals
           fi
-        env:
-          AI_API_KEY: ${{ secrets.AI_API_KEY }}
-          AI_PROVIDER: ${{ secrets.AI_PROVIDER }}
-          AI_MODEL_STRONG: ${{ secrets.AI_MODEL_STRONG }}
-          AI_BASE_URL: ${{ secrets.AI_BASE_URL }}
-          # A different provider for the judge. A model grading its own output
-          # rates it about half a point too high, consistently.
-          AI_FALLBACK_API_KEY: ${{ secrets.AI_FALLBACK_API_KEY }}
-          AI_FALLBACK_PROVIDER: ${{ secrets.AI_FALLBACK_PROVIDER }}
-          AI_FALLBACK_MODEL: ${{ secrets.AI_FALLBACK_MODEL }}
-          AI_FALLBACK_BASE_URL: ${{ secrets.AI_FALLBACK_BASE_URL }}
 
       - name: Note when no key is configured
         if: ${{ env.AI_API_KEY == '' }}
         run: |
           echo "::warning::AI_API_KEY is not set, so the golden set did not run."
           echo "::warning::Prompt changes are unverified until it is."
-        env:
-          AI_API_KEY: ${{ secrets.AI_API_KEY }}
 
   # evals/run.ts exits non-zero below 92% objective pass or a judged mean under
   # 4.0. The gate lives in the script rather than here so `npm run evals`

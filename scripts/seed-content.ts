@@ -290,9 +290,44 @@ async function findForeignRow(
   return foreign ? foreign.id : null;
 }
 
+/* Every topic file repeats its chapter, so the same chapter arrives once per
+   topic and the repeats have to collapse. They must be IDENTICAL repeats.
+ *
+ * This used to be `byId.set(row.id, row)` and nothing else: last write wins,
+ * silently. Two different chapters sharing an id — which is one typo, or one
+ * new textbook whose chapter 1 is not the old book's chapter 1 — collapsed
+ * into whichever file the directory walk reached last. One title vanished,
+ * both sets of topics hung off the survivor, and the seeder printed a happy
+ * count. Nothing downstream could tell, because by then there was only one
+ * row. An id collision is a content bug, and the seeder is the last place it
+ * is still cheap to see. */
 function dedupe<T extends { id: string }>(rows: T[]): T[] {
   const byId = new Map<string, T>();
-  for (const row of rows) byId.set(row.id, row);
+  const clashes: string[] = [];
+
+  for (const row of rows) {
+    const seen = byId.get(row.id);
+
+    if (seen && JSON.stringify(seen) !== JSON.stringify(row)) {
+      clashes.push(
+        `  ${row.id}\n` +
+          `    already seen as: ${JSON.stringify(seen)}\n` +
+          `    now claimed as:  ${JSON.stringify(row)}`,
+      );
+      continue;
+    }
+
+    byId.set(row.id, row);
+  }
+
+  if (clashes.length > 0) {
+    throw new Error(
+      `Two content files claim the same id with different contents:\n\n${clashes.join("\n\n")}\n\n` +
+        "Ids are permanent — questions and recorded mistakes point at them — so " +
+        "nothing is guessed here. Give one of them a different id.",
+    );
+  }
+
   return [...byId.values()];
 }
 

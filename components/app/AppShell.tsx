@@ -11,11 +11,12 @@ import {
   HelpCircle,
   Home,
   Link2,
-  LogOut,
   Menu,
   MessageSquare,
   Settings,
   Sparkles,
+  ClipboardList,
+  NotebookPen,
   School,
   Shield,
   Target,
@@ -25,10 +26,12 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
+import { SignOutButton } from "@/components/app/SignOutButton";
 import { StudyTools } from "@/components/app/StudyTools";
 import { Tour, type TourStep } from "@/components/app/Tour";
 import { BRAND } from "@/lib/brand";
-import { APP_NAV, type NavItem } from "@/lib/nav";
+import { navFor, type NavItem } from "@/lib/nav";
+import { homeFor, type Role } from "@/lib/roles";
 import { boardName } from "@/lib/study";
 import { useAppData } from "@/lib/useAppData";
 import { SUBJECTS } from "@/lib/onboarding";
@@ -50,6 +53,8 @@ const ICONS: Record<NavItem["icon"], LucideIcon> = {
   shield: Shield,
   users: Users,
   school: School,
+  clipboard: ClipboardList,
+  notebook: NotebookPen,
   settings: Settings,
 };
 
@@ -106,7 +111,19 @@ const TOUR_STEPS: TourStep[] = [
   },
 ];
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+/* `role` decides the sidebar. Resolved server-side in the (dashboard) layout
+   and passed down, rather than fetched here: this is a client component, and a
+   client-side role lookup would paint one role's sidebar for a frame before
+   correcting itself. */
+export function AppShell({
+  children,
+  role,
+}: {
+  children: React.ReactNode;
+  role: Role;
+}) {
+  const nav = navFor(role);
+
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const { state } = useAppData();
@@ -147,7 +164,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       >
         <div className="px-6 pb-4 pt-6">
           <Link
-            href="/dashboard"
+            /* Home means a different page per role. A teacher clicking the
+               wordmark used to land on a student's revision plan. */
+            href={homeFor(role)}
             className="font-display text-[1.35rem] font-extrabold tracking-[-0.02em]"
             style={{ color: text() }}
           >
@@ -164,7 +183,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         <nav className="flex-1 overflow-y-auto px-3 pb-4" data-lenis-prevent>
           <ul className="space-y-0.5">
-            {APP_NAV.map((item) => {
+            {nav.map((item) => {
               const Icon = ICONS[item.icon];
               const active = pathname === item.href;
 
@@ -222,14 +241,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </p>
           )}
 
-          <Link
-            href="/"
-            className="mt-4 flex items-center gap-2 text-[13.5px] font-medium transition-colors"
-            style={{ color: text(0.55) }}
-          >
-            <LogOut className="h-4 w-4" />
-            Sign out
-          </Link>
+          <SignOutButton />
         </div>
       </aside>
 

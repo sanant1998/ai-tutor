@@ -205,11 +205,11 @@ export function reteachStrategy(reteachCount: number): ReteachStrategy {
 
 export const RETEACH_BRIEF: Record<ReteachStrategy, string> = {
   alternate_analogy:
-    "Wahi explanation dobara mat do — wo kaam nahi kiya. CONTENT PACK me se ek ALAG analogy uthao aur usse concept dobara banao. Chhota rakho, phir ek aasan sa sawal poochho.",
+    "Do not repeat the same explanation — it did not work. Take a DIFFERENT analogy from the CONTENT PACK and rebuild the concept on it. Keep it short, then ask one easy question.",
   concrete_visual:
-    "Ab abstract chhodo. Ek theek-theek gin-ne layak cheez lo — paise, tukde, number line pe kadam — aur uspe concept dikhao. Numbers chhote rakho. Ant me ek chhota sawal.",
+    "Drop the abstract now. Take something countable — money, pieces, steps on a number line — and show the concept on it. Keep the numbers small. End with one short question.",
   worked_example:
-    "Ab poochhna band. CONTENT PACK ka worked example uthao aur poora, step by step, hal karke dikhao — ek bhi step student pe mat chhodo. Ant me ek line: ye concept dobara aayega, tab tak aage badhte hain. Koi sawal mat poochho.",
+    "Stop asking now. Take the CONTENT PACK's worked example and solve it in full, step by step — leave no step to the student. End with one line: this concept will come round again, and we move on for now. Ask nothing.",
 };
 
 /* --------------------------------------------------------------------------

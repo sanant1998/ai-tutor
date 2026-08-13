@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { DEFAULT_ONBOARDING, type OnboardingState } from "@/lib/onboarding";
 import {
+  claimLocal,
   loadExams,
   loadOnboarding,
   loadProgress,
@@ -34,6 +35,8 @@ export function useAppData() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    let live = true;
+
     setState(loadState());
     setProgress(readProgress());
     setExams(readExams());
@@ -42,9 +45,34 @@ export function useAppData() {
     setNow(new Date());
     setReady(true);
 
-    void loadOnboarding().then(setState);
-    void loadProgress().then(setProgress);
-    void loadExams().then(setExams);
+    /* The local cache belongs to one account. If the signed-in user is not the
+       one it was written for — a shared phone, an expired session, a second
+       account on the same browser — it is wiped, and what was just painted
+       from it has to go with it.
+     *
+     * Painting first and correcting a moment later, rather than waiting for
+     * the auth round trip, is deliberate: the common case is the same student
+     * as last time, and a loading flash on every app open is a real cost paid
+     * every day to avoid a rare one. The wipe below closes the rare one. */
+    void claimLocal().then((wiped) => {
+      if (!live) return;
+
+      if (wiped) {
+        setState(DEFAULT_ONBOARDING);
+        setProgress(DEFAULT_PROGRESS);
+        setExams([]);
+      }
+
+      /* Started only after ownership is settled, so a server load cannot land
+         on top of a wipe and restore the previous student's row. */
+      void loadOnboarding().then((next) => live && setState(next));
+      void loadProgress().then((next) => live && setProgress(next));
+      void loadExams().then((next) => live && setExams(next));
+    });
+
+    return () => {
+      live = false;
+    };
   }, []);
 
   const updateState = useCallback((next: OnboardingState) => {

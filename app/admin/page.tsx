@@ -1,14 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AlertTriangle, Activity, BookOpen, School } from "lucide-react";
+import { AlertTriangle, Activity, BookOpen, School, ShieldCheck } from "lucide-react";
 
 import { requireContentAccess } from "@/lib/admin/access";
 
-/* The index. It exists so the four consoles are reachable from each other and
+/* The index. It exists so the consoles are reachable from each other and
    from one bookmark — before this they were four URLs somebody had to
    remember, which is how an internal tool stops being used.
 
-   Two audiences now share it. The vendor sees all four; an institute that has
+   Two audiences now share it. The vendor sees all of them; an institute that has
    bought the platform sees the two that are about its own students and its own
    material. Health and the safety queue are vendor-only — health is the whole
    platform's cost and latency, and the safety queue holds flagged messages
@@ -49,7 +49,14 @@ const CONSOLES = [
     href: "/admin/schools",
     icon: School,
     title: "Schools",
-    blurb: "Organisations, sections, teachers, roster import.",
+    blurb: "Onboard a school with its licence and year, then sections, seats, teachers, roster.",
+  },
+  {
+    href: "/admin/audit",
+    icon: ShieldCheck,
+    title: "Audit trail",
+    blurb:
+      "Who did what to whose school, and when. Append-only. An institute sees its own; the vendor sees everything.",
   },
 ];
 

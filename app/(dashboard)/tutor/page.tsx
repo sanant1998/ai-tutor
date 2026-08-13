@@ -31,15 +31,28 @@ type TopicCard = {
 
 export default async function TutorIndexPage() {
   if (!isAdminConfigured()) {
+    /* The detail the page no longer prints, kept where the person who can act
+       on it will see it. */
+    console.warn(
+      "[tutor] SUPABASE_SERVICE_ROLE_KEY is not set. Run supabase/tutor.sql and " +
+        "supabase/compliance.sql on the project, then seed with " +
+        "`node scripts/seed-content.ts`.",
+    );
+
     return (
       <div className="space-y-6">
         <PageHeader kicker="Tutor" title="One-to-one teaching" />
         <Panel className="p-6">
+          {/* Setup detail belongs in the server log, not on a student's
+              screen. The smoke suite fails any response body carrying the name
+              of a secret, and it is right to: a page that prints which
+              variables are missing is a page that tells an attacker what to
+              look for, and it means nothing to the child reading it. The
+              README carries the same instructions for the person who needs
+              them. */}
           <p className="text-[15px] opacity-70">
-            The tutor needs <code>SUPABASE_SERVICE_ROLE_KEY</code> set, and{" "}
-            <code>supabase/tutor.sql</code> plus <code>supabase/compliance.sql</code>{" "}
-            run on the project. Then seed the curriculum with{" "}
-            <code>node scripts/seed-content.ts</code>.
+            The tutor is not set up on this deployment yet. Nothing is missing on your
+            side — ask whoever set it up to finish connecting the curriculum.
           </p>
         </Panel>
       </div>
@@ -145,14 +158,14 @@ export default async function TutorIndexPage() {
       <PageHeader
         kicker="Tutor"
         title="One-to-one teaching"
-        sub="Har concept ek chhote session me — samjho, check karo, aur atko to alag tareeke se dobara."
+        sub="Every concept in one short session — learn it, get checked, and if you get stuck, a different way round."
         actions={
           <div className="flex items-center gap-2">
             <LanguagePicker />
             <Link
                 href="/fix-sheet/tutor"
               className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-[14px]"
-              style={{ background: "rgb(var(--fg-rgb) / 0.06)" }}
+              style={{ background: "rgb(var(--text-rgb) / 0.06)" }}
             >
               <Target className="h-3.5 w-3.5" />
               Fix sheet
@@ -257,7 +270,7 @@ export default async function TutorIndexPage() {
                     style={{ background: "rgb(var(--acc-rgb) / 0.16)" }}
                   >
                     <Play className="h-3.5 w-3.5" />
-                    {card.score > 0 ? "Jaari rakho" : "Shuru karo"}
+                    {card.score > 0 ? "Jaari rakho" : "Start"}
                   </Link>
 
                   {/* Practice was reachable only from the end of a session
@@ -267,7 +280,7 @@ export default async function TutorIndexPage() {
                     <Link
                       href={`/practice/${card.id}`}
                       className="inline-flex w-fit items-center gap-2 rounded-xl px-4 py-2 text-[14px]"
-                      style={{ background: "rgb(var(--fg-rgb) / 0.06)" }}
+                      style={{ background: "rgb(var(--text-rgb) / 0.06)" }}
                     >
                       <Dumbbell className="h-3.5 w-3.5" />
                       Practice

@@ -63,7 +63,7 @@ export function TutorFixSheet({ topicId }: { topicId?: string }) {
       const payload = await response.json();
 
       if (!response.ok) {
-        setError(payload.error ?? "Fix sheet nahi ban paayi.");
+        setError(payload.error ?? "The fix sheet could not be built.");
         return;
       }
 
@@ -84,7 +84,7 @@ export function TutorFixSheet({ topicId }: { topicId?: string }) {
     return (
       <div className="flex items-center gap-2 py-16" style={{ color: text(0.5) }}>
         <Loader2 className="h-4 w-4 animate-spin" />
-        <span className="text-[14px]">Galtiyan dekh raha hoon…</span>
+        <span className="text-[14px]">Looking at your mistakes…</span>
       </div>
     );
   }
@@ -112,11 +112,11 @@ export function TutorFixSheet({ topicId }: { topicId?: string }) {
             className="font-display mt-2 text-[2rem] font-extrabold tracking-[-0.035em]"
             style={{ color: text() }}
           >
-            Jo galtiyan baar-baar hoti hain
+            The mistakes that keep coming back
           </h1>
           <p className="mt-2 max-w-xl text-[15px]" style={{ color: text(0.6) }}>
-            Pichhle 30 din ki galtiyan, sabse zyada dohrayi gayi pehle. Har ek ke
-            saath wo line jo yaad rakhni hai, aur teen naye sawal.
+            The last 30 days of mistakes, most repeated first. Each one with the line
+            worth remembering, and three fresh questions.
           </p>
         </div>
 
@@ -129,7 +129,7 @@ export function TutorFixSheet({ topicId }: { topicId?: string }) {
       {entries.length === 0 ? (
         <Panel className="p-6">
           <p className="text-[15px]" style={{ color: text(0.7) }}>
-            {note || "Abhi koi galti record nahi hui."}
+            {note || "No mistakes recorded yet."}
           </p>
         </Panel>
       ) : (
@@ -148,7 +148,7 @@ export function TutorFixSheet({ topicId }: { topicId?: string }) {
               {entry.remedy ? (
                 <>
                   <p className="text-[14px]" style={{ color: text(0.7) }}>
-                    <span className="font-semibold">Galat samajh:</span>{" "}
+                    <span className="font-semibold">Wrong belief:</span>{" "}
                     <Maths>{entry.remedy.belief}</Maths>
                   </p>
 
@@ -189,7 +189,7 @@ export function TutorFixSheet({ topicId }: { topicId?: string }) {
                     className="font-mono text-[11px] font-bold uppercase tracking-[0.14em]"
                     style={{ color: text(0.45) }}
                   >
-                    Ab ye karo
+                    Do this now
                   </p>
 
                   {entry.drill.map((question, questionIndex) => (
@@ -213,15 +213,15 @@ export function TutorFixSheet({ topicId }: { topicId?: string }) {
                   {/* Deliberately no answers. This sheet is meant to be worked
                       on paper; an answer key on the same page defeats it. */}
                   <p className="text-[12px]" style={{ color: text(0.42) }}>
-                    Jawab app me check karo — yahan jaan-bujhkar nahi diye.
+                    Check your answers in the app — they are left out here on purpose.
                   </p>
                 </div>
               )}
 
               {entry.diagnosedFrom === "model" && (
                 <p className="text-[11px] print:hidden" style={{ color: text(0.38) }}>
-                  Ye diagnosis likhe hue jawab se nikli hai, kisi tay galti se
-                  nahi — thodi kam pakki hai.
+                  This diagnosis came from a written answer rather than a fixed
+                  wrong option — so it is a little less certain.
                 </p>
               )}
             </Panel>

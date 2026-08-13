@@ -100,4 +100,4 @@ export async function chapterOfTopic(topicRef: string): Promise<string | null> {
 }
 
 export const PAYWALL_MESSAGE =
-  "Pehla chapter poora free hai — ye uske aage ka hai. Aage padhne ke liye plan lena hoga.";
+  "The first chapter is free in full — this one is beyond it. Reading further needs a plan.";

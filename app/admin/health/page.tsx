@@ -70,11 +70,23 @@ export default async function HealthPage({
 
   const db = createAdminClient();
 
-  const [{ data, error }, { data: cohorts }] = await Promise.all([
+  const [{ data, error }, { data: cohorts }, { data: openFlags }] = await Promise.all([
     db.rpc("health_snapshot", { p_days: window }),
     /* Eight weeks is enough to see a trend and short enough that a change made
        last month is still visible at the top rather than averaged away. */
     db.rpc("activation_by_cohort", { p_weeks: 8 }),
+    /* The safety queue, unreviewed.
+       Every other number on this page is about cost or latency. This one is
+       about whether anybody is doing the job — the queue at /admin/safety has
+       a tool and no owner, and an unread queue is indistinguishable from an
+       empty one until somebody opens it. A number with an age next to it is
+       the smallest thing that makes the silence visible, and the only part of
+       that problem code can do anything about. */
+    db
+      .from("safety_flags")
+      .select("created_at, severity")
+      .eq("status", "open")
+      .order("created_at"),
   ]);
 
   if (error) {
@@ -89,6 +101,15 @@ export default async function HealthPage({
   }
 
   const snapshot = data as unknown as Snapshot;
+
+  const flags = (openFlags ?? []) as { created_at: string; severity: string }[];
+  const urgent = flags.filter((flag) => flag.severity === "urgent").length;
+
+  /* Hours since the oldest unreviewed flag arrived. The count alone reads as a
+     workload; the age reads as a lapse, which is the accurate one. */
+  const oldestHours = flags[0]
+    ? Math.floor((Date.now() - new Date(flags[0].created_at).getTime()) / 3_600_000)
+    : 0;
 
   const activation = (cohorts ?? []) as {
     cohort_week: string;
@@ -137,6 +158,22 @@ export default async function HealthPage({
       </p>
 
       <div className="mt-8 space-y-4">
+        {/* First, above cost and latency. Everything below this is about money
+            or speed; this one is about whether a flagged child has been looked
+            at, and it is the only number here that can be a safeguarding
+            failure rather than a bill. */}
+        <Metric
+          label="Safety flags waiting for a human"
+          value={String(flags.length)}
+          detail={
+            flags.length === 0
+              ? "queue clear"
+              : `${urgent} urgent · oldest ${oldestHours}h old`
+          }
+          threshold="Any urgent flag older than a few hours is the alert. This queue has a tool and no named owner — until it has one, this number is the only thing standing between a flagged message and nobody reading it."
+          bad={urgent > 0 || oldestHours > 24}
+        />
+
         <Metric
           label="Cost per active student"
           value={
