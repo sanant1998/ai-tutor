@@ -28,15 +28,25 @@
 
 import { NextResponse } from "next/server";
 
-import { fail, requireUser } from "@/lib/ai/route";
+import { consume, release } from "@/lib/ai/quota";
+import { fail, requireStudent } from "@/lib/ai/route";
+import { callerIp, LIMIT_MESSAGE, takeLimit } from "@/lib/ratelimit";
 import { createAdminClient, isAdminConfigured } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 /* Thirty seconds. A spoken maths question is under ten; anything longer is a
    student holding the button down, and it costs transcription money and adds
-   latency to a turn they are waiting on. */
+   latency to a turn they are waiting on.
+ *
+ * The duration is what the student is told about and what actually matters, so
+ * it is enforced on the duration the client reports as well as on the byte
+ * size. Only the byte cap existed before, which meant the limit in force was
+ * a number nobody had been told and the message quoted one that was not being
+ * checked at all. Bytes are still the backstop, because the reported duration
+ * comes from the browser and a browser can say anything. */
 const MAX_SECONDS = 30;
 const MAX_BYTES = 2 * 1024 * 1024;
 
@@ -46,7 +56,7 @@ const MAX_BYTES = 2 * 1024 * 1024;
 const CONFIDENCE_FLOOR = 0.6;
 
 export async function POST(request: Request) {
-  const user = await requireUser();
+  const user = await requireStudent();
   if (!user.ok) return user.response;
 
   if (!isAdminConfigured()) {
@@ -67,7 +77,7 @@ export async function POST(request: Request) {
 
   if (!consent?.granted || consent.withdrawn_at) {
     return fail(
-      "Voice ke liye parent ki alag anumati chahiye. Wo Settings se de sakte hain.",
+      "Voice needs a separate permission from a parent. They can give it from Settings.",
       403,
     );
   }
@@ -89,12 +99,46 @@ export async function POST(request: Request) {
 
   const audio = form.get("audio");
   const sessionId = form.get("sessionId");
+  const durationMs = Number(form.get("durationMs"));
 
   if (!(audio instanceof File)) return fail("audio file is required.", 400);
 
-  if (audio.size > MAX_BYTES) {
-    return fail(`Recording bahut lambi hai — ${MAX_SECONDS} second se kam rakho.`, 413);
+  const tooLong =
+    audio.size > MAX_BYTES ||
+    (Number.isFinite(durationMs) && durationMs > MAX_SECONDS * 1000);
+
+  if (tooLong) {
+    return fail(`That recording is too long — keep it under ${MAX_SECONDS} seconds.`, 413);
   }
+
+  /* --- The session this belongs to --------------------------------------
+     Checked rather than trusted. The id arrives in a form field, and writing
+     a row that points at somebody else's session is not something a browser
+     should be able to ask for — even though nothing reads the link today, an
+     unverified foreign key is the sort of thing a later feature starts
+     trusting. */
+  let linkedSession: string | null = null;
+
+  if (typeof sessionId === "string" && sessionId) {
+    const { data: owned } = await admin
+      .from("learning_sessions")
+      .select("id")
+      .eq("id", sessionId)
+      .eq("user_id", user.value)
+      .maybeSingle();
+
+    linkedSession = owned ? sessionId : null;
+  }
+
+  /* --- Limits, before a paid call ---------------------------------------
+     Transcription bills per request and this route had neither axis: one
+     signed-in account could hold the button down all evening. */
+  const ipLimit = await takeLimit("audio", callerIp(request));
+  if (!ipLimit.allowed) return fail(LIMIT_MESSAGE, 429);
+
+  const supabase = await createClient();
+  const slot = await consume(supabase, user.value, "voice");
+  if (!slot.ok) return fail(slot.message, slot.status);
 
   /* --- Transcribe -------------------------------------------------------
      OpenAI-compatible /audio/transcriptions, which Sarvam, Groq and OpenAI
@@ -122,7 +166,8 @@ export async function POST(request: Request) {
     if (!response.ok) {
       const detail = await response.text().catch(() => "");
       console.error("[voice] stt failed", response.status, detail.slice(0, 200));
-      return fail("Awaaz samajh nahi aayi. Type karke poochh lo.", 502);
+      await release(supabase, "voice");
+      return fail("That could not be understood. Type your question instead.", 502);
     }
 
     const payload = (await response.json()) as {
@@ -145,11 +190,16 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     console.error("[voice] transcription failed", error);
-    return fail("Awaaz samajh nahi aayi. Type karke poochh lo.", 502);
+    /* A provider outage is not the student's fault. */
+    await release(supabase, "voice");
+    return fail("That could not be understood. Type your question instead.", 502);
   }
 
   if (!transcript) {
-    return fail("Kuch sunai nahi diya. Dobara try karo.", 422);
+    /* Silence is usually a microphone permission problem, not a question they
+       meant to ask. Charging for it teaches them the feature is broken. */
+    await release(supabase, "voice");
+    return fail("Nothing was heard. Please try again.", 422);
   }
 
   /* --- Store ------------------------------------------------------------
@@ -170,7 +220,7 @@ export async function POST(request: Request) {
 
   await admin.from("voice_blobs").insert({
     user_id: user.value,
-    session_id: typeof sessionId === "string" && sessionId ? sessionId : null,
+    session_id: linkedSession,
     storage_path: uploadError ? "" : path,
     transcript,
   });

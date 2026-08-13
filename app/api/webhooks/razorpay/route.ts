@@ -32,6 +32,8 @@
  * annoyance. Three days of grace with a WhatsApp message recovers most of them
  * and costs three days of one subscription in the cases it does not. */
 
+import { createHash } from "node:crypto";
+
 import { NextResponse } from "next/server";
 
 import { reportError } from "@/lib/observability";
@@ -50,8 +52,16 @@ type Payload = {
   payload?: {
     subscription?: { entity?: RazorpaySubscription };
     payment?: { entity?: RazorpayPayment };
-    refund?: { entity?: { payment_id?: string; amount?: number } };
+    refund?: { entity?: RazorpayRefund };
   };
+};
+
+type RazorpayRefund = {
+  id?: string;
+  payment_id?: string;
+  /* Paise. Razorpay supports partial refunds, so this is not necessarily the
+     whole payment. */
+  amount?: number;
 };
 
 type RazorpaySubscription = {
@@ -94,10 +104,20 @@ export async function POST(request: Request) {
 
   const admin = createAdminClient();
 
-  /* Razorpay's delivery id, unique per delivery attempt of an event. */
+  /* Razorpay's delivery id, unique per delivery attempt of an event.
+   *
+   * The fallback matters more than it looks. It fires when the header is
+   * missing, and it is the ONLY thing standing between a redelivery and a
+   * second free month — so it has to be derived from the event's content, not
+   * from a proxy for it. `raw.length` was a proxy: two different charges on
+   * the same subscription serialise to the same number of bytes about as often
+   * as not, and the second one would have been swallowed as a duplicate.
+   *
+   * A digest of the exact bytes signed is stable across redeliveries of the
+   * same event and different for any other event. */
   const eventId =
     request.headers.get("x-razorpay-event-id") ??
-    `${body.event}:${body.payload?.subscription?.entity?.id ?? body.payload?.payment?.entity?.id ?? raw.length}`;
+    `${body.event}:${createHash("sha256").update(raw).digest("hex").slice(0, 32)}`;
 
   const { error: insertError } = await admin.from("billing_events").insert({
     provider: "razorpay",
@@ -156,20 +176,40 @@ async function handle(admin: ReturnType<typeof createAdminClient>, body: Payload
   /* An event for a subscription we have no row for. Happens when a mandate is
      created in the Razorpay dashboard by hand, and when a test event arrives
      in production. The notes carry the user id, so it can be reconstructed
-     rather than dropped. */
+     rather than dropped.
+
+     Upserted on provider_sub_id rather than inserted-then-reread: two events
+     for the same new subscription can be in flight at once — Razorpay sends
+     `authenticated` and `charged` within the same second — and a plain insert
+     makes the second one either a duplicate row or a unique violation that
+     lands in the error column while the subscription silently fails to
+     activate. `ignoreDuplicates` keeps the first writer's row and lets the
+     second carry on to the state machine below. */
   if (!row) {
     const userId = subscription?.notes?.user_id;
     if (!userId) return;
 
-    await admin.from("subscriptions").insert({
-      user_id: userId,
-      subject_ref: subscription?.notes?.subject_ref || null,
-      provider: "razorpay",
-      provider_sub_id: providerSubId,
-      plan: subscription?.notes?.plan ?? "monthly",
-      amount_inr: (payment?.amount ?? 0) / 100,
-      status: "created",
-    });
+    const { error: upsertError } = await admin.from("subscriptions").upsert(
+      {
+        user_id: userId,
+        subject_ref: subscription?.notes?.subject_ref || null,
+        provider: "razorpay",
+        provider_sub_id: providerSubId,
+        plan: subscription?.notes?.plan ?? "monthly",
+        amount_inr: (payment?.amount ?? 0) / 100,
+        status: "created",
+      },
+      { onConflict: "provider_sub_id", ignoreDuplicates: true },
+    );
+
+    /* Thrown rather than swallowed: the outer handler records it against the
+       stored event so it can be replayed. A subscription that fails to
+       reconstruct and says nothing is a parent who paid and has no access. */
+    if (upsertError) {
+      throw new Error(
+        `could not reconstruct subscription ${providerSubId}: ${upsertError.message}`,
+      );
+    }
   }
 
   const current =
@@ -282,8 +322,32 @@ async function handle(admin: ReturnType<typeof createAdminClient>, body: Payload
     }
 
     /* Money went back, so access does too — immediately and without grace,
-       because a refund is not a failed charge. */
+       because a refund is not a failed charge.
+     *
+     * But only for a FULL refund. Razorpay supports partial refunds, and they
+     * are how an ordinary goodwill gesture is issued: a parent complains about
+     * one bad week, support sends back ₹100 of ₹399, and under the old code
+     * that ended the subscription they had just been apologised to for. The
+     * refund entity carries its own amount; compare it against what was
+     * charged before revoking anything. */
     case "refund.processed": {
+      const refund = body.payload?.refund?.entity;
+      const refunded = Number(refund?.amount ?? 0) / 100;
+      const charged = Number(current.amount_inr ?? 0);
+
+      /* Unknown amounts are treated as full. Being wrong that way ends a
+         subscription that money was returned for; being wrong the other way
+         keeps a refunded student on a paid product, which is the failure that
+         cannot be explained to anyone. */
+      const full = !refunded || !charged || refunded >= charged;
+
+      if (!full) {
+        console.info(
+          `[razorpay] partial refund of ₹${refunded} against ₹${charged} on ${providerSubId} — access unchanged`,
+        );
+        break;
+      }
+
       await admin
         .from("subscriptions")
         .update({

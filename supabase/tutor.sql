@@ -240,6 +240,87 @@ drop policy if exists "session turns are self-service" on public.session_turns;
 create policy "session turns are self-service" on public.session_turns
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
+-- --- Handing out turn numbers ----------------------------------------------
+--
+-- `unique (session_id, seq)` above is the constraint that makes a transcript
+-- ordered and gapless, and it is also the one the application kept losing to.
+-- The route did `select max(seq)` and then inserted `max + 1`, which is a
+-- read-modify-write across two round trips: a double tap, a retry after a slow
+-- reply, or two tabs on the same session, and both requests read the same
+-- maximum and both write it. One insert wins, the other violates the
+-- constraint — and the error was being discarded, so the losing turn simply
+-- vanished from the transcript with nothing logged.
+--
+-- Doing the arithmetic inside one statement, behind a lock on the session row,
+-- removes the window. The lock is on learning_sessions rather than on the
+-- turns, because that is the thing being serialised: one turn at a time per
+-- session is exactly the intended behaviour, and it is a row nobody else
+-- contends for.
+--
+-- A LOCK WOULD NOT HAVE BEEN ENOUGH
+--
+-- The obvious repair is `select max(seq) ... for update` inside a function.
+-- It does not work here: PostgREST runs each RPC in its own transaction, so
+-- the lock is released the moment the function returns — which is before the
+-- application inserts anything. The window closes and reopens in the same
+-- round trip.
+--
+-- So the sequence is a counter that is advanced by the reservation itself. A
+-- single UPDATE ... RETURNING is atomic on its own; concurrent callers
+-- serialise on the row and each one leaves with a distinct block. Nothing has
+-- to stay locked between statements because nothing after the UPDATE can hand
+-- out the same numbers again.
+alter table public.learning_sessions
+  add column if not exists seq_cursor int not null default 0;
+
+-- Returns the FIRST number of a reserved run of p_count, so a caller writing
+-- the student's message and the tutor's reply gets both in one round trip.
+create or replace function public.reserve_turn_seq(p_session uuid, p_count int default 2)
+returns int
+language plpgsql
+volatile
+security definer set search_path = public
+as $$
+declare
+  v_owner uuid;
+  v_first int;
+begin
+  if p_count < 1 then
+    raise exception 'p_count must be at least 1';
+  end if;
+
+  update public.learning_sessions
+     set seq_cursor =
+           -- greatest(...) is the migration path. Sessions that already have
+           -- turns start with seq_cursor at 0, and handing out 1 again would
+           -- collide with rows written before this function existed.
+           greatest(
+             seq_cursor,
+             coalesce(
+               (select max(seq) from public.session_turns where session_id = p_session),
+               0
+             )
+           ) + p_count
+   where id = p_session
+   returning user_id, seq_cursor - p_count + 1
+   into v_owner, v_first;
+
+  if v_owner is null then
+    raise exception 'no such session';
+  end if;
+
+  -- security definer, so ownership is this function's problem. service_role
+  -- has no auth.uid() and is trusted; a signed-in caller must own the session.
+  if auth.uid() is not null and auth.uid() <> v_owner then
+    raise exception 'not your session';
+  end if;
+
+  return v_first;
+end;
+$$;
+
+grant execute on function public.reserve_turn_seq(uuid, int) to authenticated, service_role;
+
 -- --- Attempts against the bank ---------------------------------------------
 --
 -- schema.sql already has `attempts`, keyed to generated_questions. A second

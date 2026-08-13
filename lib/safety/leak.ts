@@ -28,12 +28,18 @@ const LEAK_MARKERS = [
 
 export function checkOutput(
   text: string,
-  options: { beat: string; answer?: string | null },
+  options: { beat: string; answers?: readonly string[] | null },
 ): OutputProblem {
   if (LEAK_MARKERS.some((marker) => marker.test(text))) return "prompt_leak";
 
-  if (options.beat === "CHECK" && options.answer) {
-    if (containsAnswer(text, options.answer)) return "answer_leak";
+  /* A plural, because the tutor writes its own check question rather than
+     drawing one from the bank. There is no single "the answer" to compare
+     against — the question is whether the reply gave away ANY answer this
+     concept is examined on. */
+  if (options.beat === "CHECK") {
+    for (const answer of options.answers ?? []) {
+      if (containsAnswer(text, answer)) return "answer_leak";
+    }
   }
 
   return null;
@@ -46,7 +52,7 @@ export function checkOutput(
    a check that misses the LaTeX form misses every real leak. */
 export function containsAnswer(text: string, answer: string): boolean {
   const needle = normalise(answer);
-  if (!needle) return false;
+  if (!checkable(needle)) return false;
 
   const haystack = normalise(text);
   if (!haystack.includes(needle)) return false;
@@ -57,6 +63,27 @@ export function containsAnswer(text: string, answer: string): boolean {
     const escaped = needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     return new RegExp(`(^|[^\\d/.-])${escaped}([^\\d/.]|$)`).test(haystack);
   }
+
+  return true;
+}
+
+/* Some "answers" cannot be looked for at all, and searching for them anyway is
+   worse than not checking.
+ *
+ * The one that mattered: a multiple-choice question stores its answer as the
+ * OPTION KEY — `["A"]` — not as the value. Passing that in meant the check
+ * hunted for a lone "a" in Hinglish prose and found one in almost every reply,
+ * so a perfectly good check question was thrown away and replaced by the canned
+ * fallback probe. The fix is upstream — resolve the key to the option's text —
+ * and this is the guard that stops a bare key ever being used as a needle
+ * again. */
+function checkable(needle: string): boolean {
+  if (!needle) return false;
+
+  /* A single letter is an option key or a variable name, never an answer worth
+     searching prose for. Single DIGITS are kept: "0" and "7" are real answers,
+     and the word-boundary rule below is what makes them safe to look for. */
+  if (needle.length === 1 && !/\d/.test(needle)) return false;
 
   return true;
 }

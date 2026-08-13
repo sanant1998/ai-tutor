@@ -8,11 +8,25 @@ import Link from "next/link";
 import { GraduationCap } from "lucide-react";
 
 import { PageHeader, Panel } from "@/components/app/ui";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function TeacherIndexPage() {
+  if (!isSupabaseConfigured()) {
+    return (
+      <div className="space-y-6">
+        <PageHeader kicker="Teacher" title="Your classes" />
+        <Panel className="p-6">
+          <p className="text-[15px] opacity-70">
+            This deployment is not connected to a database yet, so there are no classes to
+            show. Ask whoever set it up to finish the connection.
+          </p>
+        </Panel>
+      </div>
+    );
+  }
+
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getUser();
 
@@ -54,7 +68,7 @@ export default async function TeacherIndexPage() {
       <PageHeader
         kicker="Teacher"
         title="Your classes"
-        sub="Kaunse topic pe poori class atki hai, aur kis student ko dhyan chahiye."
+        sub="Which topic the whole class is stuck on, and which student needs attention."
       />
 
       {rows.length === 0 ? (

@@ -5,9 +5,13 @@
   "provenance": {
     "source": "NCERT Mathematics Class 8, Chapter 2 'Linear Equations in One Variable' — applications, i.e. forming an equation from a word problem. The misconceptions are the ones that appear when the arithmetic is fine and the translation is not, which is where nearly all the marks are lost on this topic.",
     "verifiedOn": "2026-08-12",
-    "note": "This topic is where students who can solve equations still fail. Solving is mechanical and they have it by now; deciding what x IS, and reading 'more than' in the right direction, is the actual skill. m1 and m3 are both about direction of subtraction and they are worth teaching as one habit rather than two rules."
+    "note": "This topic is where students who can solve equations still fail. Solving is mechanical and they have it by now; deciding what x IS, and reading 'more than' in the right direction, is the actual skill. m1 and m3 are both about direction of subtraction and they are worth teaching as one habit rather than two rules. Prose translated to en-IN by scripts/translate-pack.ts using gpt-5.5 (72 of 72 strings); LaTeX, answers and distractor maps unchanged by construction. Not read by a subject expert since."
   },
-  "subject": { "id": "cbse-8-maths", "name": "Mathematics", "language": "en-IN" },
+  "subject": {
+    "id": "cbse-8-maths",
+    "name": "Mathematics",
+    "language": "en-IN"
+  },
   "chapter": {
     "id": "c8-math-ch2",
     "no": 2,
@@ -20,202 +24,286 @@
     "id": "c8-math-ch2-t2",
     "no": 2,
     "title": "Turning Words Into Equations",
-    "prereqTopicIds": ["c8-math-ch2-t1"]
+    "prereqTopicIds": [
+      "c8-math-ch2-t1"
+    ]
   },
-
   "concepts": [
     {
       "id": "c8-math-ch2-t2-c1",
       "seq": 1,
       "title": "Naming the unknown, and reading the direction right",
-      "statement": "Word problem hal karne ka pehla kadam solve karna nahi, likhna hai: 'maan lo $x$ = ...'. Jo cheez poochhi ja rahi hai, usko $x$ kaho, phir sawal ki har line ko $x$ ki bhasha me likhte jao. Equation apne aap ban jaayegi.",
-      "hook": "Socho tumhare aur tumhare bhai ke paas milakar ₹200 hain, aur tumhare paas usse ₹40 zyada hain. Ab batao — agar main kahun 'bhai ke paas $x$ rupaye hain', to tumhare paas kitne hue? Aur agar main kahun 'tumhare paas $x$ hain', to bhai ke paas? Dono tareeke sahi hain, par ek me hisaab aasan hota hai. Sawal ye hai: kaunsa?",
+      "statement": "The first step in solving a word problem is not to solve it, but to write: 'let $x$ = ...'. Call the thing being asked $x$, then keep writing every line of the question in the language of $x$. The equation will form on its own.",
+      "hook": "Think, you and your brother together have ₹200, and you have ₹40 more than him. Now tell me — if I say 'brother has $x$ rupees', how much do you have? And if I say 'you have $x$', how much does brother have? Both ways are correct, but in one way the calculation is easier. The question is: which one?",
       "analogies": [
         {
           "id": "a1",
-          "text": "Translation jaisa: har Hindi line ka ek maths line me tarjuma. 'Se 5 zyada' ka matlab '+5', 'se 5 kam' ka matlab '-5'."
+          "text": "Like translation: translate each spoken line into one maths line. '5 more than' means '+5', '5 less than' means '-5'."
         },
         {
           "id": "a2",
-          "text": "Dukaan ka bill: jo pata nahi wo $x$, baaki sab uske hisaab se likho, aur total pehle se pata hai — wahi RHS hai."
+          "text": "Shop bill: take the unknown as $x$, write everything else in terms of it, and the total is already known — that is the RHS."
         }
       ],
       "formulas": [
         {
           "id": "f1",
           "latex": "\\text{jo poochha hai} = x",
-          "note": "Sabse aasan tab hota hai jab chhoti cheez ko x kaho."
+          "note": "It is easiest when you call the smaller thing x."
         },
         {
           "id": "f2",
           "latex": "a \\text{ se } b \\text{ zyada} \\Rightarrow a + b",
-          "note": "'zyada' = plus."
+          "note": "'more' = plus."
         },
         {
           "id": "f3",
           "latex": "a \\text{ se } b \\text{ kam} \\Rightarrow a - b",
-          "note": "'kam' = minus. Dhyan do: 'a se b kam', 'b se a kam' nahi."
+          "note": "'less' = minus. Be careful: 'b less than a', not 'a less than b'."
         }
       ],
       "misconceptions": [
         {
           "id": "m1",
-          "wrong_belief": "'$x$ se 5 kam' ka matlab $5 - x$ hai.",
-          "why_wrong": "'$x$ se 5 kam' matlab $x$ se shuru karo aur 5 ghatao — yaani $x - 5$. $5 - x$ ka matlab hota '5 me se $x$ ghatao', jo ulti baat hai. Number rakhkar dekho: $x = 12$ ho to '12 se 5 kam' 7 hai, $-7$ nahi.",
-          "correction": "'A se B kam' matlab $A - B$. Jis cheez se ghatana hai wo PEHLE aati hai.",
-          "probe": "$x = 12$ maano. '$x$ se 5 kam' kitna hua? Ab $x - 5$ aur $5 - x$ dono nikaalo — kaunsa match kiya?"
+          "wrong_belief": "'5 less than $x$' means $5 - x$.",
+          "why_wrong": "'5 less than $x$' means start with $x$ and subtract 5 — that is $x - 5$. $5 - x$ would mean 'subtract $x$ from 5', which is the opposite. Try with a number: if $x = 12$, then '5 less than 12' is 7, not $-7$.",
+          "correction": "'B less than A' means $A - B$. The thing from which we subtract comes FIRST.",
+          "probe": "Assume $x = 12$. How much is '5 less than $x$'? Now find both $x - 5$ and $5 - x$ — which one matched?"
         },
         {
           "id": "m2",
-          "wrong_belief": "Word problem me $x$ kuch bhi rakh sakte hain, farak nahi padta — jawab wahi aayega.",
-          "why_wrong": "Jawab to wahi aayega, par mehnat alag hoti hai. Bade wale ko $x$ kaho to doosri cheez $x - 40$ banti hai; chhote wale ko $x$ kaho to doosri $x + 40$. Aur ant me ye yaad rakhna padta hai ki sawal ne kaunsa poochha tha — wahi jagah hai jahan sahi hisaab pe galat jawab likha jaata hai.",
-          "correction": "Chhoti cheez ko $x$ kaho, aur ant me dobara padho ki sawal ne kya poochha tha.",
-          "probe": "Do bhaiyon ke paas milakar 200 hain, ek ke paas 40 zyada. Chhote ko $x$ kaho to bada kya hua? Ab bade ko $x$ kaho to chhota kya hua? Kaunsa likhna aasan laga?"
+          "wrong_belief": "In a word problem, we can keep $x$ for anything, it makes no difference — the answer will be the same.",
+          "why_wrong": "The answer will be the same, but the effort will be different. If you call the bigger one $x$, the other thing becomes $x - 40$; if you call the smaller one $x$, the other becomes $x + 40$. And at the end you have to remember what the question asked — that is the place where a correct calculation gets written as a wrong answer.",
+          "correction": "Call the smaller thing $x$, and at the end read again what the question asked.",
+          "probe": "Two brothers have 200 together, one has 40 more. If you call the younger one $x$, what is the elder one? Now if you call the elder one $x$, what is the younger one? Which one felt easier to write?"
         },
         {
           "id": "m3",
-          "wrong_belief": "'Ram ki umar Shyam se 3 guna hai' ka matlab $R \\times 3 = S$ hai.",
-          "why_wrong": "'Ram, Shyam se 3 guna' matlab Ram bada hai: $R = 3S$. Jaise likha hai waise seedha utaar dene se direction ulti ho jaati hai. Number se check karo: Shyam 10 ka ho to Ram 30 ka — aur $R = 3S$ hi 30 deta hai.",
-          "correction": "'A, B se n guna' matlab $A = n \\times B$. Jo bada hai wo akela taraf.",
-          "probe": "Shyam 10 saal ka hai aur Ram usse 3 guna. Ram kitne ka hua? Ab $R = 3S$ aur $3R = S$ dono me 10 rakhkar dekho — kaunsa 30 laaya?"
+          "wrong_belief": "'Ram's age is 3 times Shyam's age' means $R \\times 3 = S$.",
+          "why_wrong": "'Ram is 3 times Shyam' means Ram is bigger: $R = 3S$. If you copy it straight as written, the direction gets reversed. Check with numbers: if Shyam is 10, then Ram is 30 — and only $R = 3S$ gives 30.",
+          "correction": "'A is n times B' means $A = n \\times B$. The bigger one stays alone on one side.",
+          "probe": "Shyam is 10 years old and Ram is 3 times him. How old is Ram? Now put 10 in both $R = 3S$ and $3R = S$ — which one gave 30?"
         },
         {
           "id": "m4",
-          "wrong_belief": "$x$ nikal aaya to sawal khatam.",
-          "why_wrong": "Sawal ne aksar $x$ nahi poochha hota. 'Chhote bhai ke paas kitne?' poochha tha aur tumne bade ko $x$ kaha tha — to jawab $x$ nahi, $x - 40$ hai. Poora hisaab sahi karke aakhri line me number gawa dena is topic ki sabse aam galti hai.",
-          "correction": "$x$ nikalne ke baad sawal dobara padho, phir jawab likho.",
-          "probe": "Tumne bade bhai ko $x$ kaha aur $x = 120$ nikala. Sawal poochh raha tha chhote bhai ke paise. Jawab kya likhoge?"
+          "wrong_belief": "Once $x$ is found, the question is over.",
+          "why_wrong": "The question often has not asked for $x$. It asked 'How much does the younger brother have?' and you had called the elder one $x$ — so the answer is not $x$, it is $x - 40$. Doing the whole calculation correctly and losing the number in the last line is the most common mistake in this topic.",
+          "correction": "After finding $x$, read the question again, then write the answer.",
+          "probe": "You called the elder brother $x$ and got $x = 120$. The question was asking for the younger brother's money. What answer will you write?"
         }
       ],
       "worked_examples": [
         {
           "id": "we1",
-          "problem": "Do bhaiyon ke paas milakar ₹200 hain. Bade ke paas chhote se ₹40 zyada hain. Chhote ke paas kitne hain?",
+          "problem": "Two brothers have ₹200 together. The elder has ₹40 more than the younger. How much does the younger have?",
           "steps": [
-            "Maan lo chhote ke paas $x$ rupaye hain (chhoti cheez ko $x$ kaha, taaki plus lage minus nahi)",
-            "To bade ke paas $x + 40$ hue",
-            "Milakar 200: $x + (x + 40) = 200$",
-            "$2x + 40 = 200$, dono taraf se 40 ghatao: $2x = 160$",
+            "Let the younger have $x$ rupees (we called the smaller thing $x$, so that plus is used, not minus)",
+            "So the elder has $x + 40$",
+            "Together 200: $x + (x + 40) = 200$",
+            "$2x + 40 = 200$, subtract 40 from both sides: $2x = 160$",
             "$x = 80$",
-            "Sawal chhote ka poochh raha tha, aur $x$ chhota hi tha — to jawab ₹80. Jaanch: 80 + 120 = 200 aur 120 - 80 = 40 ✓"
+            "The question was asking about the younger one, and $x$ was the younger one — so the answer is ₹80. Check: 80 + 120 = 200 and 120 - 80 = 40 ✓"
           ],
           "answer": "Chhote ke paas ₹80"
         },
         {
           "id": "we2",
-          "problem": "Ram ki umar Shyam se 3 guna hai. Dono ki umar ka jod 32 saal hai. Ram kitne saal ka hai?",
+          "problem": "Ram's age is 3 times Shyam's age. The sum of their ages is 32 years. How old is Ram?",
           "steps": [
-            "Maan lo Shyam $x$ saal ka hai (chhota, isliye 3 guna wala plain rahega)",
-            "To Ram $3x$ saal ka hua",
-            "Jod 32: $x + 3x = 32$",
-            "$4x = 32$, to $x = 8$",
-            "Sawal RAM ka poochh raha tha, Shyam ka nahi: Ram $= 3 \\times 8 = 24$",
-            "Jaanch: 8 + 24 = 32 aur 24 Shyam se 3 guna ✓"
+            "Let Shyam be $x$ years old (the smaller one, so the 3 times part will stay plain)",
+            "So Ram is $3x$ years old",
+            "Sum 32: $x + 3x = 32$",
+            "$4x = 32$, so $x = 8$",
+            "The question was asking about RAM, not Shyam: Ram $= 3 \\times 8 = 24$",
+            "Check: 8 + 24 = 32 and 24 is 3 times Shyam ✓"
           ],
           "answer": "Ram 24 saal ka hai"
         }
       ]
     }
   ],
-
   "questions": [
     {
       "id": "q-c8m-ch2-0021",
       "conceptId": "c8-math-ch2-t2-c1",
       "qtype": "mcq",
       "level": "L1",
-      "stem": "'$x$ se 5 kam' ko maths me kaise likhenge?",
+      "stem": "How will we write '5 less than $x$' in maths?",
       "options": [
-        { "key": "A", "text": "$x - 5$" },
-        { "key": "B", "text": "$5 - x$" },
-        { "key": "C", "text": "$x + 5$" },
-        { "key": "D", "text": "$5x$" }
+        {
+          "key": "A",
+          "text": "$x - 5$"
+        },
+        {
+          "key": "B",
+          "text": "$5 - x$"
+        },
+        {
+          "key": "C",
+          "text": "$x + 5$"
+        },
+        {
+          "key": "D",
+          "text": "$5x$"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m1", "C": "m1", "D": "m3" },
-      "solution": "'$x$ se 5 kam' matlab $x$ se shuru karke 5 ghatao: $x - 5$. Check karo — $x = 12$ pe '12 se 5 kam' 7 hai, aur $x - 5 = 7$ ✓ jabki $5 - x = -7$."
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m1",
+        "C": "m1",
+        "D": "m3"
+      },
+      "solution": "'5 less than $x$' means start from $x$ and subtract 5: $x - 5$. Check — when $x = 12$, '5 less than 12' is 7, and $x - 5 = 7$ ✓ while $5 - x = -7$."
     },
     {
       "id": "q-c8m-ch2-0022",
       "conceptId": "c8-math-ch2-t2-c1",
       "qtype": "mcq",
       "level": "L1",
-      "stem": "'Ram ki umar Shyam se 3 guna hai.' Agar Shyam $x$ saal ka hai, to Ram?",
+      "stem": "'Ram's age is 3 times Shyam's age.' If Shyam is $x$ years old, then Ram?",
       "options": [
-        { "key": "A", "text": "$3x$" },
-        { "key": "B", "text": "$\\frac{x}{3}$" },
-        { "key": "C", "text": "$x + 3$" },
-        { "key": "D", "text": "$x - 3$" }
+        {
+          "key": "A",
+          "text": "$3x$"
+        },
+        {
+          "key": "B",
+          "text": "$\\frac{x}{3}$"
+        },
+        {
+          "key": "C",
+          "text": "$x + 3$"
+        },
+        {
+          "key": "D",
+          "text": "$x - 3$"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m3", "C": "m1", "D": "m1" },
-      "solution": "Ram bada hai — Shyam se 3 guna. To Ram $= 3x$. Number se check: Shyam 10 ka ho to Ram 30 ka, aur $3 \\times 10 = 30$ ✓"
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m3",
+        "C": "m1",
+        "D": "m1"
+      },
+      "solution": "Ram is bigger — 3 times Shyam. So Ram $= 3x$. Check with numbers: if Shyam is 10, then Ram is 30, and $3 \\times 10 = 30$ ✓"
     },
     {
       "id": "q-c8m-ch2-0023",
       "conceptId": "c8-math-ch2-t2-c1",
       "qtype": "mcq",
       "level": "L2",
-      "stem": "Do bhaiyon ke paas milakar ₹200 hain, bade ke paas ₹40 zyada. Chhote ke paas $x$ maano — kaunsi equation sahi hai?",
+      "stem": "Two brothers have ₹200 together, the elder has ₹40 more. Assume the younger has $x$ — which equation is correct?",
       "options": [
-        { "key": "A", "text": "$x + (x + 40) = 200$" },
-        { "key": "B", "text": "$x + (x - 40) = 200$" },
-        { "key": "C", "text": "$x + 40 = 200$" },
-        { "key": "D", "text": "$x \\times 40 = 200$" }
+        {
+          "key": "A",
+          "text": "$x + (x + 40) = 200$"
+        },
+        {
+          "key": "B",
+          "text": "$x + (x - 40) = 200$"
+        },
+        {
+          "key": "C",
+          "text": "$x + 40 = 200$"
+        },
+        {
+          "key": "D",
+          "text": "$x \\times 40 = 200$"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m1", "C": "m4", "D": "m3" },
-      "solution": "Chhote ke paas $x$, to bade ke paas $x + 40$. Dono milakar 200: $x + (x + 40) = 200$. Option C bhool jaata hai ki dono ko jodna hai."
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m1",
+        "C": "m4",
+        "D": "m3"
+      },
+      "solution": "The younger has $x$, so the elder has $x + 40$. Together 200: $x + (x + 40) = 200$. Option C forgets that we have to add both."
     },
     {
       "id": "q-c8m-ch2-0024",
       "conceptId": "c8-math-ch2-t2-c1",
       "qtype": "nvt",
       "level": "L2",
-      "stem": "Do bhaiyon ke paas milakar ₹200 hain, bade ke paas chhote se ₹40 zyada. Chhote ke paas kitne rupaye hain?",
-      "correct": { "value": 80, "tol": 0, "exact": "80" },
-      "solution": "$x + (x + 40) = 200$, to $2x = 160$ aur $x = 80$. Jaanch: 80 + 120 = 200, aur 120 - 80 = 40 ✓"
+      "stem": "Two brothers have ₹200 together, the elder has ₹40 more than the younger. How many rupees does the younger have?",
+      "correct": {
+        "value": 80,
+        "tol": 0,
+        "exact": "80"
+      },
+      "solution": "$x + (x + 40) = 200$, so $2x = 160$ and $x = 80$. Check: 80 + 120 = 200, and 120 - 80 = 40 ✓"
     },
     {
       "id": "q-c8m-ch2-0025",
       "conceptId": "c8-math-ch2-t2-c1",
       "qtype": "nvt",
       "level": "L3",
-      "stem": "Ram ki umar Shyam se 3 guna hai aur dono ki umar ka jod 32 saal hai. RAM kitne saal ka hai?",
-      "correct": { "value": 24, "tol": 0, "exact": "24" },
-      "solution": "Shyam $= x$, Ram $= 3x$. $x + 3x = 32$, to $x = 8$ — par ye SHYAM ki umar hai. Sawal Ram ka poochh raha tha: $3 \\times 8 = 24$."
+      "stem": "Ram's age is 3 times Shyam's age and the sum of their ages is 32 years. How old is RAM?",
+      "correct": {
+        "value": 24,
+        "tol": 0,
+        "exact": "24"
+      },
+      "solution": "Shyam $= x$, Ram $= 3x$. $x + 3x = 32$, so $x = 8$ — but this is SHYAM's age. The question was asking about Ram: $3 \\times 8 = 24$."
     },
     {
       "id": "q-c8m-ch2-0026",
       "conceptId": "c8-math-ch2-t2-c1",
       "qtype": "mcq",
       "level": "L3",
-      "stem": "Meera ne sahi equation banayi, sahi hal kiya, aur $x = 8$ nikala — par uska jawab galat gina gaya. Usne Shyam ko $x$ kaha tha aur sawal Ram ki umar poochh raha tha. Galti kya hai?",
+      "stem": "Meera made the correct equation, solved it correctly, and got $x = 8$ — but her answer was marked wrong. She had called Shyam $x$ and the question was asking Ram's age. What is the mistake?",
       "options": [
-        { "key": "A", "text": "Usne $x$ likh diya, jabki jawab $3x = 24$ hona chahiye tha" },
-        { "key": "B", "text": "Uska $x$ hi galat aaya" },
-        { "key": "C", "text": "Usne Ram ko $x$ kehna chahiye tha, warna hal hi galat hota" },
-        { "key": "D", "text": "Equation galat thi" }
+        {
+          "key": "A",
+          "text": "She wrote $x$, but the answer should have been $3x = 24$"
+        },
+        {
+          "key": "B",
+          "text": "Her $x$ itself came wrong"
+        },
+        {
+          "key": "C",
+          "text": "She should have called Ram $x$, otherwise the solution itself would be wrong"
+        },
+        {
+          "key": "D",
+          "text": "The equation was wrong"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m4", "C": "m2", "D": "m3" },
-      "solution": "Poora hisaab sahi tha. Bas aakhri kadam chhoot gaya: $x$ Shyam ki umar thi, aur sawal Ram ki poochh raha tha, yaani $3x = 24$. Ram ko $x$ kehna bhi chal jaata — jawab wahi aata, sirf equation thodi alag banti."
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m4",
+        "C": "m2",
+        "D": "m3"
+      },
+      "solution": "The whole calculation was correct. Only the last step was missed: $x$ was Shyam's age, and the question was asking Ram's, that is $3x = 24$. Calling Ram $x$ would also work — the answer would be the same, only the equation would be a little different."
     },
     {
       "id": "q-c8m-ch2-0027",
       "conceptId": "c8-math-ch2-t2-c1",
       "qtype": "nvt",
       "level": "L4",
-      "stem": "Ek number ka 5 guna, usi number se 12 zyada hai. Wo number kya hai?",
-      "correct": { "value": 3, "tol": 0, "exact": "3" },
-      "solution": "Number $= x$. '$x$ ka 5 guna' $= 5x$. 'Usi number se 12 zyada' $= x + 12$. To $5x = x + 12$. Dono taraf se $x$ ghatao: $4x = 12$, $x = 3$. Jaanch: $5 \\times 3 = 15$ aur $3 + 12 = 15$ ✓"
+      "stem": "5 times a number is 12 more than the same number. What is the number?",
+      "correct": {
+        "value": 3,
+        "tol": 0,
+        "exact": "3"
+      },
+      "solution": "Number $= x$. '5 times $x$' is $= 5x$. '12 more than the same number' is $= x + 12$. So $5x = x + 12$. Subtract $x$ from both sides: $4x = 12$, $x = 3$. Check: $5 \\times 3 = 15$ and $3 + 12 = 15$ ✓"
     },
     {
       "id": "q-c8m-ch2-0028",
       "conceptId": "c8-math-ch2-t2-c1",
       "qtype": "subjective",
       "level": "L4",
-      "stem": "Word problem hal karne ka apna tareeka likho — kadam dar kadam. Phir usi tareeke se ye sawal hal karo: 'Ek aayat (rectangle) ki lambai chaudai se 4 cm zyada hai aur parimaap (perimeter) 40 cm hai. Chaudai kya hai?'",
+      "stem": "Write your own method for solving a word problem — step by step. Then use the same method to solve this question: 'The length of a rectangle is 4 cm more than its breadth and the perimeter is 40 cm. What is the breadth?'",
       "correct": {
         "rubric": [
           "Kadam likhe: kya poochha hai wahi x, baaki sab x ki bhasha me, equation banao, hal karo, phir sawal dobara padho",
@@ -224,7 +312,7 @@
           "Hal kiya: x = 8, aur jaanch ki — 8 aur 12, perimeter 40 ✓"
         ]
       },
-      "solution": "Tareeka: (1) jo poochha hai use $x$ kaho — yahan chaudai, (2) baaki sab $x$ me likho — lambai $= x + 4$, (3) sawal ka diya hua total equation banao — perimeter $= 2(\\text{lambai} + \\text{chaudai})$, to $2(x + 4 + x) = 40$, (4) hal karo: $2(2x + 4) = 40$, yaani $4x + 8 = 40$, $4x = 32$, $x = 8$, (5) sawal dobara padho — chaudai poochhi thi, aur $x$ chaudai hi hai, to jawab 8 cm. Jaanch: chaudai 8, lambai 12, perimeter $= 2(8 + 12) = 40$ ✓"
+      "solution": "Method: (1) call what is asked $x$ — here, breadth, (2) write everything else in terms of $x$ — length $= x + 4$, (3) make an equation from the total given in the question — perimeter $= 2(\\text{lambai} + \\text{chaudai})$, so $2(x + 4 + x) = 40$, (4) solve: $2(2x + 4) = 40$, that is $4x + 8 = 40$, $4x = 32$, $x = 8$, (5) read the question again — breadth was asked, and $x$ is the breadth itself, so the answer is 8 cm. Check: breadth 8, length 12, perimeter $= 2(8 + 12) = 40$ ✓"
     }
   ]
 }

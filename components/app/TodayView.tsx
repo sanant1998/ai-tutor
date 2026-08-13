@@ -5,7 +5,7 @@ import Link from "next/link";
 import { CalendarPlus, Check, Flame, Play, SkipForward } from "lucide-react";
 
 import { Kicker, Panel } from "@/components/app/ui";
-import { ParentLinkBanner } from "@/components/app/ParentLinkBanner";
+import { NoticeBoard } from "@/components/app/NoticeBoard";
 import { Button } from "@/components/ui/button";
 import {
   buildSchedule,
@@ -22,7 +22,6 @@ import {
   nextExam,
 
   urgencyScore,
-  type Progress,
 } from "@/lib/study";
 import { acc, acc2, acc3, text } from "@/lib/theme";
 
@@ -83,7 +82,11 @@ export function TodayView() {
           it is a question waiting on an answer, and it renders nothing at all
           the rest of the time. */}
       <div className="mb-4 space-y-3">
-        <ParentLinkBanner />
+        {/* Notices from the school, if the school sent any. Renders nothing
+            when there are none — an empty "no announcements" panel is
+            permanent furniture that teaches people to ignore that part of the
+            screen, and then the one notice that matters is ignored too. */}
+        <NoticeBoard />
       </div>
 
       {/* The hero and the two headline cards share one surface, as in the

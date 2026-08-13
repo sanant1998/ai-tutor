@@ -112,7 +112,7 @@ export async function alertParentOfSelfHarm(
   const sent = await sendTemplate({
     to: phone,
     template: TEMPLATES.safetyAlert,
-    params: [(profile?.first_name as string) || "aapke bachche"],
+    params: [(profile?.first_name as string) || "your child"],
   });
 
   /* Recorded whether or not it went, and with source 'parent_alert' so the

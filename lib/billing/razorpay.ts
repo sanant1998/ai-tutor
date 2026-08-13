@@ -50,7 +50,7 @@ export const PLANS: Record<PlanKey, PlanDefinition> = {
     period: "monthly",
     interval: 1,
     totalCount: 12,
-    note: "Kabhi bhi band kar sakte hain",
+    note: "Cancel any time",
   },
   annual: {
     key: "annual",
@@ -61,7 +61,7 @@ export const PLANS: Record<PlanKey, PlanDefinition> = {
     period: "yearly",
     interval: 1,
     totalCount: 3,
-    note: "Do mahine free — ₹3,990 saal ka",
+    note: "Two months free — ₹3,990 a year",
   },
 };
 

@@ -134,7 +134,7 @@ export function SafetyQueue() {
         <p className="flex items-center gap-2 text-[15px] font-semibold">
           {openUrgent > 0 && <AlertTriangle className="h-4 w-4 text-red-600" />}
           {openUrgent === 0
-            ? "Koi urgent flag pending nahi hai."
+            ? "No urgent flags pending."
             : `${openUrgent} urgent flag${openUrgent === 1 ? "" : "s"} waiting.`}
         </p>
 
@@ -214,7 +214,7 @@ export function SafetyQueue() {
                       setNotes((current) => ({ ...current, [flag.id]: event.target.value }))
                     }
                     rows={2}
-                    placeholder="Kya kiya? (parent ko call, school ko bataya, false positive…)"
+                    placeholder="What was done? (called the parent, told the school, false positive…)"
                     className="w-full rounded-lg border border-black/10 bg-transparent p-2.5 text-[13px] dark:border-white/15"
                   />
 

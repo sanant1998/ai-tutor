@@ -7,6 +7,7 @@
    Every page calls these functions rather than touching either store
    directly, so switching one out never means editing a component. */
 
+import { ownershipFor } from "@/lib/localOwner";
 import {
   ONBOARDING_STORAGE_KEY,
   readOnboarding,
@@ -15,6 +16,9 @@ import {
 } from "@/lib/onboarding";
 import {
   DEFAULT_PROGRESS,
+  EXAMS_STORAGE_KEY,
+  PROGRESS_STORAGE_KEY,
+  TOUR_STORAGE_KEY,
   readExams,
   readProgress,
   saveExams,
@@ -37,6 +41,127 @@ async function currentUserId(): Promise<string | null> {
 }
 
 /* ---------------------------------------------------------------------------
+   Whose local copy is this?
+
+   The local cache is the app's offline story, and on a shared family phone it
+   is also a leak: one student's name, streak, exam dates and answers sitting
+   in localStorage for whoever opens the browser next. Shared devices are the
+   norm in this market, so the cache needs an owner.
+
+   The marker below records which account the local keys belong to. Ownership
+   is claimed at the two moments it can change — signing in and signing out —
+   and re-checked on every app load as a backstop for the case where a session
+   ended without either (an expired cookie, a cleared session, a second tab).
+
+   Device preferences — theme, accessibility — are deliberately NOT cleared.
+   They belong to the phone, not to the account, and wiping them would make
+   large-text mode something a student has to set again after every sign-out.
+   --------------------------------------------------------------------------- */
+const LOCAL_OWNER_KEY = "mmr-owner";
+
+/* Everything that is ABOUT a student rather than about this device. */
+function studentLocalKeys(): string[] {
+  return [
+    ONBOARDING_STORAGE_KEY,
+    PROGRESS_STORAGE_KEY,
+    EXAMS_STORAGE_KEY,
+    TOUR_STORAGE_KEY,
+    TICKETS_STORAGE_KEY,
+  ];
+}
+
+export function clearStudentLocal() {
+  if (typeof window === "undefined") return;
+
+  for (const key of [...studentLocalKeys(), LOCAL_OWNER_KEY]) {
+    try {
+      window.localStorage.removeItem(key);
+    } catch {
+      /* Private browsing, or storage disabled. Nothing to clear. */
+    }
+  }
+}
+
+function readOwner(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage.getItem(LOCAL_OWNER_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function writeOwner(userId: string | null) {
+  if (typeof window === "undefined") return;
+  try {
+    if (userId) window.localStorage.setItem(LOCAL_OWNER_KEY, userId);
+    else window.localStorage.removeItem(LOCAL_OWNER_KEY);
+  } catch {
+    /* Same as above. */
+  }
+}
+
+/* Claims the local cache for one account, wiping it first if it belonged to
+   somebody else. Returns true when a wipe happened, so the caller can drop the
+   state it has already painted from.
+
+   The decision itself is in lib/localOwner.ts, with no storage behind it, so
+   the four branches can be unit tested rather than reasoned about. */
+export async function claimLocalFor(userId: string | null): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+
+  const next = userId ?? null;
+
+  const action = ownershipFor({
+    owner: readOwner(),
+    next,
+    empty: studentLocalKeys().every((key) => {
+      try {
+        return window.localStorage.getItem(key) === null;
+      } catch {
+        return true;
+      }
+    }),
+  });
+
+  if (action === "keep") return false;
+
+  if (action === "wipe") clearStudentLocal();
+
+  writeOwner(next);
+  return action === "wipe";
+}
+
+/* The app-load backstop. */
+export async function claimLocal(): Promise<boolean> {
+  return claimLocalFor(await currentUserId());
+}
+
+/* Ending a session properly.
+ *
+ * The old "Sign out" was a link to the landing page: it navigated, and left
+ * the Supabase cookie and every local key exactly where they were. One tap on
+ * any in-app link put the previous student straight back into their account.
+ *
+ * Three things have to happen, in this order: revoke the session so the
+ * cookie stops being a credential, clear the local cache so nothing about the
+ * student survives on the device, and only then leave. */
+export async function signOut(): Promise<void> {
+  if (isSupabaseConfigured) {
+    try {
+      /* Local scope: this device's session only. A student signing out of the
+         family phone should not be signed out of their own tablet. */
+      await createClient().auth.signOut({ scope: "local" });
+    } catch {
+      /* Offline. The local wipe below still has to happen — leaving the cache
+         behind because the network was down is the worse failure. */
+    }
+  }
+
+  clearStudentLocal();
+}
+
+/* ---------------------------------------------------------------------------
    Onboarding
    --------------------------------------------------------------------------- */
 export async function loadOnboarding(): Promise<OnboardingState> {
@@ -45,17 +170,32 @@ export async function loadOnboarding(): Promise<OnboardingState> {
   if (!userId) return local;
 
   try {
-    const { data } = await createClient()
-      .from("onboarding")
-      .select("*")
-      .eq("user_id", userId)
-      .maybeSingle();
+    const supabase = createClient();
 
-    if (!data) return local;
+    /* The name comes from `profiles`, not from the local copy.
+     *
+     * Reading it locally made the name the one field that never crossed
+     * devices — and on a shared phone it made it the previous student's. It
+     * is on the server already; `onboarding` simply does not hold it. */
+    const [{ data }, { data: profile }] = await Promise.all([
+      supabase.from("onboarding").select("*").eq("user_id", userId).maybeSingle(),
+      supabase
+        .from("profiles")
+        .select("first_name, last_name")
+        .eq("id", userId)
+        .maybeSingle(),
+    ]);
+
+    if (!data) {
+      /* No onboarding row yet, but a profile can still name them. */
+      return profile
+        ? { ...local, name: profile.first_name ?? "", lastName: profile.last_name ?? "" }
+        : local;
+    }
 
     const remote: OnboardingState = {
-      name: local.name,
-      lastName: local.lastName,
+      name: profile?.first_name ?? "",
+      lastName: profile?.last_name ?? "",
       boardId: data.board_id ?? null,
       classLevel: (data.class_level ?? null) as OnboardingState["classLevel"],
       subjectIds: data.subject_ids ?? [],
@@ -430,14 +570,19 @@ export async function appendTicketMessage(ticketId: string, body: string) {
   }
 }
 
-/* Clears every local key. Server rows are left alone — deleting an account is
-   a separate, deliberate action. */
+/* Clears the named local keys, plus everything the student cache owns. Server
+   rows are left alone — deleting an account is a separate, deliberate action.
+
+   Used by Settings' "clear data on this device". Sign-out goes through
+   `signOut` above instead, which also revokes the session. */
 export function clearLocal(keys: string[]) {
-  [...keys, ONBOARDING_STORAGE_KEY].forEach((key) => {
+  keys.forEach((key) => {
     try {
       window.localStorage.removeItem(key);
     } catch {
       /* Nothing to clear. */
     }
   });
+
+  clearStudentLocal();
 }

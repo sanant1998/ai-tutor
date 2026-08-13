@@ -132,7 +132,7 @@ export async function DELETE(request: Request) {
     .in("purpose", targets)
     .is("withdrawn_at", null);
 
-  if (error) return fail("Withdraw nahi ho paaya. Dobara try karo.", 500);
+  if (error) return fail("That could not be withdrawn. Please try again.", 500);
 
   const lostRequired = targets.some((purpose) =>
     REQUIRED_PURPOSES.includes(purpose),
@@ -157,7 +157,7 @@ export async function DELETE(request: Request) {
     withdrawn: targets,
     accountState: lostRequired ? "read_only" : "active",
     note: lostRequired
-      ? "Account ab read-only hai. Purana kaam padha ja sakta hai; nayi padhai ke liye dobara consent chahiye."
-      : "Ye feature band kar diya gaya. Baaki app waise hi chalega.",
+      ? "The account is now read-only. Past work can still be read; new study needs permission again."
+      : "That feature is switched off. The rest of the app works as before.",
   });
 }

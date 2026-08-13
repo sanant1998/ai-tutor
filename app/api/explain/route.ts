@@ -11,7 +11,7 @@ import { NextResponse } from "next/server";
 
 import { structured } from "@/lib/ai/client";
 import { consume, release } from "@/lib/ai/quota";
-import { aiFailure, fail, readScope, requireUser } from "@/lib/ai/route";
+import { aiFailure, fail, readScope, requireStudent } from "@/lib/ai/route";
 import { scopeLine } from "@/lib/ai/scope";
 import { BOARD_CONTEXT, HOUSE_STYLE } from "@/lib/ai/style";
 import { sanitiseSvg } from "@/lib/ai/svg";
@@ -140,7 +140,7 @@ type Explainer = {
 };
 
 export async function POST(request: Request) {
-  const user = await requireUser();
+  const user = await requireStudent();
   if (!user.ok) return user.response;
 
   const scoped = await readScope(request);

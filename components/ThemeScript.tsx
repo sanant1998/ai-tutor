@@ -1,4 +1,4 @@
-import { DEFAULT_THEME, THEME_IDS, THEME_STORAGE_KEY } from "@/lib/theme";
+import { DEFAULT_THEME, THEME_IDS, THEMES_ENABLED, THEME_STORAGE_KEY } from "@/lib/theme";
 import { A11Y_STORAGE_KEY } from "@/lib/a11y";
 
 /* Applies the saved theme and accessibility classes to <html> before first
@@ -9,7 +9,12 @@ export function ThemeScript() {
   try {
     var ids = ${JSON.stringify(THEME_IDS)};
     var root = document.documentElement;
-    var theme = localStorage.getItem(${JSON.stringify(THEME_STORAGE_KEY)});
+    /* While themes are off this ignores what is in storage — somebody who
+       chose Midnight last week gets the light surface like everyone else, and
+       their choice is still there for the day themes come back. */
+    var theme = ${JSON.stringify(THEMES_ENABLED)}
+      ? localStorage.getItem(${JSON.stringify(THEME_STORAGE_KEY)})
+      : ${JSON.stringify(DEFAULT_THEME)};
     if (ids.indexOf(theme) === -1) theme = ${JSON.stringify(DEFAULT_THEME)};
     ids.forEach(function (id) { root.classList.remove('theme-' + id); });
     root.classList.add('theme-' + theme);

@@ -99,7 +99,7 @@ function markChoice(
       confidence: 1,
       source: "rule",
       evidence: "no option selected",
-      feedback: "Kuch select nahi kiya. Ek baar padho aur try karo — galat hone se kuch nahi bigadta.",
+      feedback: "Nothing selected. Read it once and try — being wrong costs nothing here.",
     };
   }
 
@@ -114,7 +114,7 @@ function markChoice(
       confidence: 1,
       source: "rule",
       evidence: null,
-      feedback: "Bilkul sahi!",
+      feedback: "Exactly right!",
     };
   }
 
@@ -136,8 +136,8 @@ function markChoice(
       source: "distractor_map",
       evidence: `chose ${wrong} → ${misconceptionId}`,
       feedback: belief
-        ? `Ye option tab chuna jaata hai jab lagta hai: "${belief}" — wahi jagah dobara dekho.`
-        : "Ye ek common galti hai. Concept dobara dekho, phir try karo.",
+        ? `That option gets picked when someone thinks: "${belief}" — look at that step again.`
+        : "That is a common mistake. Look at the concept again, then try.",
     };
   }
 
@@ -151,7 +151,7 @@ function markChoice(
     confidence: 0.4,
     source: "distractor_map",
     evidence: wrong ? `chose ${wrong}, unmapped` : null,
-    feedback: "Ye sahi nahi hai. Ek baar sochkar dobara try karo — jaldi mat karo.",
+    feedback: "Not right. Think it through and try again — no need to rush.",
   };
 }
 
@@ -183,7 +183,7 @@ function markNumeric(question: MarkableQuestion, answer: unknown): Marked {
     return {
       correct: false, etype: "blank", misconceptionId: null, confidence: 1,
       source: "rule", evidence: "blank",
-      feedback: "Kuch likha hi nahi. Ek koshish to karo.",
+      feedback: "Nothing written. Give it a try.",
     };
   }
 
@@ -192,7 +192,7 @@ function markNumeric(question: MarkableQuestion, answer: unknown): Marked {
   if (result.correct) {
     return {
       correct: true, etype: "none", misconceptionId: null, confidence: 1,
-      source: "rule", evidence: null, feedback: "Sahi jawab!",
+      source: "rule", evidence: null, feedback: "Correct!",
     };
   }
 
@@ -200,7 +200,7 @@ function markNumeric(question: MarkableQuestion, answer: unknown): Marked {
     return {
       correct: false, etype: "careless", misconceptionId: null, confidence: 0.9,
       source: "rule", evidence: "sign error",
-      feedback: "Number bilkul sahi hai — sirf sign ulta ho gaya. Ye sabse sasti galti hai, dhyan se dekho.",
+      feedback: "The number is exactly right — only the sign is flipped. That is the cheapest mistake there is; look carefully.",
     };
   }
 
@@ -208,7 +208,7 @@ function markNumeric(question: MarkableQuestion, answer: unknown): Marked {
     return {
       correct: false, etype: "concept", misconceptionId: null, confidence: 0.85,
       source: "rule", evidence: "reciprocal of the expected value",
-      feedback: "Tumne ulta kar diya lagta hai. Ek baar socho — jodna hai to sign badalta hai, guna hai to ulta hota hai.",
+      feedback: "Looks like you inverted it. Think again — adding flips the sign, multiplying takes the reciprocal.",
     };
   }
 
@@ -216,14 +216,14 @@ function markNumeric(question: MarkableQuestion, answer: unknown): Marked {
     return {
       correct: false, etype: "careless", misconceptionId: null, confidence: 0.8,
       source: "rule", evidence: "off by a power of ten",
-      feedback: "Digits sahi hain, dashamlav ki jagah galat hai. Ek baar dobara ginno.",
+      feedback: "The digits are right, the decimal point is in the wrong place. Count it through again.",
     };
   }
 
   return {
     correct: false, etype: "calculation", misconceptionId: null, confidence: 0.5,
     source: "rule", evidence: null,
-    feedback: "Jawab match nahi hua. Apna working ek-ek line karke check karo.",
+    feedback: "That does not match. Check your working one line at a time.",
   };
 }
 
@@ -281,7 +281,7 @@ async function markSubjective(
     return {
       correct: false, etype: "blank", misconceptionId: null, confidence: 1,
       source: "rule", evidence: "empty",
-      feedback: "Kuch likho — thoda bhi likhoge to main usi pe kaam kar sakta hoon.",
+      feedback: "Write something — even a little, and I can work with it.",
     };
   }
 
@@ -318,7 +318,7 @@ Mark the answer inside the tags.`,
       confidence: Math.min(1, Math.max(0, Number(marked.confidence) || 0.5)),
       source: "llm",
       evidence: null,
-      feedback: marked.feedback || "Dekha maine. Ek baar aur try karo.",
+      feedback: marked.feedback || "I have looked at it. Try once more.",
     };
   } catch {
     /* The model is unavailable. Recording a guess at the error type would
@@ -331,7 +331,7 @@ Mark the answer inside the tags.`,
       confidence: 0,
       source: "llm",
       evidence: "marking unavailable",
-      feedback: "Abhi marking nahi ho paa rahi. Thodi der me dobara try karo — tumhara answer save hai.",
+      feedback: "Marking is not working just now. Try again shortly — your answer is saved.",
     };
   }
 }

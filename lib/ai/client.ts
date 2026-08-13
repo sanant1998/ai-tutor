@@ -19,15 +19,40 @@ import "server-only";
 
 import Anthropic from "@anthropic-ai/sdk";
 
+import { sendCompatible, type CompatShape } from "@/lib/ai/compat";
+
 type Provider = "anthropic" | "openai";
 
 /* AI_* is the current spelling. ANTHROPIC_API_KEY is still read so an
    existing deployment keeps working without an edit. */
 const KEY = process.env.AI_API_KEY ?? process.env.ANTHROPIC_API_KEY ?? "";
 
-const PROVIDER: Provider =
-  (process.env.AI_PROVIDER as Provider) ??
-  (process.env.ANTHROPIC_API_KEY ? "anthropic" : "anthropic");
+/* Validated rather than cast.
+ *
+ * This was `(process.env.AI_PROVIDER as Provider) ?? (ANTHROPIC_API_KEY ?
+ * "anthropic" : "anthropic")` — a ternary whose branches were identical, so
+ * the fallback was decorative, and a straight cast on the env var, so a typo
+ * (`AI_PROVIDER=openrouter`, `AI_PROVIDER=OpenAI`) silently selected the
+ * Anthropic path and produced an authentication error against the wrong API.
+ * The failure named the key, not the setting, which is a bad half-hour. */
+const PROVIDERS: Provider[] = ["anthropic", "openai"];
+
+function resolveProvider(): Provider {
+  const configured = (process.env.AI_PROVIDER ?? "").trim().toLowerCase();
+
+  if (!configured) return "anthropic";
+
+  if (!PROVIDERS.includes(configured as Provider)) {
+    console.warn(
+      `[ai] AI_PROVIDER="${process.env.AI_PROVIDER}" is not one of ${PROVIDERS.join(", ")}. Falling back to anthropic. Any OpenAI-compatible endpoint uses AI_PROVIDER=openai with AI_BASE_URL.`,
+    );
+    return "anthropic";
+  }
+
+  return configured as Provider;
+}
+
+const PROVIDER: Provider = resolveProvider();
 
 const BASE_URL = process.env.AI_BASE_URL ?? "";
 
@@ -38,18 +63,47 @@ export const AI_MODEL =
 
 export const isAiConfigured = Boolean(KEY);
 
+/* `readonly status` is assigned in the body rather than declared as a
+   constructor parameter property.
+ *
+ * A parameter property is one of the few TypeScript features that emits
+ * runtime code, so node's strip-only type stripping refuses it outright:
+ * `ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX: TypeScript parameter property is not
+ * supported in strip-only mode`. That made this whole module unimportable from
+ * any script run under plain node — which is every script in scripts/ — even
+ * though the app bundles it fine.
+ *
+ * It is why scripts/author-concept.ts carried its own hand-rolled Anthropic
+ * client instead of calling structured(), and why that script silently ignored
+ * AI_PROVIDER. Two lines longer here, and the one model client works
+ * everywhere. */
 export class AiError extends Error {
-  constructor(
-    message: string,
-    readonly status: number,
-  ) {
+  readonly status: number;
+
+  constructor(message: string, status: number) {
     super(message);
+    this.status = status;
   }
 }
+
+/* A page image, base64, for the chapter import's scanned-PDF path.
+ *
+ * Text is always preferred and is what every other caller sends. Images exist
+ * because a teacher photographing a textbook page is a real and common thing,
+ * and the alternative to reading it is telling them the feature does not work
+ * for the file they have. */
+export type ImageInput = {
+  /* image/png or image/jpeg. */
+  mediaType: string;
+  base64: string;
+};
 
 export type StructuredCall = {
   system: string;
   prompt: string;
+  /* Sent alongside the prompt when present. Both backends take images in the
+     user turn; the shape differs, which is what this module is for. */
+  images?: ImageInput[];
   schema: Record<string, unknown>;
   toolName: string;
   toolDescription: string;
@@ -93,7 +147,26 @@ async function viaAnthropic<T>(call: StructuredCall): Promise<T> {
       model: call.model ?? AI_MODEL,
       max_tokens: maxTokens,
       system,
-      messages: [{ role: "user", content: prompt }],
+      /* Images first, then the instruction. Both providers attend better to a
+         prompt that comes after the thing it is about than before it. */
+      messages: [
+        {
+          role: "user",
+          content: call.images?.length
+            ? [
+                ...call.images.map((image) => ({
+                  type: "image" as const,
+                  source: {
+                    type: "base64" as const,
+                    media_type: image.mediaType as "image/png" | "image/jpeg",
+                    data: image.base64,
+                  },
+                })),
+                { type: "text" as const, text: prompt },
+              ]
+            : prompt,
+        },
+      ],
       tools: [
         {
           name: toolName,
@@ -126,6 +199,7 @@ async function viaAnthropic<T>(call: StructuredCall): Promise<T> {
 async function viaOpenAiCompatible<T>({
   system,
   prompt,
+  images,
   schema,
   toolName,
   toolDescription,
@@ -134,7 +208,7 @@ async function viaOpenAiCompatible<T>({
 }: StructuredCall): Promise<T> {
   const base = (BASE_URL || "https://api.openai.com/v1").replace(/\/$/, "");
 
-  const send = (tokenField: "max_tokens" | "max_completion_tokens") =>
+  const send = (shape: CompatShape) =>
     fetch(`${base}/chat/completions`, {
       method: "POST",
       headers: {
@@ -143,10 +217,21 @@ async function viaOpenAiCompatible<T>({
       },
       body: JSON.stringify({
         model: model ?? AI_MODEL,
-        [tokenField]: maxTokens,
+        [shape.tokenField]: maxTokens,
         messages: [
           { role: "system", content: system },
-          { role: "user", content: prompt },
+          {
+            role: "user",
+            content: images?.length
+              ? [
+                  ...images.map((image) => ({
+                    type: "image_url",
+                    image_url: { url: `data:${image.mediaType};base64,${image.base64}` },
+                  })),
+                  { type: "text", text: prompt },
+                ]
+              : prompt,
+          },
         ],
         tools: [
           {
@@ -164,18 +249,9 @@ async function viaOpenAiCompatible<T>({
 
   let response: Response;
   try {
-    /* `max_tokens` is what the compatible ecosystem accepts — Groq, Gemini's
-       compat endpoint, OpenRouter, Ollama. OpenAI's newer models reject it and
-       demand `max_completion_tokens`. Rather than keep a list of which model
-       wants which, ask once and retry on the one error that says so. */
-    response = await send("max_tokens");
-
-    if (response.status === 400) {
-      const detail = await response.clone().text().catch(() => "");
-      if (detail.includes("max_completion_tokens")) {
-        response = await send("max_completion_tokens");
-      }
-    }
+    /* The retry that used to live here is in lib/ai/compat.ts now, because
+       three modules needed it and each had to learn it the hard way. */
+    response = await sendCompatible(send);
   } catch {
     throw new AiError("Could not reach the model provider.", 502);
   }

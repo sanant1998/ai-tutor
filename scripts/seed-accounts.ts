@@ -1,4 +1,4 @@
-/* Five accounts to click around with, and the organisation that ties them.
+/* Three accounts to click around with, and the organisation that ties them.
  *
  *   node scripts/seed-accounts.ts              create them, print the password
  *   node scripts/seed-accounts.ts --password X use a password you choose
@@ -21,13 +21,31 @@
  *     the only version of that instruction anyone actually runs.
  *
  * ---------------------------------------------------------------------------
+ * WHY THREE, AND NOT THE FIVE THIS USED TO SEED
+ *
+ * There are three roles — super admin, teacher, student. See lib/roles.ts.
+ * Two of the old five were not roles at all:
+ *
+ *   the principal   org_admin is a MEMBERSHIP, not an account role. The seeded
+ *                   org still needs one, so the teacher below holds it. That
+ *                   is one fewer password to keep track of and the org-admin
+ *                   console is still reachable to click through. A real school
+ *                   would separate them.
+ *
+ *   the parent      a parent has never had an account, and seeding a parent
+ *                   LOGIN meant the seed exercised a path no real parent
+ *                   takes. app/api/consent/grant/route.ts says it plainly: the
+ *                   parent is a person holding a phone that received a link.
+ *
+ * ---------------------------------------------------------------------------
  * WHY A MINOR AND NOT AN ADULT STUDENT
  *
  * An adult student would be one line shorter and would skip the consent gate
  * entirely — which means the seeded account would exercise a path almost no
  * real user takes. The whole product is built for fourteen-year-olds whose
  * accounts are inert until a parent consents, so the seeded student is
- * fourteen, has a parent, and has consent rows behind them.
+ * fourteen and has consent rows behind them, evidenced by a phone number
+ * exactly as production evidences them.
  *
  * Those consent rows are recorded with method 'school_authority' and
  * evidence { seeded: true } rather than pretending an OTP happened. A consent
@@ -40,6 +58,8 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { createClient } from "@supabase/supabase-js";
+
+import type { StoredRole } from "../lib/roles.ts";
 
 const ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
 
@@ -71,10 +91,16 @@ type Seeded = {
   email: string;
   firstName: string;
   lastName: string;
-  /* profiles.role — student | parent | teacher. Not the org membership, which
-     is a separate thing: a teacher is a teacher of an organisation, whereas
-     this column is what kind of screen they land on. */
-  role: "student" | "parent" | "teacher";
+  /* profiles.role — student | teacher, and nothing else; the column has a
+     CHECK constraint saying so since supabase/roles.sql. Not the org
+     membership, which is a separate thing: a teacher is a teacher OF an
+     organisation, whereas this column is what kind of screen they land on.
+
+     The super admin is not in here at all. It is an address in ADMIN_EMAILS,
+     so the seeded admin is stored as a teacher and becomes a super admin the
+     moment its address is added to the environment — which the script prints
+     at the end, because it is the one step it cannot do itself. */
+  role: StoredRole;
   what: string;
 };
 
@@ -85,15 +111,7 @@ const PEOPLE: Seeded[] = [
     firstName: "Platform",
     lastName: "Admin",
     role: "teacher",
-    what: "you — the vendor. Needs its email in ADMIN_EMAILS; see the note printed at the end.",
-  },
-  {
-    key: "principal",
-    email: `principal@${DOMAIN}`,
-    firstName: "Meera",
-    lastName: "Nair",
-    role: "teacher",
-    what: "the institute that bought the platform. org_admin of the seeded org.",
+    what: "super admin — the vendor. Needs its address in ADMIN_EMAILS; see the note at the end.",
   },
   {
     key: "teacher",
@@ -101,15 +119,7 @@ const PEOPLE: Seeded[] = [
     firstName: "Rahul",
     lastName: "Verma",
     role: "teacher",
-    what: "teaches the seeded section.",
-  },
-  {
-    key: "parent",
-    email: `parent@${DOMAIN}`,
-    firstName: "Sunita",
-    lastName: "Sharma",
-    role: "parent",
-    what: "the student's parent. The consent behind the student account is theirs.",
+    what: "teacher — org_admin of the seeded school, and teaches the seeded section.",
   },
   {
     key: "student",
@@ -117,9 +127,28 @@ const PEOPLE: Seeded[] = [
     firstName: "Aarav",
     lastName: "Sharma",
     role: "student",
-    what: "fourteen, consented, enrolled in the seeded section.",
+    what: "student — fourteen, consented, enrolled in the seeded section.",
   },
 ];
+
+/* The number the consent was given from. A real parent is reached here and
+   nowhere else: no account, no password, just the phone that received the OTP
+   and now receives the Sunday report. Same shape production stores. */
+const PARENT_PHONE = "+911234500000";
+
+/* Addresses this script used to create and no longer does.
+ *
+ * --remove walks PEOPLE, so shrinking that list from five to three quietly
+ * stranded the two that were dropped: they stay in the project, seeded and
+ * live, and the one command written to clean up before a pilot no longer knows
+ * they exist. "Delete the test accounts" then becomes a manual job in the
+ * Supabase dashboard, which is the version nobody does.
+ *
+ * So retirements are recorded rather than deleted from the code. Adding an
+ * address here is how a seeded account stops being created but stays
+ * removable. The metadata check in remove() still applies, so this cannot
+ * delete a real person who happens to hold one of these addresses. */
+const RETIRED = ["parent", "principal"].map((key) => `${key}@${DOMAIN}`);
 
 function loadEnv() {
   for (const file of [".env.local", ".env"]) {
@@ -203,8 +232,11 @@ async function main() {
 
   await db.from("org_members").upsert(
     [
-      { org_id: orgId, user_id: ids.get("principal")!, role: "org_admin" },
-      { org_id: orgId, user_id: ids.get("teacher")!, role: "teacher" },
+      /* org_admin, so the school-side consoles are reachable, AND the
+         teacher of the section. Two memberships would need two accounts; one
+         account holding both is the smaller lie and keeps the seed to three
+         passwords. A real school separates them. */
+      { org_id: orgId, user_id: ids.get("teacher")!, role: "org_admin" },
       { org_id: orgId, user_id: ids.get("student")!, role: "student" },
     ],
     { onConflict: "org_id,user_id" },
@@ -227,10 +259,41 @@ async function main() {
      consent design exists to make unreachable. */
   const { POLICY_VERSION, PURPOSES } = await import("../lib/consent/purposes.ts");
 
-  await db.from("consents").upsert(
+  /* INSERT, not upsert.
+   *
+   * This was `upsert(..., { onConflict: "student_id,purpose" })` and it had
+   * never once worked: there is no unique constraint on those two columns, so
+   * Postgres answered 42P10 every time and the seeder — which was not checking
+   * the error — carried on and switched the account on anyway. The result was
+   * a seeded student with no consent rows at all, permanently bounced to
+   * /parent-consent, which looks exactly like the consent gate working.
+   *
+   * The constraint is missing on purpose, and adding one would be the wrong
+   * repair. `consents` is an append-only history: both production writers
+   * (consent/grant and consent/adult) INSERT, and every reader takes the
+   * newest row per purpose. A unique key would make it impossible to withdraw
+   * and re-grant, and would destroy the one record that has to hold up if
+   * anybody ever asks what was agreed and when.
+   *
+   * So this matches production and clears its own rows first to stay
+   * re-runnable, rather than bending the schema to suit a seed script. */
+  const { error: clearError } = await db
+    .from("consents")
+    .delete()
+    .eq("student_id", ids.get("student")!);
+
+  if (clearError) {
+    console.error(`\n  Could not clear old consents: ${clearError.message}`);
+    return;
+  }
+
+  const { error: consentError } = await db.from("consents").insert(
     PURPOSES.map((purpose) => ({
       student_id: ids.get("student")!,
-      parent_id: ids.get("parent")!,
+      /* No parent_id. A parent is not an account — the consent is evidenced by
+         the phone it was given from, which is also where the Sunday report is
+         sent. app/api/cron/parent-reports reads exactly this field. */
+      parent_id: null,
       purpose: purpose.key,
       /* Including the optional ones. A seeded account with voice switched off
          is a seeded account that cannot be used to test voice, and finding
@@ -238,38 +301,49 @@ async function main() {
       granted: true,
       method: "school_authority",
       policy_version: POLICY_VERSION,
-      evidence: { seeded: true, note: "scripts/seed-accounts.ts" },
+      evidence: { seeded: true, note: "scripts/seed-accounts.ts", phone: PARENT_PHONE },
     })),
-    { onConflict: "student_id,purpose" },
   );
 
-  await db.from("parent_links").upsert(
-    {
-      parent_id: ids.get("parent")!,
-      student_id: ids.get("student")!,
-      relation: "parent",
-      confirmed: true,
-    },
-    { onConflict: "parent_id,student_id" },
-  );
+  /* Checked, and fatal. Switching the account on without the consent behind it
+     is the one state this whole design exists to make unreachable, and doing
+     it quietly is worse than failing. */
+  if (consentError) {
+    console.error(`\n  Could not record consent: ${consentError.message}`);
+    console.error("  The student account has been left inactive on purpose.");
+    return;
+  }
 
-  await db
+  const { error: activateError } = await db
     .from("profiles")
     .update({ account_state: "active" })
     .eq("id", ids.get("student")!);
+
+  if (activateError) {
+    console.error(`\n  Could not activate the student: ${activateError.message}`);
+    return;
+  }
 
   /* --- What to do with all this ------------------------------------------ */
   console.log(`\n  Organisation: ${ORG_NAME} (${orgId})`);
   console.log(`  Section:      ${SECTION_NAME}${sectionId ? ` (${sectionId})` : ""}`);
 
-  console.log(`\n  Password for all five:  ${password}`);
+  console.log(`  Parent phone: ${PARENT_PHONE} (consent + weekly report; no account)`);
+
+  console.log(`\n  Password for all three:  ${password}`);
   console.log("  Printed once. It is random unless you passed --password.\n");
 
-  console.log("  One more step for the admin account — add this to .env.local:");
+  console.log("  Where each one lands after signing in:");
+  console.log(`    admin@${DOMAIN}`.padEnd(36) + "/admin      sees everything");
+  console.log(`    teacher@${DOMAIN}`.padEnd(36) + "/teacher    classes only");
+  console.log(`    student@${DOMAIN}`.padEnd(36) + "/dashboard  revision only");
+
+  console.log("\n  One more step for the admin account — add this to .env.local:");
   console.log(`    ADMIN_EMAILS=admin@${DOMAIN}`);
   console.log(
-    "  A super admin is a person in the environment file, not a row in the\n" +
-      "  database, so this cannot be done from here.\n",
+    "  A super admin is an address in the environment, not a row in the\n" +
+      "  database, so this cannot be done from here. Until it is set, that\n" +
+      "  account signs in as an ordinary teacher.\n",
   );
 
   console.log("  Before the pilot:  node scripts/seed-accounts.ts --remove");
@@ -402,8 +476,11 @@ async function upsertSection(
 async function remove(db: Db) {
   let removed = 0;
 
-  for (const person of PEOPLE) {
-    const id = await findByEmail(db, person.email);
+  /* The three this script creates, plus the ones it used to. See RETIRED. */
+  const addresses = [...PEOPLE.map((person) => person.email), ...RETIRED];
+
+  for (const email of addresses) {
+    const id = await findByEmail(db, email);
     if (!id) continue;
 
     /* Checked rather than assumed. If somebody has repointed .env.local at a
@@ -412,7 +489,7 @@ async function remove(db: Db) {
     const { data } = await db.auth.admin.getUserById(id);
 
     if (data.user?.user_metadata?.seeded !== true) {
-      console.log(`  skipped ${person.email} — not marked as seeded`);
+      console.log(`  skipped ${email} — not marked as seeded`);
       continue;
     }
 
@@ -420,7 +497,7 @@ async function remove(db: Db) {
        section_students and every session all go with it. */
     await db.auth.admin.deleteUser(id);
     removed += 1;
-    console.log(`  removed ${person.email}`);
+    console.log(`  removed ${email}`);
   }
 
   const { data: org } = await db

@@ -37,7 +37,7 @@ export async function POST(request: Request) {
 
   const phone = normalisePhone(String(body.phone ?? ""));
   if (!phone) {
-    return fail("Ye number theek nahi lag raha. 10 ank ka mobile number daalo.", 400);
+    return fail("That number does not look right. Enter a 10-digit mobile number.", 400);
   }
 
   const admin = createAdminClient();
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
        of birth decides whether consent is required at all. Same rule as every
        other place that asks — see lib/consent/age.ts. */
     if (!plausibleDob(body.dob)) {
-      return fail("Ye date theek nahi lag rahi. Dobara check karo.", 400);
+      return fail("That date does not look right. Please check it.", 400);
     }
 
     await admin.from("profiles").update({ dob: body.dob }).eq("id", user.value);
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
     .maybeSingle();
 
   if (!profile?.dob) {
-    return fail("Pehle date of birth batao.", 400);
+    return fail("Enter the date of birth first.", 400);
   }
 
   /* Not a hard block — on a family phone the number genuinely is shared — but
@@ -81,7 +81,7 @@ export async function POST(request: Request) {
 
   if (!issued) {
     return fail(
-      "Bahut baar try kar liya. 15 minute baad dobara koshish karo.",
+      "Too many attempts. Try again in 15 minutes.",
       429,
     );
   }
@@ -93,7 +93,7 @@ export async function POST(request: Request) {
 
   const sent = await sendConsentCode({
     phone,
-    studentName: (profile.first_name as string) || "aapke bachche",
+    studentName: (profile.first_name as string) || "your child",
     code: issued.code,
     link,
   });
@@ -110,7 +110,7 @@ export async function POST(request: Request) {
       process.env.NODE_ENV === "production" ? undefined : issued.code,
     note: sent.ok
       ? undefined
-      : "Message nahi ja paaya. Parent ke saath baithe ho to screen pe dikhaya gaya code use karo.",
+      : "The message did not go through. If your parent is with you, use the code shown on screen instead.",
     /* Surfaced, not enforced. The screen says "ye tumhara hi number lag raha
        hai" and lets them continue — refusing outright would break the shared
        family phone, which is the common case in this market. */

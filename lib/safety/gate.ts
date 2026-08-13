@@ -81,25 +81,33 @@ const INJECTION =
 const ANSWER_BEGGING =
   /\b(just tell me the answer|answer bata do|answer bata de|batado na|bata do na|seedha answer|direct answer|solve it for me|kar do na)\b/i;
 
-export const SELF_HARM_REPLY = `Mujhe lagta hai tum kisi mushkil se guzar rahe ho, aur ye maths se zyada zaroori hai.
+/* Deliberately not translated by a model and deliberately not switched by the
+   student's language setting.
+ *
+ * The rest of the tutor's voice follows lib/language.ts. This one does not: a
+ * child in distress should not depend on a `language` column being right, and
+ * the helplines below answer in twenty languages between them. Simple English
+ * with the numbers spelled out is the version that works whichever way that
+ * column is set. */
+export const SELF_HARM_REPLY = `It sounds like you are going through something hard, and that matters more than maths right now.
 
-Main sirf ek padhai ka tutor hoon — is baare me tumhari madad karne ke liye sahi insaan main nahi hoon. Par please, kisi bade se baat karo: apne parents, koi teacher, ya koi bhi jispe tum bharosa karte ho.
+I am only a study tutor — I am not the right one to help you with this. But please talk to someone: your parents, a teacher, or anyone you trust.
 
-Ye helplines 24 ghante, saaton din, bilkul free hain:
+These helplines are free, 24 hours a day, every day:
 
-• **Tele-MANAS — 14416** (Government of India, 20+ bhashaon me)
+• **Tele-MANAS — 14416** (Government of India, 20+ languages)
 • **KIRAN — 1800-599-0019** (toll-free)
 • **AASRA — 9820466726**
 
-Tum akele nahi ho, aur madad maangna kamzori nahi hai.`;
+You are not alone, and asking for help is not weakness.`;
 
-const INJECTION_REPLY = `Main is topic pe hi baat kar sakta hoon — mera kaam tumhe ye concept samjhana hai. Chalo wapas chalte hain: jahan atke the wahan se batao kya samajh nahi aaya?`;
+const INJECTION_REPLY = `I can only talk about this topic — my job is to help you understand this concept. Let us go back: tell me where you got stuck.`;
 
-const OFF_TOPIC_REPLY = `Ye is chapter se bahar ka sawal hai. Abhi hum jo concept kar rahe hain usi pe focus karte hain — baaki baatein baad me!`;
+const OFF_TOPIC_REPLY = `That is outside this chapter. Let us stay with the concept we are on — the rest can wait!`;
 
-const HARM_REPLY = `Is baare me main baat nahi kar sakta. Chalo apne topic pe wapas chalte hain — batao kahan atke ho?`;
+const HARM_REPLY = `I cannot talk about that. Let us get back to your topic — where are you stuck?`;
 
-const ANSWER_REPLY = `Answer bata dunga to samajh nahi aayega — aur agli baar exam me yahi sawal aaya to phir wahi dikkat. Ek hint deta hoon, tum khud try karo.`;
+const ANSWER_REPLY = `If I give you the answer it will not stick, and the same question in the exam will be the same problem. Here is a hint; you try it.`;
 
 /* --------------------------------------------------------------------------
    Tier 2 — classifier
@@ -204,8 +212,19 @@ export async function gate(
 
        A classifier outage must not stop a child from studying, and tier 1 —
        which covers the case where being wrong is unrecoverable — has already
-       run and passed. A rate limit is not a reason to refuse to teach. */
-    if (!(error instanceof AiError)) return ALLOW;
+       run and passed. A rate limit is not a reason to refuse to teach.
+
+       Logged rather than swallowed. The two branches here used to be an
+       `if (!(error instanceof AiError)) return ALLOW; return ALLOW;` — the
+       same value either way, so the distinction the code appeared to be
+       drawing was not being drawn, and a classifier that had been down for a
+       week would have looked exactly like a week with nothing to flag. */
+    console.warn(
+      `[safety] tier 2 classifier unavailable; message allowed on tier 1 alone: ${
+        error instanceof AiError ? `${error.status} ${error.message}` : String(error)
+      }`,
+    );
+
     return ALLOW;
   }
 

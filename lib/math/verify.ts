@@ -345,3 +345,72 @@ export function checkNumeric(
 
   return miss;
 }
+
+/* --------------------------------------------------------------------------
+   Is the option marked correct actually correct?
+   -------------------------------------------------------------------------- */
+
+/* Only the three fields the check reads. A DraftQuestion satisfies it, and so
+   does anything else with a stem and options — which is the point: this needs
+   to be callable from a test without building a whole draft. */
+export type MarkedQuestion = {
+  stem: string;
+  options: { key: string; text: string }[];
+  correct: string[];
+};
+
+/* Substitution, not solving. Put the marked value back into the equation and
+ * evaluate both sides exactly, over the fractions above.
+ *
+ * This is the check that matters and the one a structural pass cannot make. A
+ * draft came back structurally perfect — eight questions, every distractor
+ * mapped, levels spread — and three of the first four had the wrong option
+ * marked correct. In each case the solution text stated a value that was not
+ * the marked option, and in two of them the true answer was not even offered.
+ * The script printed "Clean".
+ *
+ * It cannot check a word problem or a "what is the first step" question, and
+ * it says so rather than passing them quietly — the count of what could not be
+ * checked is part of the report.
+ *
+ * Lives here rather than in scripts/author-pack.ts, where it was written,
+ * because there it was unreachable from the test suite. It sat for a while
+ * with its `\bx\b` word boundaries corrupted into two literal backspace bytes
+ * by a JSON round-trip, so bare-x equations silently never substituted and
+ * every one of them came back "unverifiable". A test would have said so on the
+ * first run; nothing could import it, so nothing did. */
+export function checkMarkedAnswer(
+  question: MarkedQuestion,
+): "ok" | "wrong" | "unverifiable" {
+  const marked = question.options.find((option) => question.correct.includes(option.key));
+  if (!marked) return "unverifiable";
+
+  /* The equation: the first $...$ span in the stem holding an = and an x. */
+  const spans = question.stem.match(/\$[^$]+\$/g) ?? [];
+  const equation = spans
+    .map((span) => span.slice(1, -1))
+    .find((span) => span.includes("=") && /x/.test(span));
+
+  if (!equation) return "unverifiable";
+
+  const [left, right] = equation.split("=");
+  if (!left || !right) return "unverifiable";
+
+  const value = evaluate(marked.text.replace(/\$/g, "").trim());
+  if (!value) return "unverifiable";
+
+  /* Implicit multiplication is how the notation is written: 3x, not 3*x. The
+     coefficient form goes first so that the bare-x pass cannot eat the x out
+     of "3x" and leave a dangling 3. */
+  const substitute = (side: string) =>
+    side
+      .replace(/(\d)\s*x/g, `$1*(${formatFraction(value)})`)
+      .replace(/\bx\b/g, `(${formatFraction(value)})`);
+
+  const lhs = evaluate(substitute(left));
+  const rhs = evaluate(substitute(right));
+
+  if (!lhs || !rhs) return "unverifiable";
+
+  return equals(lhs, rhs) ? "ok" : "wrong";
+}

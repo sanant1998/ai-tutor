@@ -131,7 +131,7 @@ export async function POST(request: Request) {
     .select("id, status")
     .maybeSingle();
 
-  if (error || !data) return fail("Draft save nahi ho paaya.", 500);
+  if (error || !data) return fail("The draft could not be saved.", 500);
 
   return NextResponse.json({
     draftId: data.id,

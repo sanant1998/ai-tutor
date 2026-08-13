@@ -15,6 +15,7 @@ import {
   GoogleIcon,
   PasswordField,
 } from "@/components/auth/parts";
+import { claimLocalFor } from "@/lib/repository";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { text } from "@/lib/theme";
 
@@ -57,6 +58,10 @@ export function SignupForm() {
       setError(signUpError.message);
       return;
     }
+
+    /* A brand-new account never inherits the cache sitting on this device.
+       See claimLocalFor in lib/repository.ts. */
+    await claimLocalFor(data.user?.id ?? null);
 
     /* With email confirmation switched on, Supabase returns a user but no
        session — the account is not usable until the link is clicked. */

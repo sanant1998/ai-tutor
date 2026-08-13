@@ -5,9 +5,13 @@
   "provenance": {
     "source": "NCERT Mathematics Class 8, Chapter 2 'Linear Equations in One Variable'. The misconceptions are the ones this topic reliably produces at the point where arithmetic becomes algebra: reading an equation as an instruction to compute rather than as a statement of balance, and losing the sign when a term crosses the equals.",
     "verifiedOn": "2026-08-12",
-    "note": "m1 is the deepest one in the chapter and it is not a slip. In arithmetic '=' has always meant 'now write the answer'. Reading it as 'these two sides are the same thing' is a genuinely new idea, and a student who does not make that switch will pass Class 8 by pattern-matching and fall over in Class 9."
+    "note": "m1 is the deepest one in the chapter and it is not a slip. In arithmetic '=' has always meant 'now write the answer'. Reading it as 'these two sides are the same thing' is a genuinely new idea, and a student who does not make that switch will pass Class 8 by pattern-matching and fall over in Class 9. Prose translated to en-IN by scripts/translate-pack.ts using gpt-5.5 (74 of 74 strings); LaTeX, answers and distractor maps unchanged by construction. Not read by a subject expert since."
   },
-  "subject": { "id": "cbse-8-maths", "name": "Mathematics", "language": "en-IN" },
+  "subject": {
+    "id": "cbse-8-maths",
+    "name": "Mathematics",
+    "language": "en-IN"
+  },
   "chapter": {
     "id": "c8-math-ch2",
     "no": 2,
@@ -22,208 +26,308 @@
     "title": "What a Linear Equation Is",
     "prereqTopicIds": []
   },
-
   "concepts": [
     {
       "id": "c8-math-ch2-t1-c1",
       "seq": 1,
       "title": "An equation is a balance, not an instruction",
-      "statement": "Equation ka matlab hai: barabar ka nishaan ke dono taraf ki cheezein ek hi hain. $2x + 3 = 11$ ka matlab hai 'wo number jise 2 se guna karke 3 jodo to 11 aaye'. Linear equation me variable ki sabse badi power 1 hoti hai.",
-      "hook": "Socho ek taraazu (weighing balance) hai. Ek pallde me 2 aam aur 300 gram ka bhaat rakha hai, doosre me 1100 gram ka bhaat. Taraazu barabar hai. Ab batao ek aam kitne ka hai? Tumne abhi jo socha, wahi equation solve karna hai. Sawal ye hai: agar main ek pallde me 100 gram aur rakh dun, to kya karna padega taaki taraazu barabar rahe?",
+      "statement": "An equation means this: the things on both sides of the equal sign are the same. $2x + 3 = 11$ means ‘the number which, when multiplied by 2 and then 3 is added, gives 11’. In a linear equation, the highest power of the variable is 1.",
+      "hook": "Think of a weighing balance. On one pan there are 2 mangoes and a 300 gram weight, and on the other there is a 1100 gram weight. The balance is level. Now tell me, how much is one mango? What you just thought is exactly solving an equation. The question is: if I put 100 gram more on one pan, what must I do so that the balance stays level?",
       "analogies": [
         {
           "id": "a1",
-          "text": "Taraazu: ek taraf jo bhi karo, doosri taraf wahi karna padega, warna barabar nahi rahega."
+          "text": "Weighing balance: whatever you do on one side, you must do the same on the other side, otherwise it will not stay equal."
         },
         {
           "id": "a2",
-          "text": "Do doston ke paas barabar paise hain. Ek ko ₹50 diye to doosre ko bhi ₹50 dene padenge, tabhi barabar rahenge."
+          "text": "Two friends have equal money. If one is given ₹50, the other must also be given ₹50. Only then will they stay equal."
         }
       ],
       "formulas": [
         {
           "id": "f1",
           "latex": "ax + b = c,\\quad a \\neq 0",
-          "note": "Linear equation ka aam roop. x ki power 1 hai."
+          "note": "The general form of a linear equation. The power of x is 1."
         },
         {
           "id": "f2",
           "latex": "\\text{LHS} = \\text{RHS}",
-          "note": "Left Hand Side aur Right Hand Side — dono barabar. Yahi poora khel hai."
+          "note": "Left Hand Side and Right Hand Side — both are equal. That is the whole game."
         }
       ],
       "misconceptions": [
         {
           "id": "m1",
-          "wrong_belief": "$=$ ka matlab hai 'ab jawab likho'. $2x + 3 = 11$ me jawab 11 hai.",
-          "why_wrong": "Arithmetic me $5 + 3 = $ ke baad hamesha jawab aata tha, isliye ye aadat ban gayi. Par equation me $=$ kehta hai ki dono taraf ek hi cheez hai — ye ek kathan (statement) hai, hukum nahi. 11 jawab nahi hai, wo to pehle se likha hai; dhoondhna $x$ hai.",
-          "correction": "$=$ matlab 'dono taraf barabar'. Jawab wo hai jo $x$ ki jagah rakhne se dono taraf barabar ho jaayein.",
-          "probe": "$2x + 3 = 11$ me hume kya dhoondhna hai — $x$ ya 11? Aur $x = 4$ rakhkar check karo, kya dono taraf barabar aaya?"
+          "wrong_belief": "$=$ means ‘now write the answer’. In $2x + 3 = 11$, the answer is 11.",
+          "why_wrong": "In arithmetic, after $5 + 3 = $ the answer always came, so this habit formed. But in an equation, $=$ says that both sides are the same — it is a statement, not an order. 11 is not the answer; it is already written. What we have to find is $x$.",
+          "correction": "$=$ means ‘both sides are equal’. The answer is the value which, when put in place of $x$, makes both sides equal.",
+          "probe": "In $2x + 3 = 11$, what do we have to find — $x$ or 11? And put $x = 4$ and check: did both sides become equal?"
         },
         {
           "id": "m2",
-          "wrong_belief": "Ek taraf kuch karo to doosri taraf karne ki zaroorat nahi.",
-          "why_wrong": "Taraazu ka ek palla halka kar do to wo jhuk jaayega. Equation me bhi ek taraf se 3 hataya aur doosri taraf se nahi, to barabari toot gayi — aur jo mila wo galat jawab hoga.",
-          "correction": "Jo ek taraf karo, bilkul wahi doosri taraf bhi karo. Har baar.",
-          "probe": "$2x + 3 = 11$ me sirf left se 3 hata diya to left $2x$ ho gaya. Ab right kya rahega — 11 ya 8? Kyun?"
+          "wrong_belief": "If you do something on one side, there is no need to do it on the other side.",
+          "why_wrong": "If you make one pan of the balance lighter, it will tilt. In an equation also, if you remove 3 from one side and not from the other, the equality breaks — and what you get will be a wrong answer.",
+          "correction": "Whatever you do on one side, do exactly the same on the other side too. Every time.",
+          "probe": "In $2x + 3 = 11$, if you remove 3 only from the left, the left becomes $2x$. Now what will the right side remain — 11 or 8? Why?"
         },
         {
           "id": "m3",
-          "wrong_belief": "Term ko doosri taraf le jaao to sign wahi rehta hai. $2x + 3 = 11$ se $2x = 11 + 3$.",
-          "why_wrong": "'Le jaana' asal me dono taraf se ghatana hai. $+3$ hataane ke liye dono taraf se 3 ghatate hain, isliye doosri taraf $-3$ ho jaata hai. Sign badalta hai kyunki ulta kaam kiya ja raha hai.",
-          "correction": "Paar jaate waqt plus minus ban jaata hai aur minus plus. Guna bhaag ban jaata hai.",
-          "probe": "$2x + 3 = 11$. Dono taraf se 3 ghatao aur likho kya bacha. Ab batao right side 14 aaya ya 8?"
+          "wrong_belief": "When you take a term to the other side, the sign stays the same. From $2x + 3 = 11$ to $2x = 11 + 3$.",
+          "why_wrong": "‘Taking it to the other side’ is actually subtracting from both sides. To remove $+3$, we subtract 3 from both sides, so the other side becomes $-3$. The sign changes because the opposite operation is being done.",
+          "correction": "When it crosses to the other side, plus becomes minus and minus becomes plus. Multiplication becomes division.",
+          "probe": "$2x + 3 = 11$. Subtract 3 from both sides and write what is left. Now tell me, did the right side become 14 or 8?"
         },
         {
           "id": "m4",
-          "wrong_belief": "$x^2 + 3 = 7$ bhi linear equation hai, kyunki isme ek hi variable hai.",
-          "why_wrong": "Linear ka matlab hai variable ki power 1. $x^2$ me power 2 hai, isliye wo quadratic hai. Ek variable hona kaafi nahi — power dekhni padti hai.",
-          "correction": "Linear = variable ki sabse badi power 1. $x$ chalega, $x^2$ nahi, $\\frac{1}{x}$ bhi nahi.",
-          "probe": "$x^2 + 3 = 7$ me $x$ ki power kitni hai? Aur linear ke liye kitni honi chahiye?"
+          "wrong_belief": "$x^2 + 3 = 7$ is also a linear equation, because it has only one variable.",
+          "why_wrong": "Linear means the power of the variable is 1. In $x^2$, the power is 2, so it is quadratic. Having one variable is not enough — we must look at the power.",
+          "correction": "Linear = the highest power of the variable is 1. $x$ is okay, $x^2$ is not, and $\\frac{1}{x}$ is also not.",
+          "probe": "In $x^2 + 3 = 7$, what is the power of $x$? And what should it be for it to be linear?"
         }
       ],
       "worked_examples": [
         {
           "id": "we1",
-          "problem": "$2x + 3 = 11$ hal karo aur jaanch karo.",
+          "problem": "Solve $2x + 3 = 11$ and check.",
           "steps": [
-            "Dono taraf se 3 ghatao: $2x + 3 - 3 = 11 - 3$",
+            "Subtract 3 from both sides: $2x + 3 - 3 = 11 - 3$",
             "$2x = 8$",
-            "Dono taraf 2 se bhaag do: $x = 4$",
-            "Jaanch: $x = 4$ rakho to LHS $= 2 \\times 4 + 3 = 11$, aur RHS $= 11$. Barabar."
+            "Divide both sides by 2: $x = 4$",
+            "Check: put $x = 4$, then LHS is $= 2 \\times 4 + 3 = 11$, and RHS is $= 11$. Equal."
           ],
           "answer": "$x = 4$"
         },
         {
           "id": "we2",
-          "problem": "$5x - 7 = 3x + 5$ hal karo.",
+          "problem": "Solve $5x - 7 = 3x + 5$.",
           "steps": [
-            "Variable ek taraf laao — dono taraf se $3x$ ghatao: $5x - 3x - 7 = 5$",
+            "Bring the variable to one side — subtract $3x$ from both sides: $5x - 3x - 7 = 5$",
             "$2x - 7 = 5$",
-            "Dono taraf 7 jodo: $2x = 12$",
-            "Dono taraf 2 se bhaag: $x = 6$",
-            "Jaanch: LHS $= 5 \\times 6 - 7 = 23$, RHS $= 3 \\times 6 + 5 = 23$. Barabar."
+            "Add 7 to both sides: $2x = 12$",
+            "Divide both sides by 2: $x = 6$",
+            "Check: LHS $= 5 \\times 6 - 7 = 23$, RHS $= 3 \\times 6 + 5 = 23$. Equal."
           ],
           "answer": "$x = 6$"
         }
       ]
     }
   ],
-
   "questions": [
     {
       "id": "q-c8m-ch2-0001",
       "conceptId": "c8-math-ch2-t1-c1",
       "qtype": "mcq",
       "level": "L1",
-      "stem": "$2x + 3 = 11$ me hume kya nikalna hai?",
+      "stem": "In $2x + 3 = 11$, what do we have to find?",
       "options": [
-        { "key": "A", "text": "$x$ ka maan" },
-        { "key": "B", "text": "11 ka maan" },
-        { "key": "C", "text": "$2x + 3$ ka jawab" },
-        { "key": "D", "text": "Kuch nikalna hi nahi hai, ye pehle se hal hai" }
+        {
+          "key": "A",
+          "text": "The value of $x$"
+        },
+        {
+          "key": "B",
+          "text": "The value of 11"
+        },
+        {
+          "key": "C",
+          "text": "The answer of $2x + 3$"
+        },
+        {
+          "key": "D",
+          "text": "There is nothing to find; it is already solved"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m1", "C": "m1", "D": "m1" },
-      "solution": "Equation kehti hai ki dono taraf barabar hain. 11 pehle se pata hai; dhoondhna $x$ hai — wo number jisko rakhne se dono taraf barabar ho jaayein. Yahan $x = 4$."
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m1",
+        "C": "m1",
+        "D": "m1"
+      },
+      "solution": "The equation says that both sides are equal. 11 is already known; we have to find $x$ — the number which, when put there, makes both sides equal. Here, $x = 4$."
     },
     {
       "id": "q-c8m-ch2-0002",
       "conceptId": "c8-math-ch2-t1-c1",
       "qtype": "mcq",
       "level": "L1",
-      "stem": "In me se kaunsi linear equation NAHI hai?",
+      "stem": "Which of these is NOT a linear equation?",
       "options": [
-        { "key": "A", "text": "$x^2 + 3 = 7$" },
-        { "key": "B", "text": "$2x + 3 = 11$" },
-        { "key": "C", "text": "$5x - 7 = 3x + 5$" },
-        { "key": "D", "text": "$\\frac{x}{2} = 4$" }
+        {
+          "key": "A",
+          "text": "$x^2 + 3 = 7$"
+        },
+        {
+          "key": "B",
+          "text": "$2x + 3 = 11$"
+        },
+        {
+          "key": "C",
+          "text": "$5x - 7 = 3x + 5$"
+        },
+        {
+          "key": "D",
+          "text": "$\\frac{x}{2} = 4$"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m4", "C": "m4", "D": "m4" },
-      "solution": "Linear ka matlab hai variable ki sabse badi power 1. $x^2$ me power 2 hai, to wo quadratic hai. Baaki teeno me $x$ ki power 1 hai — $\\frac{x}{2}$ bhi $\\frac{1}{2}x$ hi hai."
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m4",
+        "C": "m4",
+        "D": "m4"
+      },
+      "solution": "Linear means the highest power of the variable is 1. In $x^2$, the power is 2, so it is quadratic. In the other three, the power of $x$ is 1 — $\\frac{x}{2}$ is also just $\\frac{1}{2}x$."
     },
     {
       "id": "q-c8m-ch2-0003",
       "conceptId": "c8-math-ch2-t1-c1",
       "qtype": "mcq",
       "level": "L2",
-      "stem": "$2x + 3 = 11$ me se 3 hataane ke liye kya karna hoga?",
+      "stem": "To remove 3 from $2x + 3 = 11$, what should we do?",
       "options": [
-        { "key": "A", "text": "Dono taraf se 3 ghatao — $2x = 8$" },
-        { "key": "B", "text": "Sirf left se 3 ghatao — $2x = 11$" },
-        { "key": "C", "text": "3 ko right le jaao waise ka waise — $2x = 11 + 3$" },
-        { "key": "D", "text": "Dono taraf 3 jodo — $2x + 6 = 14$" }
+        {
+          "key": "A",
+          "text": "Subtract 3 from both sides — $2x = 8$"
+        },
+        {
+          "key": "B",
+          "text": "Subtract 3 only from the left — $2x = 11$"
+        },
+        {
+          "key": "C",
+          "text": "Take 3 to the right as it is — $2x = 11 + 3$"
+        },
+        {
+          "key": "D",
+          "text": "Add 3 to both sides — $2x + 6 = 14$"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m2", "C": "m3", "D": "m2" },
-      "solution": "Taraazu barabar rakhna hai, to jo left se ghataya wahi right se bhi ghatana padega: $2x + 3 - 3 = 11 - 3$, yaani $2x = 8$. Isiliye 'paar jaane' pe sign badalta hai — wo asal me ghatana hi hai."
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m2",
+        "C": "m3",
+        "D": "m2"
+      },
+      "solution": "To keep the balance equal, whatever we subtract from the left must also be subtracted from the right: $2x + 3 - 3 = 11 - 3$, that is $2x = 8$. That is why the sign changes when it ‘crosses over’ — actually, it is subtraction."
     },
     {
       "id": "q-c8m-ch2-0004",
       "conceptId": "c8-math-ch2-t1-c1",
       "qtype": "nvt",
       "level": "L2",
-      "stem": "$2x + 3 = 11$ hal karo. $x$ ka maan kya hai?",
-      "correct": { "value": 4, "tol": 0, "exact": "4" },
-      "solution": "Dono taraf se 3 ghatao: $2x = 8$. Dono taraf 2 se bhaag do: $x = 4$. Jaanch: $2 \\times 4 + 3 = 11$ ✓"
+      "stem": "Solve $2x + 3 = 11$. What is the value of $x$?",
+      "correct": {
+        "value": 4,
+        "tol": 0,
+        "exact": "4"
+      },
+      "solution": "Subtract 3 from both sides: $2x = 8$. Divide both sides by 2: $x = 4$. Check: $2 \\times 4 + 3 = 11$ ✓"
     },
     {
       "id": "q-c8m-ch2-0005",
       "conceptId": "c8-math-ch2-t1-c1",
       "qtype": "nvt",
       "level": "L3",
-      "stem": "$5x - 7 = 3x + 5$ hal karo. $x$ ka maan kya hai?",
-      "correct": { "value": 6, "tol": 0, "exact": "6" },
-      "solution": "Dono taraf se $3x$ ghatao: $2x - 7 = 5$. Dono taraf 7 jodo: $2x = 12$. Bhaag do: $x = 6$. Jaanch: LHS $= 23$, RHS $= 23$ ✓"
+      "stem": "Solve $5x - 7 = 3x + 5$. What is the value of $x$?",
+      "correct": {
+        "value": 6,
+        "tol": 0,
+        "exact": "6"
+      },
+      "solution": "Subtract $3x$ from both sides: $2x - 7 = 5$. Add 7 to both sides: $2x = 12$. Divide: $x = 6$. Check: LHS $= 23$, RHS $= 23$ ✓"
     },
     {
       "id": "q-c8m-ch2-0006",
       "conceptId": "c8-math-ch2-t1-c1",
       "qtype": "mcq",
       "level": "L3",
-      "stem": "Rahul ne likha: '$3x - 5 = 10$, to $3x = 10 - 5 = 5$, to $x = \\frac{5}{3}$.' Galti kahan hai?",
+      "stem": "Rahul wrote: ‘$3x - 5 = 10$, so $3x = 10 - 5 = 5$, so $x = \\frac{5}{3}$.’ Where is the mistake?",
       "options": [
-        { "key": "A", "text": "$-5$ paar jaane par $+5$ banta hai, to $3x = 15$ aur $x = 5$" },
-        { "key": "B", "text": "Koi galti nahi hai" },
-        { "key": "C", "text": "Usne 3 se bhaag nahi karna tha" },
-        { "key": "D", "text": "Jawab 10 hona chahiye tha" }
+        {
+          "key": "A",
+          "text": "When $-5$ crosses over, it becomes $+5$, so $3x = 15$ and $x = 5$"
+        },
+        {
+          "key": "B",
+          "text": "There is no mistake"
+        },
+        {
+          "key": "C",
+          "text": "He should not have divided by 3"
+        },
+        {
+          "key": "D",
+          "text": "The answer should have been 10"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m3", "C": "m2", "D": "m1" },
-      "solution": "$-5$ hataane ke liye dono taraf 5 JODNA padta hai: $3x - 5 + 5 = 10 + 5$, yaani $3x = 15$ aur $x = 5$. Rahul ne ghata diya. Jaanch se turant pakad me aata: $3 \\times \\frac{5}{3} - 5 = 0$, 10 nahi."
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m3",
+        "C": "m2",
+        "D": "m1"
+      },
+      "solution": "To remove $-5$, we have to ADD 5 to both sides: $3x - 5 + 5 = 10 + 5$, that is $3x = 15$ and $x = 5$. Rahul subtracted it. A check would catch it at once: $3 \\times \\frac{5}{3} - 5 = 0$, not 10."
     },
     {
       "id": "q-c8m-ch2-0007",
       "conceptId": "c8-math-ch2-t1-c1",
       "qtype": "mcq",
       "level": "L2",
-      "stem": "$x = 4$ rakhne par $3x - 2 = 10$ ke dono taraf kya aata hai?",
+      "stem": "When we put $x = 4$, what do we get on both sides of $3x - 2 = 10$?",
       "options": [
-        { "key": "A", "text": "LHS $= 10$, RHS $= 10$ — barabar, to $x = 4$ sahi hai" },
-        { "key": "B", "text": "LHS $= 10$, RHS $= 4$" },
-        { "key": "C", "text": "LHS $= 14$, RHS $= 10$" },
-        { "key": "D", "text": "Rakhkar dekhne ka koi matlab nahi hota" }
+        {
+          "key": "A",
+          "text": "LHS $= 10$, RHS $= 10$ — equal, so $x = 4$ is correct"
+        },
+        {
+          "key": "B",
+          "text": "LHS $= 10$, RHS $= 4$"
+        },
+        {
+          "key": "C",
+          "text": "LHS $= 14$, RHS $= 10$"
+        },
+        {
+          "key": "D",
+          "text": "There is no point in putting it and checking"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m1", "C": "m3", "D": "m1" },
-      "solution": "LHS $= 3 \\times 4 - 2 = 12 - 2 = 10$. RHS $= 10$. Dono barabar, to $x = 4$ sahi hai. Har equation ka jawab is tarah khud check kiya ja sakta hai — ye aadat exam me sabse zyada number bachati hai."
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m1",
+        "C": "m3",
+        "D": "m1"
+      },
+      "solution": "LHS $= 3 \\times 4 - 2 = 12 - 2 = 10$. RHS $= 10$. Both are equal, so $x = 4$ is correct. The answer to every equation can be checked like this by yourself — this habit saves the most marks in the exam."
     },
     {
       "id": "q-c8m-ch2-0008",
       "conceptId": "c8-math-ch2-t1-c1",
       "qtype": "nvt",
       "level": "L4",
-      "stem": "$4(x - 2) = 2x + 6$ hal karo. $x$ ka maan kya hai?",
-      "correct": { "value": 7, "tol": 0, "exact": "7" },
-      "solution": "Pehle bracket kholo (distributive law): $4x - 8 = 2x + 6$. Dono taraf se $2x$ ghatao: $2x - 8 = 6$. Dono taraf 8 jodo: $2x = 14$. Bhaag do: $x = 7$. Jaanch: LHS $= 4(7-2) = 20$, RHS $= 2 \\times 7 + 6 = 20$ ✓"
+      "stem": "Solve $4(x - 2) = 2x + 6$. What is the value of $x$?",
+      "correct": {
+        "value": 7,
+        "tol": 0,
+        "exact": "7"
+      },
+      "solution": "First open the bracket (distributive law): $4x - 8 = 2x + 6$. Subtract $2x$ from both sides: $2x - 8 = 6$. Add 8 to both sides: $2x = 14$. Divide: $x = 7$. Check: LHS $= 4(7-2) = 20$, RHS $= 2 \\times 7 + 6 = 20$ ✓"
     },
     {
       "id": "q-c8m-ch2-0009",
       "conceptId": "c8-math-ch2-t1-c1",
       "qtype": "subjective",
       "level": "L4",
-      "stem": "Ek dost kehta hai: 'Equation solve karne ke baad check karne ki kya zaroorat, waqt kharab hota hai.' Usse samjhao ki check karna kyun zaroori hai, aur ek udaharan do.",
+      "stem": "A friend says: ‘After solving an equation, why should we check? It only wastes time.’ Explain to him why checking is important, and give one example.",
       "correct": {
         "rubric": [
           "Equation ka matlab hi dono taraf barabar hona hai, to check karna hi asli sabooth hai",
@@ -232,7 +336,7 @@
           "Check me sirf kuch second lagte hain aur poora number bach jaata hai"
         ]
       },
-      "solution": "Equation kehti hi yahi hai ki dono taraf barabar hain — to jawab rakhkar dekhna koi extra kaam nahi, wahi asli sabooth hai. Aur solve karte waqt sabse aam galti sign ki hoti hai, jo apne aap me dikhti nahi. Jaise $3x - 5 = 10$ me koi $3x = 5$ likh de aur $x = \\frac{5}{3}$ nikaale — dekhne me theek lagta hai. Par rakhkar dekho: $3 \\times \\frac{5}{3} - 5 = 0$, aur 10 chahiye tha. Galti turant pakad me aa gayi. Check me das second lagte hain aur poore sawal ke number bach jaate hain."
+      "solution": "An equation itself says that both sides are equal — so putting the answer and checking is not extra work, it is the real proof. And while solving, the most common mistake is with the sign, which does not show by itself. For example, in $3x - 5 = 10$, someone may write $3x = 5$ and get $x = \\frac{5}{3}$ — it looks okay. But put it and check: $3 \\times \\frac{5}{3} - 5 = 0$, and it should have been 10. The mistake is caught at once. Checking takes ten seconds and saves the marks for the whole question."
     }
   ]
 }

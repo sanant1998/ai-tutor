@@ -72,6 +72,21 @@ export const THEME_IDS = THEMES.map((t) => t.id) as readonly ThemeId[];
 
 /* Notebook is the designed default — the warm paper look a first-time
    visitor sees. The dark themes remain a choice, not the starting point. */
+/* Themes are OFF, and the app is light for everybody.
+ *
+ * Nine palettes, five of them dark, and every one of them was a surface nobody
+ * checked: the theme menu unreadable over the landing page, the language
+ * picker white-on-white, native <select> popups painted from a transparent
+ * background, error text in a red tuned for the other ground. Each was fixed
+ * as it was found, which is the pattern that says the variety is costing more
+ * than it earns right now.
+ *
+ * So one light surface for student, teacher and admin alike. The palettes stay
+ * in globals.css and the picker code stays here — this is a switch, not a
+ * demolition — and turning it back on means setting this to true and checking
+ * the dark surfaces properly, once, rather than one screenshot at a time. */
+export const THEMES_ENABLED = false;
+
 export const DEFAULT_THEME: ThemeId = "notebook";
 export const THEME_STORAGE_KEY = "mmr-theme";
 
@@ -99,6 +114,11 @@ export const shadow = "var(--shadow)";
    header's appearance menu and the onboarding picker so the two can never
    drift apart. */
 export function applyTheme(id: ThemeId) {
+  /* Ignored while themes are off, rather than removed: the picker, the
+     onboarding step and Settings all call this, and a function that quietly
+     does the right thing beats four call sites that each have to remember. */
+  if (!THEMES_ENABLED) return;
+
   const root = document.documentElement;
   THEME_IDS.forEach((candidate) => root.classList.remove(`theme-${candidate}`));
   root.classList.add(`theme-${id}`);
@@ -112,6 +132,7 @@ export function applyTheme(id: ThemeId) {
 
 export function readTheme(): ThemeId {
   if (typeof document === "undefined") return DEFAULT_THEME;
+  if (!THEMES_ENABLED) return DEFAULT_THEME;
   return (
     THEME_IDS.find((id) =>
       document.documentElement.classList.contains(`theme-${id}`),

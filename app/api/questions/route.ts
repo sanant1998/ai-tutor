@@ -9,7 +9,7 @@ import { NextResponse } from "next/server";
 import { structured } from "@/lib/ai/client";
 import { BOARD_CONTEXT, HOUSE_STYLE } from "@/lib/ai/style";
 import { LEVELS, levelSplit, type LevelId } from "@/lib/mastery";
-import { aiFailure, fail, readScope, requireUser } from "@/lib/ai/route";
+import { aiFailure, fail, readScope, requireStudent } from "@/lib/ai/route";
 import { consume, release } from "@/lib/ai/quota";
 import { scopeLine } from "@/lib/ai/scope";
 import { createClient } from "@/lib/supabase/server";
@@ -88,7 +88,7 @@ type Generated = {
 };
 
 export async function POST(request: Request) {
-  const user = await requireUser();
+  const user = await requireStudent();
   if (!user.ok) return user.response;
 
   const scoped = await readScope(request);
@@ -112,8 +112,13 @@ export async function POST(request: Request) {
 
   /* A set is a ladder across the four bands, not a flat pile at one
      difficulty. The split is computed here so the prompt and the stored rows
-     agree on how many of each there should be. */
-  const split = levelSplit(count);
+     agree on how many of each there should be.
+   *
+   * The chosen difficulty moves where that ladder sits. It used to be read,
+   * validated and then dropped on the floor — the dropdown in QuestionsView
+   * sent it, nothing consumed it, and a student picking "stretch" got exactly
+   * the same set as one picking "foundation". */
+  const split = levelSplit(count, difficulty);
 
   let generated: Generated;
   try {
@@ -122,6 +127,8 @@ export async function POST(request: Request) {
       prompt: `Write ${count} ${KIND_BRIEF[kind]} for:
 
 ${scopeLine(scope)}
+
+Overall difficulty: ${DIFFICULTY_BRIEF[difficulty]}.
 
 Build the set as a ladder, not a flat pile. Every question sits in one of four
 bands, and you must produce exactly this many of each:

@@ -7,8 +7,9 @@
      - writing safety_flags, which no student may read or write;
      - writing llm_calls and consents, which are records ABOUT a student rather
        than records BELONGING to one;
-     - the parent report, which reads a student's rows on someone else's
-       behalf after checking parent_links.
+     - the weekly parent report, which reads a student's rows to send a
+       summary to the phone on their consent row. A parent has no account, so
+       there is no session to read them under.
 
    Everything else uses lib/supabase/server.ts and stays inside RLS. The rule
    worth keeping: a route reaches for this client when it needs to do something

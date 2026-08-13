@@ -163,18 +163,23 @@ const FLOWS: Flow[] = [
   {
     name: "Parent",
     steps: [
-      { step: "the parent screen is in the nav", inFile: "lib/nav.ts", wires: "/parent", why: "a parent has to find it" },
+      /* A parent has no account and no screen. Every one of these three steps
+         used to check that they did — the nav entry, the link request, the
+         student's confirmation — and all three were deleted with the parent
+         role. What reaches a parent now is a consent OTP and the Sunday
+         report, both to the phone on the consent row, and both are checked
+         below. */
       {
-        step: "a parent can ask to be linked",
-        inFile: "components/app/ParentView.tsx",
-        wires: "/api/parent/link",
-        why: "the report is useless without a link",
+        step: "consent reaches a parent without an account",
+        inFile: "app/api/consent/request/route.ts",
+        wires: "sendConsentCode",
+        why: "a parent who has to register first never consents, and the child stays locked out",
       },
       {
-        step: "the student is asked to confirm",
-        inFile: "components/app/TodayView.tsx",
-        wires: "ParentLinkBanner",
-        why: "a link nobody confirms sends a report to nobody",
+        step: "the student can grant from the link alone",
+        inFile: "app/api/consent/grant/route.ts",
+        wires: "verifyChallenge",
+        why: "the OTP is the authorisation; there is no session behind it",
       },
       {
         step: "the weekly report has a sender",

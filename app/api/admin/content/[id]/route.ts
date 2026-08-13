@@ -115,7 +115,7 @@ export async function PATCH(
 
   if (draft.status === "published") {
     return fail(
-      "Ye draft publish ho chuka hai. Badlav ke liye naya draft banayein — published content badla nahi jaata.",
+      "This draft has already been published. Create a new draft to change it — published content is never edited in place.",
       409,
     );
   }
@@ -165,7 +165,7 @@ export async function PATCH(
 
   if (blocking.length > 0) {
     return fail(
-      `Is draft me ${blocking.length} error hain. Pehle unhe theek karein — publish nahi ho sakta.`,
+      `This draft has ${blocking.length} error${blocking.length === 1 ? "" : "s"}. Fix them first — it cannot be published.`,
       409,
     );
   }
@@ -173,10 +173,29 @@ export async function PATCH(
   const payload = draft.payload as Record<string, unknown>;
 
   if (draft.entity_type === "concept") {
-    const concept = payload as unknown as Concept & { topicRef?: string };
+    const concept = payload as unknown as Concept & {
+      topicRef?: string;
+      structure?: Structure;
+    };
 
     if (!concept.id || !concept.topicRef) {
       return fail("A concept draft needs an id and a topicRef before it can go live.", 400);
+    }
+
+    /* A chapter imported from a teacher's PDF has no subject, chapter or topic
+       row behind it — those exist for the vendor's curriculum because a seed
+       script made them. Without this the concept below fails on its foreign
+       key to `topics`, which is where "upload your chapter" would have stopped
+       being a feature.
+     *
+     * Created here rather than at import, so a chapter somebody looked at and
+     * rejected leaves nothing behind, and so the reviewer's rename is the
+     * title that goes live. Every row carries the DRAFT's org_id, never the
+     * payload's — a payload field would let an org admin publish into the
+     * shared curriculum by editing JSON. */
+    if (concept.structure) {
+      const problem = await ensureStructure(db, concept.structure, draft.org_id);
+      if (problem) return fail(problem, 500);
     }
 
     const { error } = await db.from("concepts").upsert(
@@ -195,6 +214,8 @@ export async function PATCH(
         misconceptions: concept.misconceptions ?? [],
         worked_examples: concept.worked_examples ?? [],
         formulas: concept.formulas ?? [],
+        /* `structure` is deliberately absent: it is instructions for this
+           route, not a field of a concept. */
       },
       { onConflict: "id" },
     );
@@ -247,4 +268,68 @@ export async function PATCH(
     entityId: (payload.id as string) ?? null,
     note: "Live content updated. Sessions already in progress keep the version they started with.",
   });
+}
+
+/* --------------------------------------------------------------------------
+   The rows an imported chapter needs before its concepts can exist.
+
+   subjects → chapters → topics, in that order, because each references the one
+   before it. Upserted rather than inserted: a chapter's second concept
+   publishes into the same three rows as its first, and republishing an edited
+   concept must not fail on rows that are already there.
+   -------------------------------------------------------------------------- */
+type Structure = {
+  subject: { id: string; board: string; classLevel: number; subjectId: string };
+  chapter: { id: string; no: number; title: string };
+  topic: { id: string; no: number; title: string };
+};
+
+async function ensureStructure(
+  db: ReturnType<typeof createAdminClient>,
+  structure: Structure,
+  orgId: string | null,
+): Promise<string | null> {
+  const subject = await db.from("subjects").upsert(
+    {
+      id: structure.subject.id,
+      board: structure.subject.board,
+      class_level: structure.subject.classLevel,
+      subject_id: structure.subject.subjectId,
+      name: structure.subject.subjectId,
+    },
+    { onConflict: "id" },
+  );
+
+  if (subject.error) return `Could not create the subject: ${subject.error.message}`;
+
+  const chapter = await db.from("chapters").upsert(
+    {
+      id: structure.chapter.id,
+      subject_ref: structure.subject.id,
+      chapter_no: structure.chapter.no,
+      title: structure.chapter.title,
+      org_id: orgId,
+      /* A school's own chapter is not the vendor's free sample. Their students
+         reach it through the school's licence, not through the paywall. */
+      is_free: false,
+    },
+    { onConflict: "id" },
+  );
+
+  if (chapter.error) return `Could not create the chapter: ${chapter.error.message}`;
+
+  const topic = await db.from("topics").upsert(
+    {
+      id: structure.topic.id,
+      chapter_ref: structure.chapter.id,
+      topic_no: structure.topic.no,
+      title: structure.topic.title,
+      org_id: orgId,
+    },
+    { onConflict: "id" },
+  );
+
+  if (topic.error) return `Could not create the topic: ${topic.error.message}`;
+
+  return null;
 }

@@ -8,7 +8,7 @@ import { NextResponse } from "next/server";
 import { structured } from "@/lib/ai/client";
 import { BOARD_CONTEXT, HOUSE_STYLE } from "@/lib/ai/style";
 import { errorTaxonomyPrompt, type ErrorType } from "@/lib/mastery";
-import { aiFailure, fail, requireUser } from "@/lib/ai/route";
+import { aiFailure, fail, requireStudent } from "@/lib/ai/route";
 import { consume, release } from "@/lib/ai/quota";
 import { createClient } from "@/lib/supabase/server";
 
@@ -144,7 +144,7 @@ type Marked = {
 };
 
 export async function POST(request: Request) {
-  const user = await requireUser();
+  const user = await requireStudent();
   if (!user.ok) return user.response;
 
   let body: { questionId?: unknown; answer?: unknown };

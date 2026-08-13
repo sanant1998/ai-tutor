@@ -69,13 +69,13 @@ export function ConsentForm({ challengeId }: { challengeId: string }) {
       const payload = await response.json();
 
       if (!response.ok) {
-        setError(payload.error ?? "Kuch gadbad hui.");
+        setError(payload.error ?? "Something went wrong.");
         return;
       }
 
       setDone({ studentName: payload.studentName, granted: payload.granted });
     } catch {
-      setError("Network problem. Dobara try karo.");
+      setError("Network problem. Try again.");
     } finally {
       setBusy(false);
     }
@@ -89,24 +89,24 @@ export function ConsentForm({ challengeId }: { challengeId: string }) {
             <Check className="h-5 w-5" />
           </span>
           <h1 className="font-display text-2xl font-extrabold tracking-[-0.03em]">
-            Anumati mil gayi
+            Permission given
           </h1>
         </div>
 
         <p className="text-[15px] opacity-75">
-          Shukriya. {done.studentName ? `${done.studentName} ka` : "Bachche ka"} account ab
-          chalu ho gaya hai — wo padhai shuru kar sakte hain.
+          Thank you. {done.studentName ? `${done.studentName}’s` : "Your child’s"} account
+          is now active — they can start studying.
         </p>
 
         <p className="text-[14px] opacity-60">
-          Aap kabhi bhi ye anumati wapas le sakte hain, ya bachche ka poora data
-          download ya delete karwa sakte hain. Iske liye app ke Settings me
-          jaayein — kisi se poochhne ki zaroorat nahi.
+          You can withdraw this permission at any time, or download or delete your
+          child’s data in full. It is all in the app’s Settings — you do not have
+          to ask anyone.
         </p>
 
         <p className="text-[13px] opacity-50">
-          Har hafte ek chhota report aapke isi number pe aayega: kitni padhai
-          hui, kya theek chal raha hai, aur kis topic pe dhyan chahiye.
+          A short report comes to this same number every week: how much studying
+          was done, what is going well, and which topic needs attention.
         </p>
       </main>
     );
@@ -115,36 +115,35 @@ export function ConsentForm({ challengeId }: { challengeId: string }) {
   return (
     <main className="mx-auto max-w-lg px-5 py-10">
       <div className="mb-6 flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-black/5 dark:bg-white/10">
+        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[rgb(var(--text-rgb)/0.06)]">
           <ShieldCheck className="h-5 w-5 opacity-70" />
         </span>
         <div>
           <h1 className="font-display text-2xl font-extrabold tracking-[-0.03em]">
-            Parent ki anumati
+            Parent’s permission
           </h1>
           <p className="text-[13px] opacity-55">
-            Aapke bachche ne PaperPath pe account banaya hai
+            Your child has created a PaperPath account
           </p>
         </div>
       </div>
 
       <p className="mb-6 text-[15px] leading-relaxed opacity-80">
-        Kyunki wo 18 saal se kam ke hain, kanoon ke hisaab se unka data istemaal
-        karne se pehle aapki anumati zaroori hai. Neeche likha hai ki hum kya
-        istemaal karenge aur kyun. Har cheez alag hai — jo aap chahein wahi
-        chuniye.
+        Because they are under 18, the law requires your permission before their
+        data can be used. Below is what we would use and why. Each one is a
+        separate choice — pick only what you are happy with.
       </p>
 
       <form onSubmit={submit} className="space-y-6">
         <fieldset className="space-y-3">
           <legend className="mb-2 font-mono text-[11px] font-bold uppercase tracking-[0.16em] opacity-50">
-            App chalne ke liye zaroori
+            Needed for the app to work
           </legend>
 
           {PURPOSES.filter((purpose) => purpose.required).map((purpose) => (
             <label
               key={purpose.key}
-              className="flex cursor-default gap-3 rounded-xl border border-black/10 p-4 dark:border-white/10"
+              className="flex cursor-default gap-3 rounded-xl border border-[rgb(var(--text-rgb)/0.12)] p-4"
             >
               <input
                 type="checkbox"
@@ -163,21 +162,20 @@ export function ConsentForm({ challengeId }: { challengeId: string }) {
           ))}
 
           <p className="text-[13px] opacity-55">
-            In dono ke bina app chal hi nahi sakta. Agar aap sehmat nahi hain to
-            ye page band kar dijiye — account nahi banega aur koi data istemaal
-            nahi hoga.
+            The app cannot work without these two. If you do not agree, simply close
+            this page — no account will be created and no data will be used.
           </p>
         </fieldset>
 
         <fieldset className="space-y-3">
           <legend className="mb-2 font-mono text-[11px] font-bold uppercase tracking-[0.16em] opacity-50">
-            Aapki marzi — mana karne par bhi app poora chalega
+            Up to you — the app works fully either way
           </legend>
 
           {PURPOSES.filter((purpose) => !purpose.required).map((purpose) => (
             <label
               key={purpose.key}
-              className="flex cursor-pointer gap-3 rounded-xl border border-black/10 p-4 dark:border-white/10"
+              className="flex cursor-pointer gap-3 rounded-xl border border-[rgb(var(--text-rgb)/0.12)] p-4"
             >
               <input
                 type="checkbox"
@@ -199,21 +197,21 @@ export function ConsentForm({ challengeId }: { challengeId: string }) {
         <div className="space-y-3">
           <label className="block">
             <span className="mb-1.5 block text-[14px] font-semibold">
-              Aap bachche ke kya lagte hain?
+              What are you to the child?
             </span>
             <select
               value={relation}
               onChange={(event) => setRelation(event.target.value)}
-              className="w-full rounded-xl border border-black/10 bg-transparent px-3 py-2.5 text-[15px] dark:border-white/15"
+              className="w-full rounded-xl border border-[rgb(var(--text-rgb)/0.12)] bg-transparent px-3 py-2.5 text-[15px]"
             >
-              <option value="parent">Mata / Pita</option>
-              <option value="guardian">Abhibhavak (guardian)</option>
+              <option value="parent">Mother / Father</option>
+              <option value="guardian">Guardian</option>
             </select>
           </label>
 
           <label className="block">
             <span className="mb-1.5 block text-[14px] font-semibold">
-              Message me aaya 6 ank ka code
+              The 6-digit code from the message
             </span>
             <input
               value={code}
@@ -221,25 +219,25 @@ export function ConsentForm({ challengeId }: { challengeId: string }) {
               inputMode="numeric"
               autoComplete="one-time-code"
               placeholder="000000"
-              className="w-full rounded-xl border border-black/10 bg-transparent px-3 py-2.5 font-mono text-[18px] tracking-[0.3em] dark:border-white/15"
+              className="w-full rounded-xl border border-[rgb(var(--text-rgb)/0.12)] bg-transparent px-3 py-2.5 font-mono text-[18px] tracking-[0.3em]"
             />
           </label>
         </div>
 
         {error && (
-          <p className="rounded-xl bg-red-500/10 px-4 py-3 text-[14px] text-red-700 dark:text-red-300">
+          <p className="rounded-xl bg-red-500/10 px-4 py-3 text-[14px] text-[var(--danger)]">
             {error}
           </p>
         )}
 
         <Button type="submit" disabled={busy || code.length !== 6} className="w-full py-3">
-          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Anumati deta/deti hoon"}
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "I give permission"}
         </Button>
 
-        <div className="space-y-2 border-t border-black/10 pt-4 text-[12px] opacity-55 dark:border-white/10">
+        <div className="space-y-2 border-t border-[rgb(var(--text-rgb)/0.12)] pt-4 text-[12px] opacity-55">
           <p>
-            Anumati kabhi bhi wapas li ja sakti hai, aur bachche ka poora data
-            download ya delete karwaya ja sakta hai. Policy version{" "}
+            Permission can be withdrawn at any time, and the child’s data can be
+            downloaded or deleted in full. Policy version{" "}
             {POLICY_VERSION}.
           </p>
 
@@ -248,11 +246,11 @@ export function ConsentForm({ challengeId }: { challengeId: string }) {
               in review instead of in a regulator's letter. */}
           {grievanceConfigured() ? (
             <p>
-              Shikayat ke liye: {GRIEVANCE_OFFICER.name} — {GRIEVANCE_OFFICER.email}.
-              Jawab {GRIEVANCE_OFFICER.respondsWithinDays} din ke andar.
+              For complaints: {GRIEVANCE_OFFICER.name} — {GRIEVANCE_OFFICER.email}.
+              A reply within {GRIEVANCE_OFFICER.respondsWithinDays} days.
             </p>
           ) : (
-            <p className="text-amber-700 dark:text-amber-400">
+            <p className="text-[var(--warn)]">
               Grievance officer not configured. Set
               NEXT_PUBLIC_GRIEVANCE_OFFICER_NAME and
               NEXT_PUBLIC_GRIEVANCE_OFFICER_EMAIL before launch — publishing this

@@ -75,7 +75,9 @@ export default async function ParentConsentPage() {
   /* An adult, or a student whose parent has already consented, has no business
      on this page. */
   if (!isMinorFromDob(profile?.dob as string | null) || satisfied) {
-    if (profile?.role === "parent") redirect("/parent");
+    /* A teacher is staff and never goes through the parental consent gate.
+       'parent' used to be a third branch here; parents have no accounts now —
+       they consent from a link on their phone. See lib/roles.ts. */
     if (profile?.role === "teacher") redirect("/teacher");
 
     /* One place decides where a consented student goes, so the consent screen,

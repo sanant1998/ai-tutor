@@ -105,8 +105,34 @@ export const LEVELS: Level[] = [
   },
 ];
 
+/* Where the ladder sits.
+ *
+ * The four bands are the SHAPE of a set and difficulty is its HEIGHT — they
+ * are not competing settings, which is why both exist. A foundation set is
+ * still a ladder; it is just a ladder whose weight is at the bottom.
+ *
+ * This is here because the question route read the student's chosen difficulty,
+ * validated it, and then never used it: the ladder was built from the fixed
+ * shares above whatever they picked, and the dropdown in the UI did nothing at
+ * all. `standard` reproduces those original shares exactly, so the default
+ * behaviour is unchanged and the other two settings now mean something. */
+export type Difficulty = "foundation" | "standard" | "stretch";
+
+export const DIFFICULTIES: Difficulty[] = ["foundation", "standard", "stretch"];
+
+export const DIFFICULTY_SHARES: Record<Difficulty, Record<LevelId, number>> = {
+  foundation: { L1: 0.45, L2: 0.35, L3: 0.15, L4: 0.05 },
+  standard: { L1: 0.3, L2: 0.35, L3: 0.2, L4: 0.15 },
+  stretch: { L1: 0.1, L2: 0.25, L3: 0.35, L4: 0.3 },
+};
+
 /* How many questions of each level make up a set of `total`. */
-export function levelSplit(total: number): Record<LevelId, number> {
+export function levelSplit(
+  total: number,
+  difficulty: Difficulty = "standard",
+): Record<LevelId, number> {
+  const shares = DIFFICULTY_SHARES[difficulty] ?? DIFFICULTY_SHARES.standard;
+
   const split = {} as Record<LevelId, number>;
   let assigned = 0;
 
@@ -114,7 +140,7 @@ export function levelSplit(total: number): Record<LevelId, number> {
     const count =
       index === LEVELS.length - 1
         ? total - assigned
-        : Math.max(1, Math.round(total * level.share));
+        : Math.max(1, Math.round(total * shares[level.id]));
     split[level.id] = count;
     assigned += count;
   });

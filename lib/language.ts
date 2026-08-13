@@ -69,7 +69,20 @@ Plain, warm, simple English. No Hindi words at all. Short sentences. Indian conv
   },
 ];
 
-export const DEFAULT_LANGUAGE: LanguageId = "hinglish";
+/* English is the default; Hinglish and Hindi are a student's choice.
+ *
+ * This was "hinglish", and the note above still argues for that: it is what
+ * these students actually speak, and a tutor answering careful English asks a
+ * thirteen-year-old to translate their own confusion first.
+ *
+ * That argument is about the LESSON, and it is unchanged — a student who picks
+ * Hinglish still gets Hinglish, and the instruction block above is untouched.
+ * What changed is the default, because the rest of the product is now in
+ * English and a default that disagrees with every screen around it is not a
+ * considered choice, it is two products in one app.
+ *
+ * The picker in Settings is where this decision belongs, and it is one tap. */
+export const DEFAULT_LANGUAGE: LanguageId = "en-IN";
 
 export function isLanguage(value: string): value is LanguageId {
   return LANGUAGES.some((language) => language.id === value);
@@ -77,7 +90,16 @@ export function isLanguage(value: string): value is LanguageId {
 
 export function languageOf(value: string | null | undefined): Language {
   const found = LANGUAGES.find((language) => language.id === value);
-  return found ?? LANGUAGES[0];
+
+  /* Falls back to DEFAULT_LANGUAGE, not to LANGUAGES[0].
+   *
+   * They were the same value until the default moved, and then they were not:
+   * every student with a null or unrecognised `language` — which is every
+   * account created before the column was written to — would have gone on
+   * getting Hinglish from here while DEFAULT_LANGUAGE said English. A default
+   * that one code path honours and another ignores is the kind of split that
+   * shows up as "it works on my account". */
+  return found ?? LANGUAGES.find((language) => language.id === DEFAULT_LANGUAGE)!;
 }
 
 /* The block appended to the system prompt.

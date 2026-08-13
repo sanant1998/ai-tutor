@@ -19,7 +19,7 @@
 
 import { NextResponse } from "next/server";
 
-import { fail, requireUser } from "@/lib/ai/route";
+import { fail, requireStudent } from "@/lib/ai/route";
 import { errorKind, type ErrorType } from "@/lib/mastery";
 import { scoped, visibleTo, type Visibility } from "@/lib/tenancy";
 import { createAdminClient, isAdminConfigured } from "@/lib/supabase/admin";
@@ -32,7 +32,7 @@ const MAX_ENTRIES = 5;
 const DRILLS_PER_ENTRY = 3;
 
 export async function GET(request: Request) {
-  const user = await requireUser();
+  const user = await requireStudent();
   if (!user.ok) return user.response;
 
   if (!isAdminConfigured()) {
@@ -83,7 +83,7 @@ export async function GET(request: Request) {
       /* Not "you have no weaknesses" — an empty sheet after no practice is a
          different thing from an empty sheet after fifty questions, and saying
          so stops the screen reading as praise nobody earned. */
-      note: "Abhi koi galti record nahi hui. Thoda practice karo, phir ye sheet apne aap ban jaayegi.",
+      note: "No mistakes recorded yet. Do some practice and this sheet builds itself.",
     });
   }
 

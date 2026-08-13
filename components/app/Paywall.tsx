@@ -96,7 +96,7 @@ export function Paywall({
 
     setStage("error");
     setMessage(
-      "Payment confirm hone me waqt lag raha hai. Paisa kata hai to access apne aap khul jaayega — page refresh karke dekhein.",
+      "The payment is taking a while to confirm. If the money has left your account, access will open by itself — try refreshing the page.",
     );
   };
 
@@ -115,7 +115,7 @@ export function Paywall({
 
       if (!response.ok) {
         setStage("error");
-        setMessage(payload.error ?? "Payment shuru nahi ho paaya.");
+        setMessage(payload.error ?? "The payment could not be started.");
         return;
       }
 
@@ -147,7 +147,7 @@ export function Paywall({
         modal: {
           ondismiss: () => {
             setStage("idle");
-            setMessage("Payment cancel ho gaya. Kabhi bhi dobara try kar sakte hain.");
+            setMessage("Payment cancelled. You can try again whenever you like.");
           },
         },
         theme: { color: "#111111" },
@@ -156,7 +156,7 @@ export function Paywall({
       checkout.open();
     } catch {
       setStage("error");
-      setMessage("Network problem. Dobara try karein.");
+      setMessage("Network problem. Please try again.");
     }
   };
 
@@ -249,7 +249,7 @@ export function Paywall({
       )}
 
       <Button type="button" onClick={() => void start()} disabled={stage === "opening"} className="w-full py-3">
-        {stage === "opening" ? <Loader2 className="h-4 w-4 animate-spin" /> : "UPI se shuru karein"}
+        {stage === "opening" ? <Loader2 className="h-4 w-4 animate-spin" /> : "Start with UPI"}
       </Button>
 
       <p className="text-[12px]" style={{ color: text(0.45) }}>

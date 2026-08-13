@@ -35,6 +35,62 @@ export async function planFor(
   }
 }
 
+/* What the school bought, if a school bought anything.
+ *
+ * licence_plans.ai_credits_per_day is what a seat is sold WITH — the premium
+ * plan says fifteen a day and the price reflects it — and until this existed
+ * it was a number displayed in the admin console and read by nothing. A school
+ * on the premium plan got the free-plan allowance, which is a promise the
+ * product takes money for and then does not keep.
+ *
+ * Returns null for a student with no live seat, which is the direct signup:
+ * their allowance comes from their own subscription, as before.
+ *
+ * Read through the caller's own client, so the policies decide — licence_seats
+ * is readable by the student it belongs to, and licence_plans by anyone signed
+ * in. A student cannot see another child's seat and so cannot inherit their
+ * allowance. */
+export async function seatCreditsFor(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<number | null> {
+  try {
+    const { data } = await supabase
+      .from("licence_seats")
+      .select("licences!inner(status, starts_on, expires_on, licence_plans!inner(ai_credits_per_day))")
+      .eq("student_id", userId)
+      .is("revoked_at", null)
+      .limit(5);
+
+    const today = new Date().toISOString().slice(0, 10);
+
+    const live = (data ?? [])
+      .map((row) => row.licences as unknown as {
+        status: string;
+        starts_on: string;
+        expires_on: string;
+        licence_plans: { ai_credits_per_day: number };
+      })
+      .filter(
+        (licence) =>
+          licence.status === "active" &&
+          licence.starts_on <= today &&
+          licence.expires_on >= today,
+      );
+
+    if (live.length === 0) return null;
+
+    /* Two live seats is a school that bought a second licence mid-year and
+       seated the child on both. The better allowance wins: they are paying for
+       it twice and the child should not get the worse of the two. */
+    return Math.max(...live.map((licence) => Number(licence.licence_plans.ai_credits_per_day ?? 0)));
+  } catch {
+    /* licensing.sql has not run. The subscription plan is the answer, which is
+       what it was before any of this existed. */
+    return null;
+  }
+}
+
 export type ConsumeResult =
   | { ok: true; quota: Quota }
   | { ok: false; message: string; status: number };
@@ -47,7 +103,20 @@ export async function consume(
   action: Action,
 ): Promise<ConsumeResult> {
   const plan = await planFor(supabase, userId);
-  const limit = LIMITS[plan][action];
+  const subscriptionLimit = LIMITS[plan][action];
+
+  /* A school seat, if there is one. The higher of the two wins rather than the
+     seat simply overriding: a parent who also pays for pro while their child
+     is on a school seat has paid twice, and taking the smaller number away
+     from them is the version of this that generates a support ticket.
+
+     Seat credits are a per-day AI allowance and the LIMITS table is per
+     action; the seat number applies to the tutor and marking actions the plan
+     is sold on, and never lowers what the subscription already gave. */
+  const seatCredits = await seatCreditsFor(supabase, userId);
+
+  const limit =
+    seatCredits === null ? subscriptionLimit : Math.max(subscriptionLimit, seatCredits);
 
   const { data, error } = await supabase.rpc("consume_ai_quota", {
     p_action: action,

@@ -31,8 +31,6 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import Anthropic from "@anthropic-ai/sdk";
-
 import type { Concept } from "@/lib/content/pack";
 import { auditEquations, evaluate, formatFraction } from "@/lib/math/verify";
 import { validateFile } from "@/lib/content/validate";
@@ -79,7 +77,8 @@ worked_examples — exactly 2
 - CHECK EVERY CALCULATION. A wrong sum here is worse than no example.
 
 language
-- Simple English with the Hindi words a student actually uses: matlab, socho, dekho, chalo, samajh. Not formal Hindi. Not academic English.
+- Plain English, the way a good teacher speaks it aloud in an Indian classroom. Short sentences. No academic register, no exam-guide phrasing, and no Hindi or Hinglish words — the corpus is English throughout.
+- The SETTINGS stay Indian even though the language does not: rupees, autos, cricket, tiffin, marks, udhaar at the local shop. Never dollars and cookies.
 - All mathematics in LaTeX between $...$.
 
 Return the pack by calling the tool. Write nothing else.`;
@@ -173,41 +172,46 @@ async function main() {
      subject expert twenty minutes of rewriting. */
   const model = process.env.AI_MODEL_STRONG ?? process.env.AI_MODEL ?? "claude-sonnet-5";
 
-  console.log(`Drafting "${conceptTitle}" with ${model}…\n`);
+  console.log(`Drafting "${conceptTitle}" with ${model} (${process.env.AI_PROVIDER ?? "anthropic"})…\n`);
 
-  const client = new Anthropic({
-    apiKey: key,
-    ...(process.env.AI_BASE_URL ? { baseURL: process.env.AI_BASE_URL } : {}),
-  });
+  /* Through lib/ai/client.ts, like every other model call in the product.
+   *
+   * This used to construct `new Anthropic(...)` directly, which meant the one
+   * tool for writing curriculum was the one place that ignored AI_PROVIDER.
+   * Every route respects it — the whole point of that file is that switching
+   * provider is an environment change and no route edits — so a deployment
+   * configured for an OpenAI-compatible endpoint had a working app and an
+   * authoring script that could not run at all. It failed as
+   * `authentication_error: invalid x-api-key`, which reads like a bad key
+   * rather than a request sent to the wrong company.
+   *
+   * `structured()` does exactly what the code below did — force a tool call
+   * against a schema — and does it for either backend. */
+  const { structured } = await import("../lib/ai/client.ts");
 
-  const message = await client.messages.create({
-    model,
-    max_tokens: 4096,
-    system: SYSTEM,
-    messages: [
-      {
-        role: "user",
-        content: `CHAPTER: ${chapter}\nTOPIC: ${topic}\nCONCEPT: ${conceptTitle}\n\nWrite the content pack for this concept.`,
-      },
-    ],
-    tools: [
-      {
-        name: "deliver_pack",
-        description: "Return the finished content pack.",
-        input_schema: SCHEMA as unknown as Anthropic.Tool.InputSchema,
-      },
-    ],
-    tool_choice: { type: "tool", name: "deliver_pack" },
-  });
+  let draft: Omit<Concept, "id" | "seq"> & { title: string };
 
-  const block = message.content.find((part) => part.type === "tool_use");
-
-  if (!block || block.type !== "tool_use") {
-    console.error("The model did not return a pack.");
+  try {
+    draft = await structured({
+      system: SYSTEM,
+      prompt: `CHAPTER: ${chapter}\nTOPIC: ${topic}\nCONCEPT: ${conceptTitle}\n\nWrite the content pack for this concept.`,
+      schema: SCHEMA as unknown as Record<string, unknown>,
+      toolName: "deliver_pack",
+      toolDescription: "Return the finished content pack.",
+      maxTokens: 4096,
+      model,
+    });
+  } catch (error) {
+    console.error(
+      `\nThe model call failed: ${error instanceof Error ? error.message : String(error)}`,
+    );
+    console.error(
+      `\nAI_PROVIDER=${process.env.AI_PROVIDER ?? "(unset, defaults to anthropic)"}, AI_MODEL=${model}.` +
+        "\nFor an OpenAI-compatible endpoint set AI_PROVIDER=openai and, if it is not" +
+        "\nOpenAI itself, AI_BASE_URL as well.",
+    );
     process.exit(1);
   }
-
-  const draft = block.input as Omit<Concept, "id" | "seq"> & { title: string };
 
   const concept: Concept & { topicRef: string } = {
     id: conceptId,

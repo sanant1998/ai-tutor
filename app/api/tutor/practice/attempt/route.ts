@@ -12,13 +12,13 @@
 
 import { NextResponse } from "next/server";
 
-import { fail, requireUser } from "@/lib/ai/route";
+import { fail, requireStudent } from "@/lib/ai/route";
 import { consume, release } from "@/lib/ai/quota";
 import { markAnswer, type MarkableQuestion } from "@/lib/pedagogy/evaluate";
 import { updateTopicMastery } from "@/lib/pedagogy/mastery";
 import { createAdminClient, isAdminConfigured } from "@/lib/supabase/admin";
 import { callerIp, LIMIT_MESSAGE, takeLimit } from "@/lib/ratelimit";
-import { canSee, scoped, visibleTo } from "@/lib/tenancy";
+import { canSee, visibleTo } from "@/lib/tenancy";
 import { createClient } from "@/lib/supabase/server";
 import type { Misconception } from "@/lib/content/pack";
 
@@ -26,7 +26,7 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export async function POST(request: Request) {
-  const user = await requireUser();
+  const user = await requireStudent();
   if (!user.ok) return user.response;
 
   if (!isAdminConfigured()) {

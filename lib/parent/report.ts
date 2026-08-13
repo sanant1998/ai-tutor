@@ -8,7 +8,7 @@
    on next week.
 
    They do not get the transcript. A parent reading what their child typed at
-   eleven at night — the confusion, the "main ye nahi kar sakta" — changes what
+   eleven at night — the confusion, the "I cannot do this" — changes what
    the child is willing to type. The product only works if a student can be
    honest with it, and that stops the moment the conversation has an audience.
 
@@ -124,7 +124,7 @@ export async function buildParentReport(studentId: string): Promise<ParentReport
   }
 
   const dominant = [...counts.entries()].sort((a, b) => b[1] - a[1])[0];
-  const name = (profile?.first_name as string) || "aapke bachche";
+  const name = (profile?.first_name as string) || "your child";
   const quiet = sessionRows.length === 0;
 
   return {
@@ -132,8 +132,8 @@ export async function buildParentReport(studentId: string): Promise<ParentReport
     week: { from: since.slice(0, 10), to: new Date().toISOString().slice(0, 10) },
 
     headline: quiet
-      ? `Is hafte ${name} ne koi session nahi kiya.`
-      : `Is hafte ${sessionRows.length} session, ${minutes} minute padhai.`,
+      ? `${name} did not study at all this week.`
+      : `${sessionRows.length} sessions this week, ${minutes} minutes of study.`,
 
     sessions: sessionRows.length,
     minutes,
@@ -157,10 +157,10 @@ export async function buildParentReport(studentId: string): Promise<ParentReport
       : null,
 
     action: weak[0]
-      ? `Agle hafte ka focus: ${weak[0].topic}.`
+      ? `Next week's focus: ${weak[0].topic}.`
       : quiet
-        ? "Agle hafte ek chhota session bhi kaafi hai — shuruaat hi mushkil hoti hai."
-        : "Agle hafte naye topics shuru kar sakte hain.",
+        ? "One short session next week is enough — starting is the hard part."
+        : "New topics can start next week.",
 
     quiet,
     excluded: ["session transcripts", "individual answers", "safety flags"],
@@ -177,6 +177,6 @@ export function reportTemplateParams(report: ParentReport): string[] {
     String(report.sessions),
     String(report.minutes),
     report.questions.accuracy === null ? "—" : `${report.questions.accuracy}%`,
-    report.weak[0]?.topic ?? "sabhi topics theek chal rahe hain",
+    report.weak[0]?.topic ?? "every topic is going well",
   ];
 }

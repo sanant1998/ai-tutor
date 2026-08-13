@@ -290,7 +290,17 @@ as $$
        where s.user_id = p_user
          and (s.subject_ref is null or s.subject_ref = c.subject_ref)
          and (
-           s.status = 'active'
+           (
+             s.status = 'active'
+             -- The period has to still be running. Without this, 'active' was
+             -- open-ended: the row only leaves that state when a webhook says
+             -- so, and a webhook that stops arriving — rotated secret, paused
+             -- endpoint, a mandate Razorpay gave up retrying — looked exactly
+             -- like a subscription that renews free forever. Null is treated
+             -- as open: a mandate authorised but not yet charged has no period
+             -- end, and that student has paid.
+             and (s.current_period_end is null or s.current_period_end > now())
+           )
            or (s.status = 'past_due' and s.grace_until > now())
          )
     )

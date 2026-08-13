@@ -100,6 +100,11 @@ reference/            the previous site, kept for comparison
 
 ### Theming
 
+The default is Notebook — light, warm paper — and it is the default in CSS as
+well as in `lib/theme.ts`. `:root` used to alias the dark palette, so every
+first paint was dark before ThemeScript swapped in the real theme: a flash for
+everyone, and a permanently dark site for anyone whose scripting failed.
+
 Nine themes, matching the ones the product ships: Notebook (default), Inkwell,
 Midnight, Ocean, Forest, Rose Noir, Ember, Daylight, Warm Paper. Each one
 publishes the same token set on `<html>`, so switching theme is a single class
@@ -420,10 +425,22 @@ good.
 #   billing.sql      subscriptions, invoices, can_access_chapter
 #   ratelimit.sql    per-IP limits
 #   analytics.sql    the built-in event store and health_snapshot()
+#   tenancy.sql      org_id on curriculum, org_admin, licence_is_live
+#   schoolops.sql    boards, grades, academic years, admission numbers,
+#                    teacher_assignments — and the corrected teaches_section
+#   licensing.sql    licence plans, licences, seats, school invoices — and the
+#                    LAST word on can_access_chapter, which three files touch
+#   assessment.sql   homework submissions, tests, attempts, answers
+#   comms.sql        announcements, notifications, audit_logs
 #   cron.sql         pg_cron schedules — edit the URL and secret first
+#
+# Or: npm run db:bundle, then paste supabase/all.sql once. It is every file
+# above except schema.sql and cron.sql, already in this order.
 
 npm run db:check                        # asks the database what it actually has
 npm run db:verify-rls                   # asks it, as two real students, for things they must not have
+npm run db:cron                         # writes cron.generated.sql with the real URL and secret
+npm run db:lint                         # the verification SQL is still safe to paste at production
 npm run content:seed                    # curriculum into Postgres
 node --import ./scripts/register-alias.mjs scripts/razorpay-setup.ts
 
@@ -484,7 +501,196 @@ UPDATE away from letting something change what every student is taught.
 | `/admin/health` | The four numbers, each printed next to the threshold that should alert on it |
 | `/admin/safety` | The flag queue. Urgent count first; every flag needs Actioned or False positive, and there is deliberately no third option |
 | `/admin/content` | Draft → review → publish. No path from a model to the curriculum that skips a human |
-| `/admin/schools` | Orgs, sections, teachers, roster import |
+| `/admin/schools` | One step: org + licence + academic year together. Then seats, sections, teachers, roster import |
+| `/admin/audit` | Who did what to whose school. Append-only, filterable by action and entity. Open to an org admin for their own school — the question every enterprise buyer asks |
+
+### Running a school for a year
+
+`schools.sql` is enough to pilot with one class. Four migrations extend it to
+what a school actually needs across a year, and each is a separate file because
+each answers a different question.
+
+| | |
+| --- | --- |
+| `schoolops.sql` | Academic years, admission and roll numbers, `teacher_assignments`, promotion, bulk imports |
+| `licensing.sql` | `licence_plans`, `licences`, `licence_seats`, school invoices with a separate GST series |
+| `assessment.sql` | Homework coming back, and tests as objects distinct from practice |
+| `comms.sql` | Announcements, the in-app bell, and `audit_logs` |
+| `onboarding.sql` | `onboard_school()`, `assign_seats()`, `school_defaults()` — runs last because it touches all four |
+
+Three things in there are decisions rather than tables:
+
+**Teacher scope now comes from an assignment, not a role.** Before
+`schoolops.sql`, `teaches_section` said yes to the class teacher and to every
+`org_admin` — so the only way to give a subject teacher one class was to make
+them an admin of the whole school, curriculum publishing included. Scope is
+`teacher_assignments` now, which is the shape the timetable already has.
+
+**Nothing on the assessment page is self-service.** `attempts` is written by
+the student's own browser and that is fine — faked practice misleads only the
+student. A test score is read by a teacher and sent to a parent, so marking is
+server-side and every policy there is select-only. Where a student does write —
+submitting homework, marking a notification read — the policy limits the rows
+and a column grant limits the columns, because a row policy alone lets a
+`PATCH` set `marks_obtained`.
+
+**Seats do not lock anyone out yet.** `can_access_chapter` gained a branch for
+a live seat on a live licence, and kept the old one that grants access to any
+member of an org with a future `expires_at`. Every existing org has zero seat
+rows, so making seats mandatory on the same day would lock out every school at
+once and look exactly like an outage. Deleting that last branch is the switch,
+after the backfill at the bottom of `licensing.sql` has been run and read.
+
+`audit_logs` keeps the fact and drops the payload on erasure — who did what and
+when stays provable, what the row said does not. The reasoning is written out
+at the bottom of `comms.sql`; `purge_comms()` runs at 08:15 IST daily, fifteen
+minutes after the main retention job.
+
+Six bugs came out of writing these. Two were older than the files that found
+them; four were in the new files and were caught by reading them rather than by
+running them, which is the argument for `supabase/verify/10-behaviour.sql`
+covering all of it. Taking the two inherited ones first:
+
+**An org with no expiry date had permanent free access.** `licence_is_live`
+reads a null as "no limit at that end", which is right for a start date and
+wrong for an end date — and `/admin/schools` writes `expires_at: body.expiresOn
+?? null`, so an org onboarded without a date typed into the form gave every
+student in that school the whole base curriculum, for ever, with nothing on any
+screen saying so. `can_access_chapter` in `licensing.sql` now requires the date
+to exist. Nothing is live on seats yet, so no existing customer changes.
+
+**A subject teacher could not see their own homework.** The assignments policy
+in `schools.sql` inlined `sections.teacher_id = auth.uid()` instead of calling
+`teaches_section()`, so correcting the function did not reach it — and
+`assignment_submissions` reads through that policy, which meant work came back
+to nobody. `schoolops.sql` replaces the policy with the function call. This is
+the case for the function existing: a check written twice gets fixed once.
+
+And four in the new files, all variations on one theme — `org_id` is
+denormalised onto every tenant table, and nothing was checking it agreed with
+what the row pointed at:
+
+| | |
+| --- | --- |
+| **A row could belong to two schools** | School A's section with School B's `org_id` satisfied every foreign key. The read policies filter on `org_id`, so the row was then served to B carrying A's data. `assert_row_org()` in `schoolops.sql` is one trigger function used by five tables |
+| **A seat could go to a non-member** | `licence_seats` never checked that the student was in the school, and `can_access_chapter` grants the whole covered curriculum to whoever holds a seat. An id pasted into the wrong field was full access |
+| **Moving a seat skipped the cap** | The limit trigger fired on `revoked_at` only, so an UPDATE that changed `licence_id` filled a two-seat licence from another one's rows |
+| **Erasure missed the payloads** | `forget_user_comms` redacted audit rows where the child was the *subject*, and left the ones where their id sat inside somebody else's `before`/`after` — a roster import's payload is exactly that. Also: `import_jobs.errors` names children who have no account yet and nothing ever deleted it, so `purge_import_errors()` now redacts it at 90 days |
+
+### Setting a test, and filling the register
+
+Two things a school needs on day one, and both were tables with no way in.
+
+**The roster import takes identifiers now.** One line per student:
+`email, admission number, roll number`. The last two are optional and a bare
+list of addresses still works — but without them the teacher's class list is
+forty first names with no way to match the school's own register, which is the
+first thing anyone notices. A re-import updates them, because a re-import is
+the office fixing the twelve that were wrong.
+
+**A teacher sets a test by naming a chapter, not by picking questions.** The
+obvious builder — read forty stems, tick twelve — is the one that gets used
+once. `/api/teacher/tests` takes a chapter and a count and picks the paper: a
+third L1, a third L2, the rest L3, deliberately not at random, because a
+"random twelve" that comes out all L3 is a test the class fails for reasons
+that have nothing to do with what they know. L4 is excluded — a whole-class
+test is not where a student meets the stretch band for the first time.
+
+The answers never reach the browser. The route selects ids and writes join
+rows; `bank_questions` still has no select policy, and a builder that echoed
+the paper into a teacher's tab would make that policy pointless.
+
+Tests are created as drafts. The policy on `tests` shows a published one to the
+whole class immediately, so publishing is a second, deliberate click.
+
+### Both loops close now
+
+The tables for tests and homework were applied, policed and tested before
+anything could reach them — a teacher could set work and no screen existed to
+do it or hand it in. Both halves exist now.
+
+| | |
+| --- | --- |
+| `/tests` → `/tests/[id]` | A student sits the paper. Every question on one page, nothing marked until submit |
+| `/homework` | Submit, edit before it is marked, read the mark and the comment after |
+| `/teacher/[sectionId]` | Set a test from a chapter; collect and mark homework in the same screen as the heatmap |
+
+Three decisions in there worth knowing:
+
+**A test shows the whole paper at once.** Practice marks each answer as it is
+given, because the correction should arrive while the thinking is warm. A test
+cannot: a student who learns question three was wrong will change question
+four, and the score stops meaning anything. So nothing is marked until submit.
+
+**The timer does not submit.** It counts down and goes red and says when it
+hits zero. A fourteen-year-old on a phone with a bad connection losing an
+hour's work to a clock is the support call that ends a pilot — the window is
+enforced by `closes_at` server-side, and the clock on screen is a reminder.
+
+**Marking uses the same `markAnswer()` as practice.** Two marking
+implementations disagreeing about what counts as correct is a bug nobody finds
+until a parent asks why the same answer scored differently in two places. The
+answer key is read from `bank_questions` at submit time and no earlier response
+in the flow contains it.
+
+### Checking the policies actually behave
+
+`supabase/verify/10-behaviour.sql`, pasted into the Supabase SQL editor after
+the migrations. It signs in as a teacher, a classmate, an outsider and an org
+admin, asks each of them for things they must and must not have, and prints one
+PASS or FAIL per assertion as a NOTICE. All six bugs above are in it.
+
+It runs inside a transaction and ends in ROLLBACK, so the school, the users and
+the invoice it creates exist only for the length of the run. The one thing a
+rollback cannot undo is a sequence — `nextval` is non-transactional by design —
+so the invoice number is captured at the top and restored at the bottom, and
+the gapless series an auditor checks stays gapless.
+
+Two things it is not. It is not `db:verify-rls`, which signs in as two real
+students over PostgREST with real JWTs and is the only thing that proves the
+anon key, the policy and the API agree. And it is not a substitute for reading
+the policy: an assertion can only fail for a case somebody thought of.
+
+**Adding a section: put it above the teardown banner.** Below that line is the
+sequence restore and the ROLLBACK, and a section appended past it does not
+fail — it runs against the real database, outside the transaction, and its
+fixtures stay there. That has happened once already, and it was caught by luck
+rather than by anything. `npm run db:lint` is what catches it now: BEGIN first,
+ROLLBACK last, nothing executable after it, no psql meta-commands, no duplicate
+section numbers, and no fixture used before the statement that creates it. CI
+runs it on every push.
+
+### Onboarding, both kinds
+
+**A school is onboarded in one call.** It used to be five writes from the
+console with no transaction across them, and the failure mode was the
+expensive one: the org is created, the licence is not, and what exists is a
+school that looks exactly like one whose paperwork has not been entered yet.
+Nobody finds it until the students cannot open anything. `onboard_school()`
+creates the org, its licence and its first academic year together or not at
+all, refuses a licence with no expiry date, takes authoring rights from the
+plan rather than a checkbox, and writes what it did to `audit_logs`.
+
+It is also revoked from `anon` and `authenticated`. Authorisation for it is
+`ADMIN_EMAILS`, which the database deliberately cannot see — so without the
+revoke, `POST /rest/v1/rpc/onboard_school` from any student's browser creates
+a school with a licence.
+
+**A school student is asked less.** Onboarding asks for board and class; for a
+child whose school bought the seat, both are already recorded — `orgs.board`
+and the section's class level — and asking anyway means they can answer
+wrongly. Then the roadmap is built for a class they are not in and the
+teacher's heatmap shows them as having done nothing, because nothing they did
+was against their class's topics. Neither screen looks broken. `/onboarding`
+now reads `school_defaults()` and shows those two as facts instead. A direct
+signup — the parent who found the app — still answers everything, because for
+them nobody else knows.
+
+The roster import leaves an `import_jobs` row behind: counts, and the row
+numbers that failed. Not the addresses. The route already refused to store the
+emails of children who have not signed up, and a failed row is one of those
+with a typo in it — the person fixing it has the spreadsheet open, so "row 14"
+is the whole fix.
 
 ### Ops
 
@@ -516,11 +722,10 @@ that has never been restored is not a backup.
 | `/practice/[topicId]` | One question at a time. A wrong option comes back with the **belief that produces it** — not a red cross |
 | `/fix-sheet/tutor` | Printable. Built by query from `error_events`, no model call |
 | `/privacy` | Consent state, per-purpose withdrawal, export, deletion. One tap from the nav |
-| `/parent` | Five numbers and one instruction. Thirty seconds a week |
 | `/parent-consent` → `/consent/[id]` | The student asks, the parent grants on their own phone |
 | `/teacher/[sectionId]` | Heatmap first, class list second |
 | `/admin/content` | JSON left, rendered student view right, publish blocked on validation errors |
-| `/admin/schools` | Orgs, sections, teachers, roster import |
+| `/admin/schools` | One step: org + licence + academic year together. Then seats, sections, teachers, roster import |
 
 Two things on these screens are load-bearing rather than cosmetic. The **fix
 sheet prints** — Indian parents put things on walls, and a diagnosis on a wall
@@ -539,7 +744,7 @@ somewhere, a person, or a year of writing.
 
 | | |
 | --- | --- |
-| **Nothing has run against a live database** | Eight SQL files, none executed. `npm run db:check` verifies presence and `npm run db:verify-rls` verifies behaviour — both exist and neither has run. Do this first; it is the largest untested surface in the project |
+| **The app is not deployed, so the weekly parent report is not scheduled** | `npm run db:cron` writes the four database jobs — `purge_expired_data`, `purge_comms`, `purge_import_errors`, `expire_grace` — with no URL needed, and leaves the report out until there is a deployment to point at. It probes first: `paperpath.com` answers 405, so something serves that domain and it is not this app. **Retention no longer waits on any of that** — paste `supabase/cron.generated.sql` and it runs |
 | **Someone to own the flag queue** | `/admin/safety` is now the tool. It has no owner. `lib/safety/escalate.ts` messages a parent on self-harm and the student sees helplines, but no trained human reads the queue. Before this goes past a pilot, that is a person |
 | Legal review | `docs/legal-review.md` is the brief — the five open questions, the data inventory as implemented, and what to read in what order. Roughly an hour of counsel's time |
 | WhatsApp templates | The four in `docs/whatsapp-templates.md` must be **approved** in the Meta console. The API returns 200 for an unapproved template and nothing arrives |
@@ -567,4 +772,11 @@ of `lib/safety/escalate.ts`; change the conditions there and nowhere else.
 - The dev server caches Tailwind's config. After editing `tailwind.config.ts`,
   restart it — a running server will keep serving the old utilities.
 - Running `next build` while `next dev` is up will break the dev server's
-  chunks. Stop one before running the other.
+  chunks. Stop one before running the other — and the same goes for two builds
+  at once, from two terminals or two agent sessions. `.next` is not written
+  atomically, so what is left is pieces of both: `PageNotFoundError:
+  /_document`, `Cannot read properties of undefined (reading 'call')` in
+  `webpack-runtime.js`, or a build that finishes and covers one route.
+  `npm run check:bundle` refuses to measure that rather than reporting it —
+  it once printed `/ is 2488 KB` for a route that was 130 KB minutes earlier.
+  The fix is always `rm -rf .next && npm run build`, once, on its own.

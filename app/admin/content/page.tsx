@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import { ContentConsole } from "@/components/admin/ContentConsole";
 import { requireContentAccess } from "@/lib/admin/access";
+import { canAuthor } from "@/lib/tenancy";
 
 /* The content console.
  *
@@ -37,11 +38,26 @@ export default async function AdminContentPage() {
     );
   }
 
+  /* Whether the upload box appears at all.
+   *
+   * A super admin always may — they write the shared curriculum. An institute
+   * may only if its licence includes authoring, which is a commercial line
+   * rather than a technical one (orgs.can_author). Resolved here rather than
+   * in the browser so the answer arrives with the page: the API enforces the
+   * same rule, and offering a control that is going to be refused is worse
+   * than not offering it. */
+  const mayAuthor =
+    admin.visibility.superAdmin ||
+    (await Promise.all(admin.visibility.adminOf.map((org) => canAuthor(org)))).some(
+      Boolean,
+    );
+
   return (
     <ContentConsole
       reviewer={admin.email}
       superAdmin={admin.visibility.superAdmin}
       orgIds={admin.visibility.adminOf}
+      canAuthor={mayAuthor}
     />
   );
 }

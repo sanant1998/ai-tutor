@@ -14,14 +14,32 @@
  * round.
  *
  * Type-only imports need nothing here: node strips them before resolution, so
- * a module whose only "@/" imports are types already loads. */
+ * a module whose only "@/" imports are types already loads.
+ *
+ * ---------------------------------------------------------------------------
+ * AND "server-only", WHICH IS NOT A REAL DEPENDENCY
+ *
+ * `import "server-only"` is a build-time assertion: the package's whole body
+ * is a throw, and bundling it into a browser build is what is supposed to fail.
+ * Under plain node the throw fires anyway — the package cannot tell a script
+ * from a client bundle — so every module that guards itself this way was
+ * unimportable from a script, which is most of lib/.
+ *
+ * A script is not a browser, so the assertion has nothing to say here and is
+ * resolved to an empty module. This is not a loosening: the guard still fires
+ * for real client bundles, which is the only place it ever meant anything. */
 
 import { registerHooks } from "node:module";
 
 const ROOT = new URL("../", import.meta.url);
+const EMPTY = new URL("./empty-module.mjs", import.meta.url).href;
 
 registerHooks({
   resolve(specifier, context, nextResolve) {
+    if (specifier === "server-only" || specifier === "client-only") {
+      return { url: EMPTY, shortCircuit: true };
+    }
+
     if (!specifier.startsWith("@/")) return nextResolve(specifier, context);
 
     const base = new URL(specifier.slice(2), ROOT).href;

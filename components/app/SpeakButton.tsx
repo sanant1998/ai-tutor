@@ -1,6 +1,6 @@
 "use client";
 
-/* "Padho zor se."
+/* "Read it aloud."
  *
  * ---------------------------------------------------------------------------
  * ONE BUTTON PER MESSAGE, AND NOTHING AUTOMATIC
@@ -70,7 +70,7 @@ export function SpeakButton({
         const payload = type.includes("json")
           ? await response.json().catch(() => ({}))
           : {};
-        setError(payload.error ?? "Awaaz nahi chali.");
+        setError(payload.error ?? "The audio would not play.");
         setState("idle");
         return;
       }
@@ -80,7 +80,7 @@ export function SpeakButton({
         : URL.createObjectURL(await response.blob());
 
       if (!url) {
-        setError("Awaaz nahi mili.");
+        setError("No audio came back.");
         setState("idle");
         return;
       }
@@ -90,7 +90,7 @@ export function SpeakButton({
 
       element.onended = () => setState("idle");
       element.onerror = () => {
-        setError("Chal nahi paayi.");
+        setError("It would not play.");
         setState("idle");
       };
 
@@ -108,7 +108,7 @@ export function SpeakButton({
         type="button"
         onClick={() => void play()}
         disabled={state === "loading"}
-        aria-label={state === "playing" ? "Awaaz band karo" : "Zor se padho"}
+        aria-label={state === "playing" ? "Stop the audio" : "Read aloud"}
         className="inline-flex h-7 w-7 items-center justify-center rounded-lg transition-opacity disabled:opacity-50"
         style={{ color: text(0.45) }}
       >

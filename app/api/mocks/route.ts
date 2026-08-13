@@ -7,7 +7,7 @@ import { NextResponse } from "next/server";
 
 import { structured } from "@/lib/ai/client";
 import { BOARD_CONTEXT, HOUSE_STYLE } from "@/lib/ai/style";
-import { aiFailure, fail, readScope, requireUser } from "@/lib/ai/route";
+import { aiFailure, fail, readScope, requireStudent } from "@/lib/ai/route";
 import { consume, release } from "@/lib/ai/quota";
 import { scopeLine } from "@/lib/ai/scope";
 import { createClient } from "@/lib/supabase/server";
@@ -60,7 +60,7 @@ type Paper = {
 const DURATIONS = [30, 60, 90] as const;
 
 export async function POST(request: Request) {
-  const user = await requireUser();
+  const user = await requireStudent();
   if (!user.ok) return user.response;
 
   /* Mocks are set at unit level, so no topic is required. */

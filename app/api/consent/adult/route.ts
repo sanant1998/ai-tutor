@@ -40,6 +40,7 @@ import { NextResponse } from "next/server";
 import { fail, requireUser } from "@/lib/ai/route";
 import { ADULT_AGE, ageFrom, plausibleDob } from "@/lib/consent/age";
 import { POLICY_VERSION, PURPOSES } from "@/lib/consent/purposes";
+import { isStoredRole, type StoredRole } from "@/lib/roles";
 import { createAdminClient, isAdminConfigured } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -66,7 +67,7 @@ export async function POST(request: Request) {
    * This route used to divide by 365.25, which is close enough almost always
    * and wrong on exactly the day it decides whether a parent must be asked. */
   if (!plausibleDob(dob)) {
-    return fail("Ye date theek nahi lag rahi. YYYY-MM-DD format me daaliye.", 400);
+    return fail("That date does not look right. Please use YYYY-MM-DD.", 400);
   }
 
   const years = ageFrom(new Date(dob));
@@ -82,11 +83,15 @@ export async function POST(request: Request) {
     return NextResponse.json({
       adult: false,
       next: "/parent-consent",
-      note: "18 saal se kam ho, to parent ki anumati chahiye.",
+      note: "Under 18, so a parent\u2019s permission is needed.",
     });
   }
 
-  const role = body.role === "parent" || body.role === "teacher" ? body.role : "student";
+  /* Two roles are storable, and 'parent' is no longer one of them: a parent
+     does not have an account at all, they consent from a link on their phone.
+     Anything unrecognised falls to student, which is the least privileged of
+     the two and the only safe direction for a default. See lib/roles.ts. */
+  const role: StoredRole = isStoredRole(body.role) ? body.role : "student";
 
   await admin
     .from("profiles")
@@ -138,6 +143,7 @@ export async function POST(request: Request) {
   return NextResponse.json({
     adult: true,
     role,
-    next: role === "teacher" ? "/teacher" : role === "parent" ? "/parent" : "/onboarding",
+    /* A teacher is finished; a student still has revision setup to do. */
+    next: role === "teacher" ? "/teacher" : "/onboarding",
   });
 }

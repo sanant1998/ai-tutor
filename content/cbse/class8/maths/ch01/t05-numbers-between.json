@@ -5,9 +5,13 @@
   "provenance": {
     "source": "NCERT Mathematics Class 8, Chapter 1 'Rational Numbers' — rational numbers between two rational numbers, and representation on the number line. The misconceptions are the ones this topic reliably produces: carrying over the integer intuition that numbers have neighbours, and comparing negative fractions by size of digits.",
     "verifiedOn": "2026-08-12",
-    "note": "m1 (thinking two fractions can be 'next to each other') is the deepest misconception in the whole chapter. It is not carelessness — it is a correct intuition about integers being applied where it does not hold, and a student who does not lose it will struggle with real numbers in Class 9."
+    "note": "m1 (thinking two fractions can be 'next to each other') is the deepest misconception in the whole chapter. It is not carelessness — it is a correct intuition about integers being applied where it does not hold, and a student who does not lose it will struggle with real numbers in Class 9. Prose translated to en-IN by scripts/translate-pack.ts using gpt-5.5 (76 of 76 strings); LaTeX, answers and distractor maps unchanged by construction. Not read by a subject expert since."
   },
-  "subject": { "id": "cbse-8-maths", "name": "Mathematics", "language": "en-IN" },
+  "subject": {
+    "id": "cbse-8-maths",
+    "name": "Mathematics",
+    "language": "en-IN"
+  },
   "chapter": {
     "id": "c8-math-ch1",
     "no": 1,
@@ -20,211 +24,310 @@
     "id": "c8-math-ch1-t5",
     "no": 5,
     "title": "Rational Numbers Between Two Rational Numbers",
-    "prereqTopicIds": ["c8-math-ch1-t1", "c8-math-ch1-t2"]
+    "prereqTopicIds": [
+      "c8-math-ch1-t1",
+      "c8-math-ch1-t2"
+    ]
   },
-
   "concepts": [
     {
       "id": "c8-math-ch1-t5-c1",
       "seq": 1,
       "title": "Comparing rational numbers on the number line",
-      "statement": "Number line pe jo number daayein (right) hota hai wo bada hota hai. Do rational numbers compare karne ke liye unka denominator ek jaisa banao, phir numerator dekho. Negative numbers me jiska 'size' bada hai wo chhota hota hai.",
-      "hook": "Socho do doston ke paas paisa hai — ek pe ₹200 ka karza hai aur doosre pe ₹500 ka. Kaun behtar haalat me hai? Wo jispe kam karza hai, yaani $-200$. Number line pe $-200$, $-500$ ke daayein baithta hai. Ab sawal: $-\\frac{2}{3}$ aur $-\\frac{5}{6}$ me kaun bada hai?",
+      "statement": "The number that is on the right on the number line is bigger. To compare two rational numbers, make their denominators the same, then look at the numerators. In negative numbers, the one with the bigger 'size' is smaller.",
+      "hook": "Think of two friends who owe money — one has a debt of ₹200 and the other has a debt of ₹500. Who is in a better position? The one with less debt, that is $-200$. On the number line, $-200$ sits to the right of $-500$. Now the question: which is bigger, $-\\frac{2}{3}$ or $-\\frac{5}{6}$?",
       "analogies": [
         {
           "id": "a1",
-          "text": "Temperature: $-2°$ aur $-8°$ me $-2°$ zyada garam hai, chahe 8 bada number dikhta ho."
+          "text": "Temperature: between $-2°$ and $-8°$, $-2°$ is warmer, even if 8 looks like the bigger number."
         },
         {
           "id": "a2",
-          "text": "Lift ka basement: B2 aur B5 me B2 upar hai — zameen ke zyada kareeb."
+          "text": "Basement in a lift: between B2 and B5, B2 is higher — closer to the ground floor."
         }
       ],
       "formulas": [
         {
           "id": "f1",
           "latex": "\\frac{a}{b} < \\frac{c}{d} \\iff ad < cb \\quad (b, d > 0)",
-          "note": "Cross-multiply karke compare karo — par denominator dono positive hone chahiye."
+          "note": "Compare by cross-multiplying — but both denominators must be positive."
         },
         {
           "id": "f2",
           "latex": "-\\frac{5}{6} < -\\frac{2}{3} < 0 < \\frac{2}{3}",
-          "note": "Negative side pe bada dikhne wala number chhota hota hai."
+          "note": "On the negative side, the number that looks bigger is smaller."
         }
       ],
       "misconceptions": [
         {
           "id": "m1",
-          "wrong_belief": "$-\\frac{5}{6}$, $-\\frac{2}{3}$ se bada hai kyunki 5 aur 6, 2 aur 3 se bade hain.",
-          "why_wrong": "Negative side pe ulta chalta hai. $-\\frac{5}{6}$ zero se zyada door hai, yaani zyada 'neeche' — isliye chhota hai. Karze wali baat yaad karo: zyada karza matlab buri haalat.",
-          "correction": "Negative me jitna bada size, utna chhota number. $-\\frac{5}{6} < -\\frac{2}{3}$.",
-          "probe": "$-2$ aur $-8$ me kaun bada hai? Ab wahi soch $-\\frac{5}{6}$ aur $-\\frac{2}{3}$ pe lagao."
+          "wrong_belief": "$-\\frac{5}{6}$ is bigger than $-\\frac{2}{3}$ because 5 and 6 are bigger than 2 and 3.",
+          "why_wrong": "On the negative side, it works the other way. $-\\frac{5}{6}$ is farther from zero, that is, more 'down' — so it is smaller. Remember the debt example: more debt means a worse position.",
+          "correction": "In negatives, the bigger the size, the smaller the number. $-\\frac{5}{6} < -\\frac{2}{3}$.",
+          "probe": "Which is bigger, $-2$ or $-8$? Now use the same thinking for $-\\frac{5}{6}$ and $-\\frac{2}{3}$."
         },
         {
           "id": "m2",
-          "wrong_belief": "Do fractions compare karne ke liye numerator aur denominator alag-alag compare kar lo — $\\frac{3}{7}$, $\\frac{2}{5}$ se bada hai kyunki 3 > 2 aur 7 > 5.",
-          "why_wrong": "Fraction ek hi number hai, do nahi. Upar-neeche alag compare karne ka koi matlab nahi — $\\frac{1}{2}$ aur $\\frac{3}{100}$ dekho: 3 > 1 hai, par $\\frac{3}{100}$ bahut chhota hai.",
-          "correction": "Denominator same banao, phir numerator dekho. Ya cross-multiply karo.",
-          "probe": "$\\frac{1}{2}$ aur $\\frac{3}{100}$ me kaun bada hai? Numerator dekhkar batao — kya wo tareeka kaam kiya?"
+          "wrong_belief": "To compare two fractions, compare the numerator and denominator separately — $\\frac{3}{7}$ is bigger than $\\frac{2}{5}$ because 3 > 2 and 7 > 5.",
+          "why_wrong": "A fraction is one number, not two. Comparing the top and bottom separately has no meaning — look at $\\frac{1}{2}$ and $\\frac{3}{100}$: 3 > 1, but $\\frac{3}{100}$ is very small.",
+          "correction": "Make the denominators the same, then look at the numerators. Or cross-multiply.",
+          "probe": "Which is bigger, $\\frac{1}{2}$ or $\\frac{3}{100}$? Tell by looking at the numerator — did that method work?"
         },
         {
           "id": "m3",
-          "wrong_belief": "$\\frac{1}{2}$ aur $\\frac{1}{3}$ ke beech koi rational number nahi hai — ye 'aas-paas' wale numbers hain.",
-          "why_wrong": "Integers me 2 aur 3 ke beech kuch nahi hota, par rational numbers me aisa nahi. Kisi bhi do rational numbers ke beech ANANT rational numbers hote hain. Beech wala nikalne ka aasan tareeka: dono ka average lo.",
-          "correction": "Do rational numbers ke beech hamesha aur numbers hote hain — anant. Average lo, aur beech wala mil jaayega.",
-          "probe": "$\\frac{1}{2}$ aur $\\frac{1}{3}$ ka average nikalo. Kya wo dono ke beech me aata hai?"
+          "wrong_belief": "There is no rational number between $\\frac{1}{2}$ and $\\frac{1}{3}$ — these are 'next to each other' numbers.",
+          "why_wrong": "In integers, there is nothing between 2 and 3, but rational numbers are not like that. Between any two rational numbers, there are infinitely many rational numbers. An easy way to find one in between: take the average of the two.",
+          "correction": "There are always more numbers between two rational numbers — infinitely many. Take the average, and you will get a number in between.",
+          "probe": "Find the average of $\\frac{1}{2}$ and $\\frac{1}{3}$. Does it come between both of them?"
         },
         {
           "id": "m4",
-          "wrong_belief": "Beech ka number nikalne ke liye numerator aur denominator ka alag-alag average le lo — $\\frac{1}{2}$ aur $\\frac{1}{4}$ ke beech $\\frac{1}{3}$ hai.",
-          "why_wrong": "Ye sanyog se kabhi-kabhi kaam kar jaata hai aur usse bharosa ban jaata hai. Sahi tareeka poore numbers ka average hai: $\\frac{1}{2}$ aur $\\frac{1}{4}$ ka average $\\frac{3}{8}$ hai, $\\frac{1}{3}$ nahi.",
-          "correction": "Average matlab $\\frac{a + b}{2}$ — poore numbers jodo, phir 2 se bhaag do.",
-          "probe": "$\\frac{1}{2}$ aur $\\frac{1}{4}$ ko jodo aur 2 se bhaag do. Kya $\\frac{1}{3}$ aaya?"
+          "wrong_belief": "To find the number in between, take the average of the numerators and denominators separately — between $\\frac{1}{2}$ and $\\frac{1}{4}$, $\\frac{1}{3}$ lies in between.",
+          "why_wrong": "This works by chance sometimes, and that builds confidence. The correct method is to take the average of the whole numbers: the average of $\\frac{1}{2}$ and $\\frac{1}{4}$ is $\\frac{3}{8}$, not $\\frac{1}{3}$.",
+          "correction": "Average means $\\frac{a + b}{2}$ — add the whole numbers, then divide by 2.",
+          "probe": "Add $\\frac{1}{2}$ and $\\frac{1}{4}$ and divide by 2. Did you get $\\frac{1}{3}$?"
         }
       ],
       "worked_examples": [
         {
           "id": "we1",
-          "problem": "$-\\frac{2}{3}$ aur $-\\frac{5}{6}$ me kaun bada hai?",
+          "problem": "Which is bigger, $-\\frac{2}{3}$ or $-\\frac{5}{6}$?",
           "steps": [
-            "Denominator same banao: $-\\frac{2}{3} = -\\frac{4}{6}$",
-            "Ab dono ka denominator 6 hai: $-\\frac{4}{6}$ aur $-\\frac{5}{6}$",
-            "Negative side pe kam size wala bada hota hai, aur 4 < 5",
-            "Isliye $-\\frac{4}{6} > -\\frac{5}{6}$, yaani $-\\frac{2}{3}$ bada hai"
+            "Make the denominators the same: $-\\frac{2}{3} = -\\frac{4}{6}$",
+            "Now both have denominator 6: $-\\frac{4}{6}$ and $-\\frac{5}{6}$",
+            "On the negative side, the one with smaller size is bigger, and 4 < 5",
+            "So $-\\frac{4}{6} > -\\frac{5}{6}$, that is, $-\\frac{2}{3}$ is bigger"
           ],
           "answer": "$-\\frac{2}{3}$ bada hai"
         },
         {
           "id": "we2",
-          "problem": "$\\frac{1}{3}$ aur $\\frac{1}{2}$ ke beech ek rational number nikalo.",
+          "problem": "Find one rational number between $\\frac{1}{3}$ and $\\frac{1}{2}$.",
           "steps": [
-            "Average lo: $\\frac{1}{2}\\left(\\frac{1}{3} + \\frac{1}{2}\\right)$",
-            "Bracket pehle: $\\frac{1}{3} + \\frac{1}{2} = \\frac{2}{6} + \\frac{3}{6} = \\frac{5}{6}$",
-            "Ab 2 se bhaag: $\\frac{5}{6} \\div 2 = \\frac{5}{12}$",
-            "Check: $\\frac{1}{3} = \\frac{4}{12}$, $\\frac{1}{2} = \\frac{6}{12}$, aur $\\frac{5}{12}$ theek beech me hai"
+            "Take the average: $\\frac{1}{2}\\left(\\frac{1}{3} + \\frac{1}{2}\\right)$",
+            "Bracket first: $\\frac{1}{3} + \\frac{1}{2} = \\frac{2}{6} + \\frac{3}{6} = \\frac{5}{6}$",
+            "Now divide by 2: $\\frac{5}{6} \\div 2 = \\frac{5}{12}$",
+            "Check: $\\frac{1}{3} = \\frac{4}{12}$, $\\frac{1}{2} = \\frac{6}{12}$, and $\\frac{5}{12}$ is exactly in between"
           ],
           "answer": "$\\frac{5}{12}$"
         },
         {
           "id": "we3",
-          "problem": "$\\frac{1}{4}$ aur $\\frac{1}{2}$ ke beech teen rational numbers nikalo.",
+          "problem": "Find three rational numbers between $\\frac{1}{4}$ and $\\frac{1}{2}$.",
           "steps": [
-            "Dono ko ek bade common denominator pe le jao: $\\frac{1}{4} = \\frac{2}{8}$ aur $\\frac{1}{2} = \\frac{4}{8}$",
-            "Beech me sirf $\\frac{3}{8}$ dikha — teen chahiye, to denominator aur bada karo",
-            "$\\frac{1}{4} = \\frac{4}{16}$ aur $\\frac{1}{2} = \\frac{8}{16}$",
-            "Ab beech me teen mil gaye: $\\frac{5}{16}, \\frac{6}{16}, \\frac{7}{16}$"
+            "Take both to a bigger common denominator: $\\frac{1}{4} = \\frac{2}{8}$ and $\\frac{1}{2} = \\frac{4}{8}$",
+            "Only $\\frac{3}{8}$ showed up in between — we need three, so make the denominator bigger",
+            "$\\frac{1}{4} = \\frac{4}{16}$ and $\\frac{1}{2} = \\frac{8}{16}$",
+            "Now we got three in between: $\\frac{5}{16}, \\frac{6}{16}, \\frac{7}{16}$"
           ],
           "answer": "$\\frac{5}{16}, \\frac{6}{16}, \\frac{7}{16}$ (aur bhi anant hain)"
         }
       ]
     }
   ],
-
   "questions": [
     {
       "id": "q-c8m-ch1-0091",
       "conceptId": "c8-math-ch1-t5-c1",
       "qtype": "mcq",
       "level": "L1",
-      "stem": "$-\\frac{2}{3}$ aur $-\\frac{5}{6}$ me kaun bada hai?",
+      "stem": "Which is bigger, $-\\frac{2}{3}$ or $-\\frac{5}{6}$?",
       "options": [
-        { "key": "A", "text": "$-\\frac{2}{3}$" },
-        { "key": "B", "text": "$-\\frac{5}{6}$" },
-        { "key": "C", "text": "Dono barabar hain" },
-        { "key": "D", "text": "Negative numbers compare nahi kiye ja sakte" }
+        {
+          "key": "A",
+          "text": "$-\\frac{2}{3}$"
+        },
+        {
+          "key": "B",
+          "text": "$-\\frac{5}{6}$"
+        },
+        {
+          "key": "C",
+          "text": "Both are equal"
+        },
+        {
+          "key": "D",
+          "text": "Negative numbers cannot be compared"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m1", "C": "m2", "D": "m1" },
-      "solution": "$-\\frac{2}{3} = -\\frac{4}{6}$. Ab $-\\frac{4}{6}$ aur $-\\frac{5}{6}$ — negative side pe kam size wala bada hota hai, to $-\\frac{4}{6}$ bada hai. Number line pe wo daayein baithta hai."
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m1",
+        "C": "m2",
+        "D": "m1"
+      },
+      "solution": "$-\\frac{2}{3} = -\\frac{4}{6}$. Now $-\\frac{4}{6}$ and $-\\frac{5}{6}$ — on the negative side, the one with smaller size is bigger, so $-\\frac{4}{6}$ is bigger. On the number line, it sits to the right."
     },
     {
       "id": "q-c8m-ch1-0092",
       "conceptId": "c8-math-ch1-t5-c1",
       "qtype": "mcq",
       "level": "L1",
-      "stem": "$\\frac{1}{2}$ aur $\\frac{3}{100}$ me kaun bada hai?",
+      "stem": "Which is bigger, $\\frac{1}{2}$ or $\\frac{3}{100}$?",
       "options": [
-        { "key": "A", "text": "$\\frac{1}{2}$" },
-        { "key": "B", "text": "$\\frac{3}{100}$" },
-        { "key": "C", "text": "Dono barabar" },
-        { "key": "D", "text": "Bata nahi sakte" }
+        {
+          "key": "A",
+          "text": "$\\frac{1}{2}$"
+        },
+        {
+          "key": "B",
+          "text": "$\\frac{3}{100}$"
+        },
+        {
+          "key": "C",
+          "text": "Both are equal"
+        },
+        {
+          "key": "D",
+          "text": "Cannot say"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m2", "C": "m2", "D": "m3" },
-      "solution": "$\\frac{1}{2} = \\frac{50}{100}$, jo $\\frac{3}{100}$ se kaafi bada hai. Numerator alag se dekhna (3 > 1) yahan poori tarah galat jawab deta hai — fraction ek hi number hai."
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m2",
+        "C": "m2",
+        "D": "m3"
+      },
+      "solution": "$\\frac{1}{2} = \\frac{50}{100}$, which is much bigger than $\\frac{3}{100}$. Looking at the numerator separately (3 > 1) gives a completely wrong answer here — a fraction is one number."
     },
     {
       "id": "q-c8m-ch1-0093",
       "conceptId": "c8-math-ch1-t5-c1",
       "qtype": "mcq",
       "level": "L2",
-      "stem": "$\\frac{1}{3}$ aur $\\frac{1}{2}$ ke beech kitne rational numbers hain?",
+      "stem": "How many rational numbers are there between $\\frac{1}{3}$ and $\\frac{1}{2}$?",
       "options": [
-        { "key": "A", "text": "Anant (infinite)" },
-        { "key": "B", "text": "Ek bhi nahi — ye aas-paas wale numbers hain" },
-        { "key": "C", "text": "Sirf ek" },
-        { "key": "D", "text": "Do" }
+        {
+          "key": "A",
+          "text": "Infinitely many (infinite)"
+        },
+        {
+          "key": "B",
+          "text": "None at all — these are next to each other numbers"
+        },
+        {
+          "key": "C",
+          "text": "Only one"
+        },
+        {
+          "key": "D",
+          "text": "Two"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m3", "C": "m4", "D": "m3" },
-      "solution": "Kisi bhi do alag rational numbers ke beech anant rational numbers hote hain. Ek nikalne ke baad usse aur ek sire ke beech phir se average liya ja sakta hai, aur ye kabhi khatam nahi hota."
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m3",
+        "C": "m4",
+        "D": "m3"
+      },
+      "solution": "Between any two different rational numbers, there are infinitely many rational numbers. After finding one, you can again take the average between it and one end, and this never ends."
     },
     {
       "id": "q-c8m-ch1-0094",
       "conceptId": "c8-math-ch1-t5-c1",
       "qtype": "nvt",
       "level": "L2",
-      "stem": "$\\frac{1}{3}$ aur $\\frac{1}{2}$ ka average nikalo. Jawab dashamlav me char sthaan tak likho.",
-      "correct": { "value": 0.4167, "tol": 0.001, "exact": "5/12" },
-      "solution": "$\\frac{1}{3} + \\frac{1}{2} = \\frac{2}{6} + \\frac{3}{6} = \\frac{5}{6}$. 2 se bhaag: $\\frac{5}{12} \\approx 0.4167$. Ye theek dono ke beech me hai."
+      "stem": "Find the average of $\\frac{1}{3}$ and $\\frac{1}{2}$. Write the answer in decimal form up to four places.",
+      "correct": {
+        "value": 0.4167,
+        "tol": 0.001,
+        "exact": "5/12"
+      },
+      "solution": "$\\frac{1}{3} + \\frac{1}{2} = \\frac{2}{6} + \\frac{3}{6} = \\frac{5}{6}$. Divide by 2: $\\frac{5}{12} \\approx 0.4167$. This is exactly between the two."
     },
     {
       "id": "q-c8m-ch1-0095",
       "conceptId": "c8-math-ch1-t5-c1",
       "qtype": "mcq",
       "level": "L3",
-      "stem": "Rohan kehta hai: '$\\frac{1}{2}$ aur $\\frac{1}{4}$ ke beech $\\frac{1}{3}$ hai, kyunki 3, 2 aur 4 ke beech me hai.' Iske baare me kya sahi hai?",
+      "stem": "Rohan says: 'Between $\\frac{1}{2}$ and $\\frac{1}{4}$, $\\frac{1}{3}$ lies in between, because 3 is between 2 and 4.' What is correct about this?",
       "options": [
-        { "key": "A", "text": "$\\frac{1}{3}$ sach me beech me hai, par uska tareeka galat hai — average $\\frac{3}{8}$ hai" },
-        { "key": "B", "text": "Tareeka bhi sahi hai aur jawab bhi" },
-        { "key": "C", "text": "$\\frac{1}{3}$ beech me hai hi nahi" },
-        { "key": "D", "text": "Beech me koi number ho hi nahi sakta" }
+        {
+          "key": "A",
+          "text": "$\\frac{1}{3}$ really is in between, but his method is wrong — the average is $\\frac{3}{8}$"
+        },
+        {
+          "key": "B",
+          "text": "Both the method and the answer are correct"
+        },
+        {
+          "key": "C",
+          "text": "$\\frac{1}{3}$ is not in between at all"
+        },
+        {
+          "key": "D",
+          "text": "There cannot be any number in between"
+        }
       ],
-      "correct": ["A"],
-      "distractor_map": { "B": "m4", "C": "m2", "D": "m3" },
-      "solution": "$\\frac{1}{4} = 0.25$, $\\frac{1}{3} \\approx 0.333$, $\\frac{1}{2} = 0.5$ — to $\\frac{1}{3}$ waqai beech me hai. Par Rohan ka tareeka sanyog se chala: sahi average $\\frac{1}{2}\\left(\\frac{1}{2} + \\frac{1}{4}\\right) = \\frac{3}{8}$ hai. Us tareeke pe bharosa mat karo — agli baar galat jawab dega."
+      "correct": [
+        "A"
+      ],
+      "distractor_map": {
+        "B": "m4",
+        "C": "m2",
+        "D": "m3"
+      },
+      "solution": "$\\frac{1}{4} = 0.25$, $\\frac{1}{3} \\approx 0.333$, $\\frac{1}{2} = 0.5$ — so $\\frac{1}{3}$ really is in between. But Rohan's method worked by chance: the correct average is $\\frac{1}{2}\\left(\\frac{1}{2} + \\frac{1}{4}\\right) = \\frac{3}{8}$. Do not trust that method — next time it will give a wrong answer."
     },
     {
       "id": "q-c8m-ch1-0096",
       "conceptId": "c8-math-ch1-t5-c1",
       "qtype": "msq",
       "level": "L3",
-      "stem": "In me se kaun-kaun se numbers $\\frac{1}{4}$ aur $\\frac{1}{2}$ ke BEECH me hain?",
+      "stem": "Which of these numbers are BETWEEN $\\frac{1}{4}$ and $\\frac{1}{2}$?",
       "options": [
-        { "key": "A", "text": "$\\frac{3}{8}$" },
-        { "key": "B", "text": "$\\frac{5}{16}$" },
-        { "key": "C", "text": "$\\frac{1}{8}$" },
-        { "key": "D", "text": "$\\frac{3}{4}$" }
+        {
+          "key": "A",
+          "text": "$\\frac{3}{8}$"
+        },
+        {
+          "key": "B",
+          "text": "$\\frac{5}{16}$"
+        },
+        {
+          "key": "C",
+          "text": "$\\frac{1}{8}$"
+        },
+        {
+          "key": "D",
+          "text": "$\\frac{3}{4}$"
+        }
       ],
-      "correct": ["A", "B"],
-      "distractor_map": { "C": "m2", "D": "m1" },
-      "solution": "Sabko 16 ke denominator pe laao: $\\frac{1}{4} = \\frac{4}{16}$, $\\frac{1}{2} = \\frac{8}{16}$. Ab $\\frac{3}{8} = \\frac{6}{16}$ ✓ aur $\\frac{5}{16}$ ✓ beech me hain. $\\frac{1}{8} = \\frac{2}{16}$ chhota hai aur $\\frac{3}{4} = \\frac{12}{16}$ bada."
+      "correct": [
+        "A",
+        "B"
+      ],
+      "distractor_map": {
+        "C": "m2",
+        "D": "m1"
+      },
+      "solution": "Bring all of them to denominator 16: $\\frac{1}{4} = \\frac{4}{16}$, $\\frac{1}{2} = \\frac{8}{16}$. Now $\\frac{3}{8} = \\frac{6}{16}$ ✓ and $\\frac{5}{16}$ ✓ are in between. $\\frac{1}{8} = \\frac{2}{16}$ is smaller and $\\frac{3}{4} = \\frac{12}{16}$ is bigger."
     },
     {
       "id": "q-c8m-ch1-0097",
       "conceptId": "c8-math-ch1-t5-c1",
       "qtype": "nvt",
       "level": "L4",
-      "stem": "$-\\frac{1}{2}$ aur $-\\frac{1}{3}$ ke beech wala number (average) nikalo. Jawab dashamlav me char sthaan tak.",
-      "correct": { "value": -0.4167, "tol": 0.001, "exact": "-5/12" },
-      "solution": "$-\\frac{1}{2} + \\left(-\\frac{1}{3}\\right) = -\\frac{3}{6} - \\frac{2}{6} = -\\frac{5}{6}$. 2 se bhaag: $-\\frac{5}{12} \\approx -0.4167$. Check: $-0.5 < -0.4167 < -0.333$ ✓ — negative side pe bhi average beech me hi aata hai."
+      "stem": "Find the number in between (average) of $-\\frac{1}{2}$ and $-\\frac{1}{3}$. Answer in decimal form up to four places.",
+      "correct": {
+        "value": -0.4167,
+        "tol": 0.001,
+        "exact": "-5/12"
+      },
+      "solution": "$-\\frac{1}{2} + \\left(-\\frac{1}{3}\\right) = -\\frac{3}{6} - \\frac{2}{6} = -\\frac{5}{6}$. Divide by 2: $-\\frac{5}{12} \\approx -0.4167$. Check: $-0.5 < -0.4167 < -0.333$ ✓ — even on the negative side, the average comes in between."
     },
     {
       "id": "q-c8m-ch1-0098",
       "conceptId": "c8-math-ch1-t5-c1",
       "qtype": "subjective",
       "level": "L4",
-      "stem": "Integers me 2 aur 3 ke beech koi integer nahi hota, par rational numbers me $\\frac{1}{2}$ aur $\\frac{1}{3}$ ke beech anant numbers hote hain. Samjhao aisa kyun hai.",
+      "stem": "In integers, there is no integer between 2 and 3, but in rational numbers there are infinitely many numbers between $\\frac{1}{2}$ and $\\frac{1}{3}$. Explain why this is so.",
       "correct": {
         "rubric": [
           "Integers me har number ka ek 'agla' hota hai — 2 ke baad seedha 3",
@@ -233,7 +336,7 @@
           "Ye kaam dobara kiya ja sakta hai, anant baar — isliye beech me anant numbers hain"
         ]
       },
-      "solution": "Integers me har number ka ek turant agla hota hai: 2 ke baad 3, beech me kuch nahi. Rational numbers me aisa 'agla' hota hi nahi. Koi bhi do rational numbers $a$ aur $b$ lo — unka average $\\frac{a+b}{2}$ hamesha unke beech me hoga, aur wo khud bhi rational hoga (do rational jodne aur 2 se bhaag dene par rational hi milta hai). Ab $a$ aur us naye number ke beech phir se average lo — phir ek naya mil gaya. Ye kabhi khatam nahi hota, isliye beech me anant rational numbers hain."
+      "solution": "In integers, every number has an immediate next number: after 2 comes 3, with nothing in between. In rational numbers, there is no such 'next' number. Take any two rational numbers $a$ and $b$ — their average $\\frac{a+b}{2}$ will always be between them, and it will also be rational (adding two rational numbers and dividing by 2 gives a rational number). Now take the average again between $a$ and that new number — you get another new one. This never ends, so there are infinitely many rational numbers in between."
     }
   ]
 }

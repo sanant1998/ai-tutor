@@ -7,11 +7,11 @@
  * who is allowed to ask. Splitting them across two routes is how the export
  * ends up with a link check the delete does not have.
  *
- * GET returns a JSON file the parent downloads. Not a summary and not a
- * dashboard — the right is to a copy of the data, so it contains the rows.
- * That includes the transcripts, which the weekly report deliberately omits:
- * the report is a product decision about what a parent should routinely see,
- * this is a statutory right to what is held.
+ * GET returns a JSON file the student downloads from /privacy. Not a summary
+ * and not a dashboard — the right is to a copy of the data, so it contains the
+ * rows. That includes the transcripts, which the weekly report deliberately
+ * omits: the report is a product decision about what a parent should routinely
+ * see, this is a statutory right to what is held.
  *
  * DELETE schedules an erasure rather than performing one. Thirty days, stated
  * on the response, because a mis-tapped button should be recoverable and
@@ -26,23 +26,24 @@ import { createAdminClient, isAdminConfigured } from "@/lib/supabase/admin";
 export const runtime = "nodejs";
 export const maxDuration = 120;
 
-/* A parent, or the student themselves. A student asking for their own data is
-   exercising the same right and should not have to ask a parent for it. */
-async function authorised(
-  admin: ReturnType<typeof createAdminClient>,
-  callerId: string,
-  studentId: string,
-): Promise<boolean> {
-  if (callerId === studentId) return true;
-
-  const { data } = await admin
-    .from("parent_links")
-    .select("confirmed")
-    .eq("parent_id", callerId)
-    .eq("student_id", studentId)
-    .maybeSingle();
-
-  return Boolean(data?.confirmed);
+/* The student themselves, and nobody else.
+ *
+ * This used to also accept a parent holding a confirmed parent_links row. That
+ * branch is gone because it became unreachable: a parent has no account (see
+ * lib/roles.ts), so nothing can create the row it looked for, and a check that
+ * can never pass is worse than no check — it reads like a capability the
+ * product has.
+ *
+ * The right itself is not lost. Every student's own account reaches this from
+ * /privacy, which is one tap from anywhere in the app, and the weekly report
+ * still goes to the consent-verified phone.
+ *
+ * What IS narrowed: a guardian can no longer export or erase on the child's
+ * behalf without the child's account. If that has to come back, the right
+ * shape is a signed link to the consented number — the same mechanism consent
+ * itself uses — and not a parent login. */
+async function authorised(callerId: string, studentId: string): Promise<boolean> {
+  return callerId === studentId;
 }
 
 export async function GET(
@@ -59,8 +60,8 @@ export async function GET(
   const { studentId } = await params;
   const admin = createAdminClient();
 
-  if (!(await authorised(admin, user.value, studentId))) {
-    return fail("Aapko is student ka data dekhne ki anumati nahi hai.", 403);
+  if (!(await authorised(user.value, studentId))) {
+    return fail("You are not allowed to see this student\u2019s data.", 403);
   }
 
   /* Every table that holds something about this student. Adding a table to the
@@ -92,7 +93,8 @@ export async function GET(
 
   const payload = {
     exportedAt: new Date().toISOString(),
-    exportedBy: user.value === studentId ? "student" : "parent",
+    /* Always the student now — see authorised() above. */
+    exportedBy: "student",
     student: profile.data ?? null,
     consents: consents.data ?? [],
     learningSessions: sessions.data ?? [],
@@ -138,8 +140,8 @@ export async function DELETE(
   const { studentId } = await params;
   const admin = createAdminClient();
 
-  if (!(await authorised(admin, user.value, studentId))) {
-    return fail("Aapko is student ka data delete karne ki anumati nahi hai.", 403);
+  if (!(await authorised(user.value, studentId))) {
+    return fail("You are not allowed to delete this student\u2019s data.", 403);
   }
 
   let body: { scope?: string };
@@ -176,7 +178,7 @@ export async function DELETE(
     .maybeSingle();
 
   if (error || !erasure) {
-    return fail("Request record nahi ho paayi. Dobara try karo.", 500);
+    return fail("The request could not be recorded. Please try again.", 500);
   }
 
   /* Processing stops now. The rows go on the timer, but nothing new is
@@ -218,6 +220,6 @@ export async function DELETE(
     hardDeleteAfter: erasure.execute_after,
     retained,
     cancelBy:
-      "Is date se pehle sign in karke request cancel ki ja sakti hai. Uske baad data wapas nahi aayega.",
+      "You can sign in and cancel this request before that date. After it, the data cannot be recovered.",
   });
 }
