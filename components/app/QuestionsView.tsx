@@ -13,7 +13,16 @@ import {
 import { Panel } from "@/components/app/ui";
 import { Button } from "@/components/ui/button";
 import { boardName, buildRoadmap, chosenSubjects } from "@/lib/study";
-import { BOARDS, CLASSES, chaptersFor, coveredSubjects, type BoardId, type ClassLevel } from "@/lib/syllabus";
+import {
+  BOARDS,
+  chaptersFor,
+  classLabel,
+  classesFor,
+  countryOfBoard,
+  coveredSubjects,
+  type BoardId,
+  type ClassLevel,
+} from "@/lib/syllabus";
 import { LEVELS, type LevelId } from "@/lib/mastery";
 import { useAppData } from "@/lib/useAppData";
 import { acc, acc2, onacc, text } from "@/lib/theme";
@@ -94,6 +103,11 @@ export function QuestionsView() {
 
   const activeBoard = standalone ? fallbackBoard : (state.boardId as BoardId);
   const activeClass = standalone ? fallbackClass : (state.classLevel as ClassLevel);
+  /* Taken from the board rather than from the student, because in standalone
+     mode there is no student — a teacher picks a board here and the years on
+     offer have to follow it. "Grade 11" exists under TEKS and does not exist
+     under CBSE. */
+  const activeCountry = countryOfBoard(activeBoard);
 
   const subjects = useMemo(
     () => (standalone ? coveredSubjects(activeBoard, activeClass) : chosen),
@@ -281,17 +295,27 @@ export function QuestionsView() {
             <Field
               label="Board"
               value={activeBoard}
-              onChange={(value) => setFallbackBoard(value as BoardId)}
+              onChange={(value) => {
+                const next = value as BoardId;
+                setFallbackBoard(next);
+
+                /* Grade 12 exists under TEKS and not under CBSE. Without this,
+                   switching back to an Indian board leaves the select holding
+                   a value none of its options carry, and a <select> in that
+                   state silently displays the first option instead. */
+                const years = classesFor(countryOfBoard(next));
+                if (!years.includes(fallbackClass)) setFallbackClass(years[0]);
+              }}
               options={BOARDS.map((entry) => ({ value: entry.id, label: entry.name }))}
               empty="No boards"
             />
             <Field
-              label="Class"
+              label={activeCountry === "us" ? "Grade" : "Class"}
               value={String(activeClass)}
               onChange={(value) => setFallbackClass(Number(value) as ClassLevel)}
-              options={CLASSES.map((level) => ({
+              options={classesFor(activeCountry).map((level) => ({
                 value: String(level),
-                label: `Class ${level}`,
+                label: classLabel(activeCountry, level),
               }))}
               empty="No classes"
             />
@@ -307,7 +331,7 @@ export function QuestionsView() {
               value: subject.id,
               label: `${subject.glyph} ${subject.name}`,
             }))}
-            empty={standalone ? "Is class ke liye syllabus abhi nahi hai" : "No subjects yet"}
+            empty={standalone ? "No syllabus for this class yet" : "No subjects yet"}
           />
           <Field
             label="Topic"
@@ -317,7 +341,7 @@ export function QuestionsView() {
               value: entry.id,
               label: entry.name,
             }))}
-            empty={standalone ? "Is subject ke chapters abhi nahi hain" : "No topics yet"}
+            empty={standalone ? "No chapters for this subject yet" : "No topics yet"}
           />
           <Field
             label="Type"

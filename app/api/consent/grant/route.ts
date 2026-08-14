@@ -52,7 +52,7 @@ export async function POST(request: Request) {
   const challengeId = String(body.challengeId ?? "");
   const code = String(body.code ?? "");
 
-  if (!challengeId || !code) return fail("Code aur link dono chahiye.", 400);
+  if (!challengeId || !code) return fail("Both the code and the link are required.", 400);
 
   const verified = await verifyChallenge(challengeId, code);
 

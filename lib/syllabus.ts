@@ -23,44 +23,164 @@
    books most online summaries still describe. Each entry below names the book
    it came from for that reason. */
 
-export type BoardId = "cbse" | "icse" | "upboard";
+/* ---------------------------------------------------------------------------
+   COUNTRY
+
+   The tree below is India-shaped — board, class, textbook chapter — because
+   that is the market it was written for. The United States has no boards: a
+   school follows a set of published STANDARDS, either the national ones or its
+   own state's, and the year of school is a grade rather than a class.
+
+   Rather than a second parallel model, country is a filter over one model. A
+   board carries the country it belongs to, and everything downstream — which
+   boards to offer, which grades exist, what a year is called, which subjects
+   are taught — is derived from that. There is no second code path to keep in
+   step with the first.
+   --------------------------------------------------------------------------- */
+export type CountryId = "in" | "us";
+
+export type Country = {
+  id: CountryId;
+  name: string;
+  /* What one year of school is called: "Class 8" here, "Grade 8" there. */
+  classNoun: string;
+  /* What the curriculum authority is called, for the question on the picker. */
+  boardNoun: string;
+};
+
+export const COUNTRIES: Country[] = [
+  { id: "in", name: "India", classNoun: "Class", boardNoun: "exam board" },
+  { id: "us", name: "United States", classNoun: "Grade", boardNoun: "standards" },
+];
+
+export const DEFAULT_COUNTRY: CountryId = "in";
+
+export type BoardId =
+  | "cbse"
+  | "icse"
+  | "upboard"
+  | "common-core"
+  | "california"
+  | "texas"
+  | "newyork"
+  | "florida";
 
 export type Board = {
   id: BoardId;
+  country: CountryId;
   name: string;
   detail: string;
-  /* Whose textbooks this board's syllabus actually follows. */
+  /* Whose textbooks or standards this board's syllabus actually follows. */
   basis: string;
 };
 
+/* The US entries are the four largest state frameworks plus the national
+   default. NGSS is folded into each rather than listed separately: a student
+   belongs to one curriculum, and "Common Core" in practice means CCSS for
+   Maths and English with NGSS alongside it for Science. Texas and Florida are
+   listed on their own because both explicitly do NOT use Common Core, and
+   offering a Texan child a Common Core plan would be quietly wrong. */
 export const BOARDS: Board[] = [
   {
     id: "cbse",
+    country: "in",
     name: "CBSE",
     detail: "Central Board of Secondary Education",
     basis: "NCERT textbooks",
   },
   {
     id: "icse",
+    country: "in",
     name: "ICSE",
     detail: "CISCE · Council for the Indian School Certificate Examinations",
     basis: "CISCE's own syllabus, publisher-independent",
   },
   {
     id: "upboard",
+    country: "in",
     name: "UP Board",
     detail: "UPMSP · Uttar Pradesh Madhyamik Shiksha Parishad",
     basis: "NCERT textbooks for the secondary classes",
   },
+  {
+    id: "common-core",
+    country: "us",
+    name: "Common Core",
+    detail: "Common Core State Standards · used by most states",
+    basis: "CCSS for Mathematics and English Language Arts, NGSS for Science",
+  },
+  {
+    id: "california",
+    country: "us",
+    name: "California",
+    detail: "CA Content Standards · California Department of Education",
+    basis: "California's own edition of CCSS, plus CA NGSS",
+  },
+  {
+    id: "texas",
+    country: "us",
+    name: "Texas TEKS",
+    detail: "Texas Essential Knowledge and Skills · Texas Education Agency",
+    basis: "TEKS — Texas does not use Common Core",
+  },
+  {
+    id: "newyork",
+    country: "us",
+    name: "New York",
+    detail: "Next Generation Learning Standards · NYSED",
+    basis: "NY Next Generation Standards, with NYSSLS for Science",
+  },
+  {
+    id: "florida",
+    country: "us",
+    name: "Florida B.E.S.T.",
+    detail: "Benchmarks for Excellent Student Thinking · Florida DOE",
+    basis: "Florida B.E.S.T. Standards — replaced Common Core in Florida",
+  },
 ];
 
-export type ClassLevel = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+export function boardsFor(country: CountryId): Board[] {
+  return BOARDS.filter((board) => board.country === country);
+}
 
+/* Which country a board belongs to. Used so that everything downstream of a
+   chosen board — grades, subject names, the word "Class" — can be derived from
+   the board alone, without threading a country parameter through every call. */
+export function countryOfBoard(boardId: string | null): CountryId {
+  return BOARDS.find((board) => board.id === boardId)?.country ?? DEFAULT_COUNTRY;
+}
+
+/* 0 is Kindergarten. Numeric rather than a "K" string so that sorting, ranges
+   and the existing band thresholds keep working without a special case in
+   every comparison. India uses 1-10 of this range and nothing else. */
+export type ClassLevel = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
+
+/* India, unchanged. Exported under the old name because most of the app means
+   this list when it says CLASSES. */
 export const CLASSES: ClassLevel[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+const US_GRADES: ClassLevel[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
+export function classesFor(country: CountryId): ClassLevel[] {
+  return country === "us" ? US_GRADES : CLASSES;
+}
+
+export function classLabel(country: CountryId, level: ClassLevel): string {
+  if (country !== "us") return `Class ${level}`;
+  return level === 0 ? "Kindergarten" : `Grade ${level}`;
+}
+
+/* What fits inside a 64px chip: the bare number, or "K". */
+export function classShortLabel(country: CountryId, level: ClassLevel): string {
+  return country === "us" && level === 0 ? "K" : String(level);
+}
 
 /* Classes 1-5 are a different product from 6-10: a seven-year-old does not
    revise alone, so those screens are read by a parent. Kept as a band here so
-   the UI can address the right person. */
+   the UI can address the right person.
+
+   The same thresholds hold for the US: Kindergarten is 0 and falls in
+   "primary" with elementary, 6-8 is middle school, and 9-12 is high school. */
 export function classBand(level: ClassLevel): "primary" | "middle" | "secondary" {
   if (level <= 5) return "primary";
   if (level <= 8) return "middle";
@@ -71,23 +191,72 @@ export type Subject = {
   id: string;
   name: string;
   glyph: string;
-  /* Which classes this subject is taught in. */
+  /* Which classes this subject is taught in, in India. */
   classes: ClassLevel[];
+  /* The US equivalent, where there is one. Absent means the subject is not
+     taught there at all — Hindi and Sanskrit are not US school subjects, and
+     Environmental Studies is folded into elementary Science rather than being
+     its own paper. */
+  us?: { name?: string; classes: ClassLevel[] };
 };
 
+const K_TO_12: ClassLevel[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
 export const SUBJECTS: Subject[] = [
-  { id: "maths", name: "Mathematics", glyph: "Σ", classes: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+  {
+    id: "maths",
+    name: "Mathematics",
+    glyph: "Σ",
+    classes: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    us: { classes: K_TO_12 },
+  },
   { id: "evs", name: "Environmental Studies", glyph: "🌱", classes: [3, 4, 5] },
-  { id: "science", name: "Science", glyph: "🔬", classes: [6, 7, 8, 9, 10] },
-  { id: "sst", name: "Social Science", glyph: "🗺️", classes: [6, 7, 8, 9, 10] },
-  { id: "english", name: "English", glyph: "📖", classes: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+  {
+    id: "science",
+    name: "Science",
+    glyph: "🔬",
+    classes: [6, 7, 8, 9, 10],
+    us: { classes: K_TO_12 },
+  },
+  {
+    id: "sst",
+    name: "Social Science",
+    glyph: "🗺️",
+    classes: [6, 7, 8, 9, 10],
+    us: { name: "Social Studies", classes: K_TO_12 },
+  },
+  {
+    id: "english",
+    name: "English",
+    glyph: "📖",
+    classes: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    us: { name: "English Language Arts", classes: K_TO_12 },
+  },
   { id: "hindi", name: "Hindi", glyph: "📝", classes: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
   { id: "sanskrit", name: "Sanskrit", glyph: "🕉️", classes: [6, 7, 8] },
-  { id: "computer", name: "Computer Applications", glyph: "💻", classes: [9, 10] },
+  {
+    id: "computer",
+    name: "Computer Applications",
+    glyph: "💻",
+    classes: [9, 10],
+    us: { name: "Computer Science", classes: [9, 10, 11, 12] },
+  },
 ];
 
-export function subjectsFor(level: ClassLevel): Subject[] {
-  return SUBJECTS.filter((subject) => subject.classes.includes(level));
+/* The subject list for one year of school. The country decides both which
+   subjects exist and what they are called — a US ninth-grader takes English
+   Language Arts, not English, and does not take Sanskrit at all. */
+export function subjectsFor(
+  level: ClassLevel,
+  country: CountryId = DEFAULT_COUNTRY,
+): Subject[] {
+  if (country !== "us") {
+    return SUBJECTS.filter((subject) => subject.classes.includes(level));
+  }
+
+  return SUBJECTS.filter((subject) => subject.us?.classes.includes(level)).map(
+    (subject) => ({ ...subject, name: subject.us?.name ?? subject.name }),
+  );
 }
 
 export type Chapter = {
@@ -355,10 +524,43 @@ export function isCovered(
   return chaptersFor(board, level, subjectId).length > 0;
 }
 
+/* Country is taken from the board rather than passed in: a board belongs to
+   exactly one country, so asking the caller for both invites the two to
+   disagree. Every US combination is uncovered today — SYLLABUS has no US
+   entries, and it will not get any that were not read off a published
+   standards document — so a US board honestly reports nothing ready rather
+   than offering a plan built on invented chapters. */
 export function coveredSubjects(board: BoardId, level: ClassLevel): Subject[] {
-  return subjectsFor(level).filter((subject) =>
+  return subjectsFor(level, countryOfBoard(board)).filter((subject) =>
     isCovered(board, level, subject.id),
   );
+}
+
+/* One board's coverage in a sentence: which years have a sourced chapter list
+   and which subjects those lists cover.
+
+   Written for the marketing page, which used to name boards from a hand-kept
+   list in lib/content.ts and drifted — it advertised Edexcel and Cambridge
+   long after the international model was removed, and offered CBSE "grades 10
+   to 12" for a product that stops at 10. Deriving it means the page cannot
+   claim a board the product does not have. */
+export function boardCoverage(board: BoardId): {
+  levels: ClassLevel[];
+  subjects: string[];
+} {
+  const country = countryOfBoard(board);
+  const levels: ClassLevel[] = [];
+  const subjects = new Set<string>();
+
+  for (const level of classesFor(country)) {
+    const ready = coveredSubjects(board, level);
+    if (ready.length === 0) continue;
+
+    levels.push(level);
+    for (const subject of ready) subjects.add(subject.name);
+  }
+
+  return { levels, subjects: [...subjects] };
 }
 
 /* What is and is not ready, for an at-a-glance answer to "which classes work
@@ -371,9 +573,13 @@ export function coverageReport() {
     chapters: number;
   }[] = [];
 
+  let possible = 0;
+
   for (const board of BOARDS) {
-    for (const level of CLASSES) {
-      for (const subject of subjectsFor(level)) {
+    for (const level of classesFor(board.country)) {
+      for (const subject of subjectsFor(level, board.country)) {
+        possible += 1;
+
         const count = chaptersFor(board.id, level, subject.id).length;
         if (count > 0) {
           rows.push({
@@ -386,8 +592,6 @@ export function coverageReport() {
       }
     }
   }
-
-  const possible = BOARDS.length * CLASSES.reduce((n, level) => n + subjectsFor(level).length, 0);
 
   return { covered: rows, coveredCount: rows.length, possible };
 }

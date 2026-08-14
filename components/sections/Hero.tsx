@@ -7,10 +7,14 @@ import { CurvedArrow, Note, Star, Underline } from "@/components/doodles";
 import { Float, Reveal } from "@/components/Reveal";
 import { scrollToSection } from "@/components/SmoothScroll";
 import { Button } from "@/components/ui/button";
-import { HERO } from "@/lib/content";
+import { useCountry } from "@/components/CountryToggle";
+import { HERO, REGION } from "@/lib/content";
 import { acc, acc2, acc3, text } from "@/lib/theme";
 
 export function Hero() {
+  const [country] = useCountry();
+  const region = REGION[country];
+
   return (
     <section className="relative overflow-hidden pb-14 pt-28 sm:pt-32 lg:pb-20 lg:pt-36">
       <div className="mx-auto grid max-w-[1280px] items-center gap-12 px-5 sm:px-6 lg:grid-cols-[1fr_1.05fr] lg:gap-8">
@@ -21,7 +25,7 @@ export function Hero() {
               style={{ border: `1px solid ${text(0.1)}`, color: text(0.75) }}
             >
               <Sparkles className="h-4 w-4" style={{ color: acc() }} />
-              {HERO.badge}
+              {region.heroBadge}
             </span>
           </Reveal>
 
@@ -74,6 +78,11 @@ export function Hero() {
 
           <Reveal delay={0.24}>
             <ul className="mt-9 flex flex-wrap gap-2">
+              {/* The region chip first: it is the one that says which school
+                  system this is for, and it changes with the toggle. */}
+              <li>
+                <TrustChip icon="students" label={region.heroTrust} />
+              </li>
               {HERO.trust.map((item) => (
                 <li key={item.label}>
                   <TrustChip icon={item.icon} label={item.label} />
@@ -261,6 +270,10 @@ function NotebookPage() {
 /* The floating product card, overlapping the photo's top edge. */
 function PlanCard() {
   const { panel } = HERO;
+  /* The sample tasks name real chapters, so they follow the toggle: an NCERT
+     chapter number means nothing to a parent in Ohio. */
+  const [country] = useCountry();
+  const tasks = REGION[country].planTasks;
 
   return (
     <div
@@ -299,7 +312,7 @@ function PlanCard() {
       </p>
 
       <ul className="mt-3 space-y-0.5">
-        {panel.tasks.map((task) => (
+        {tasks.map((task) => (
           <li key={task.label}>
             <TaskRow label={task.label} state={task.state} />
           </li>

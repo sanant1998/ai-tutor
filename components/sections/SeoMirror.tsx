@@ -1,11 +1,12 @@
+import { boardGroups } from "@/components/sections/Boards";
 import {
   BENTO_TILES,
-  BOARDS,
   COMPARE_SECTION,
+  REGION,
   FAQS,
   HERO,
   HOW_STEPS,
-  PLANS,
+  PLANS_BY_COUNTRY,
   TESTIMONIALS_ROW_1,
   TESTIMONIALS_ROW_2,
 } from "@/lib/content";
@@ -25,8 +26,10 @@ export function SeoMirror() {
           {HERO.headline.lead} {HERO.headline.accent}
         </h1>
         <p>{HERO.sub}</p>
+        {/* The default region's figures. A crawler has no toggle, and the
+            boards section below spells out both countries in full. */}
         <ul>
-          {HERO.stats.map((stat) => (
+          {[...REGION.in.stats, ...HERO.stats].map((stat) => (
             <li key={stat.label}>
               {stat.value} {stat.label}
             </li>
@@ -51,7 +54,7 @@ export function SeoMirror() {
           {HOW_STEPS.map((step) => (
             <div key={step.n}>
               <h3>{step.title}</h3>
-              <p>{step.body}</p>
+              <p>{step.body ?? REGION.in.firstStep}</p>
             </div>
           ))}
         </section>
@@ -68,19 +71,21 @@ export function SeoMirror() {
 
         <section>
           <h2>Boards and subjects</h2>
-          {BOARDS.groups.map((group) => (
+          {Object.values(boardGroups()).map((group) => (
             <div key={group.region}>
               <h3>{group.region}</h3>
+              <p>{group.sub}</p>
               <ul>
-                {group.boards.map((board) => (
+                {group.cards.map((board) => (
                   <li key={board.name}>
-                    {board.name} — {board.detail}. {board.subjects}
+                    {board.name} — {board.detail}.{" "}
+                    {board.ready ? `Open now: ${board.ready}.` : `${board.basis}. Not open yet.`}
                   </li>
                 ))}
               </ul>
+              <p>{group.footnote}</p>
             </div>
           ))}
-          <p>{BOARDS.footnote}</p>
         </section>
 
         <section>
@@ -97,7 +102,7 @@ export function SeoMirror() {
 
         <section>
           <h2>Pricing</h2>
-          {PLANS.map((plan) => (
+          {PLANS_BY_COUNTRY.in.map((plan) => (
             <div key={plan.id}>
               <h3>
                 {plan.name} — {plan.price} {plan.period}

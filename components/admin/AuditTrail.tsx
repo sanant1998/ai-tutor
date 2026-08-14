@@ -95,7 +95,7 @@ export function AuditTrail() {
   return (
     <main className="mx-auto max-w-5xl space-y-6 px-5 py-8">
       <header>
-        <p className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] opacity-50">
+        <p className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-[#667085]">
           Admin
         </p>
         <h1 className="font-display mt-1 flex items-center gap-2 text-[1.8rem] font-extrabold tracking-[-0.03em]">
@@ -137,7 +137,7 @@ export function AuditTrail() {
       {loading && entries.length === 0 && <Loader2 className="h-4 w-4 animate-spin opacity-60" />}
 
       {!loading && entries.length === 0 && !message && (
-        <p className="text-[14px] opacity-55">
+        <p className="text-[14px] text-[#667085]">
           Nothing recorded yet. Rows appear here when a school is onboarded, seats are allotted,
           a roster is imported or a teacher is assigned.
         </p>
@@ -164,7 +164,7 @@ export function AuditTrail() {
                   <td className="py-2 pr-3">
                     {entry.actor}
                     {entry.actorRole && (
-                      <span className="ml-1.5 opacity-50">· {entry.actorRole}</span>
+                      <span className="ml-1.5 text-[#667085]">· {entry.actorRole}</span>
                     )}
                   </td>
                   <td className="py-2 pr-3 font-mono text-[12px]">{entry.action}</td>

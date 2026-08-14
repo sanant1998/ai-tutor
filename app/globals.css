@@ -697,7 +697,17 @@ html.a11y-contrast *:focus-visible {
   background-color: rgb(0 0 0 / 0.04);
 }
 
-.admin-light a {
+/* Bare links get the admin blue. Ones that set their own colour keep it.
+ *
+ * This was `.admin-light a`, which is specificity (0,1,1) and therefore beat
+ * every Tailwind text utility at (0,1,0). The visible cost was a solid blue
+ * button — "Review drafts" on the dashboard — whose `text-white` lost to this
+ * rule and rendered dark blue on blue, unreadable. Any filled link anywhere in
+ * the panel had the same problem.
+ *
+ * The :not() keeps the convenience for plain prose links while getting out of
+ * the way of anything that has an opinion. */
+.admin-light a:not([class*="text-"]) {
   color: #1d4ed8;
 }
 

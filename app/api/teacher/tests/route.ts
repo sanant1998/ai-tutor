@@ -62,7 +62,7 @@ export async function POST(request: Request) {
   }
 
   if (!body.sectionId || !body.chapterRef) {
-    return fail("Section aur chapter dono chahiye.", 400);
+    return fail("Both a section and a chapter are required.", 400);
   }
 
   const supabase = await createClient();
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
     p_section: body.sectionId,
   });
 
-  if (teaches !== true) return fail("Ye section aapka nahi hai.", 403);
+  if (teaches !== true) return fail("This section is not yours.", 403);
 
   const { data: section } = await supabase
     .from("sections")
@@ -102,7 +102,7 @@ export async function POST(request: Request) {
     .neq("qtype", "subjective");
 
   if (poolError) {
-    return fail(`Question bank padha nahi ja saka: ${poolError.message}`, 503);
+    return fail(`The question bank could not be read: ${poolError.message}`, 503);
   }
 
   const wanted = Math.min(Math.max(Number(body.questionCount ?? 10), 1), 50);
@@ -134,7 +134,7 @@ export async function POST(request: Request) {
 
   if (picked.length === 0) {
     return fail(
-      "Is chapter me abhi koi question nahi hai. Content team ke publish karne ke baad test set kar payenge.",
+      "This chapter has no questions yet. You can set a test once the content team publishes them.",
       409,
     );
   }
@@ -162,7 +162,7 @@ export async function POST(request: Request) {
     .maybeSingle();
 
   if (testError || !test) {
-    return fail(`Test ban nahi paaya: ${testError?.message}`, 400);
+    return fail(`The test could not be created: ${testError?.message}`, 400);
   }
 
   const { error: questionsError } = await db.from("test_questions").insert(
@@ -178,7 +178,7 @@ export async function POST(request: Request) {
     /* The paper failed to attach, so the test is an empty shell that would
        show the class a test with no questions. Removed rather than left. */
     await db.from("tests").delete().eq("id", test.id);
-    return fail(`Paper nahi ban paaya: ${questionsError.message}`, 400);
+    return fail(`The paper could not be built: ${questionsError.message}`, 400);
   }
 
   /* Only when it is published. A draft is the teacher still thinking, and a

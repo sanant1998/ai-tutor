@@ -160,7 +160,7 @@ export function PracticeView({ topicId }: { topicId: string }) {
     return (
       <div className="flex items-center gap-2 py-16" style={{ color: text(0.5) }}>
         <Loader2 className="h-4 w-4 animate-spin" />
-        <span className="text-[14px]">Question aa raha hai…</span>
+        <span className="text-[14px]">Loading the next question…</span>
       </div>
     );
   }
@@ -189,15 +189,15 @@ export function PracticeView({ topicId }: { topicId: string }) {
 
         {streak >= 2 && (
           <span className="text-[13px]" style={{ color: text(0.55) }}>
-            {streak} sahi ek saath
+            {streak} correct in a row
           </span>
         )}
       </div>
 
       {repeat && (
         <p className="text-[13px]" style={{ color: text(0.5) }}>
-          Ye sawal pehle bhi aaya tha — is level ke naye khatam ho gaye. Dobara
-          karna bhi practice hai.
+          You have seen this question before — there are no new ones left at this
+          level. Doing it again is still practice.
         </p>
       )}
 
@@ -252,8 +252,8 @@ export function PracticeView({ topicId }: { topicId: string }) {
             onChange={(event) => setTyped(event.target.value)}
             disabled={answered}
             inputMode="text"
-            aria-label="Jawab — fraction ya decimal"
-            placeholder="Jawab likho — fraction (2/3) ya decimal, dono chalega"
+            aria-label="Answer — fraction or decimal"
+            placeholder="Write your answer — a fraction (2/3) or a decimal, either works"
             className="w-full rounded-xl px-4 py-3 text-[15px] outline-none"
             style={{ background: text(0.04), border: `1px solid ${text(0.1)}`, color: text(0.9) }}
           />
@@ -288,14 +288,14 @@ export function PracticeView({ topicId }: { topicId: string }) {
             ) : (
               <X className="h-4 w-4" aria-hidden="true" />
             )}
-            <span className="sr-only">{marked.correct ? "Sahi. " : "Galat. "}</span>
+            <span className="sr-only">{marked.correct ? "Correct. " : "Incorrect. "}</span>
             {marked.feedback}
           </p>
 
           {marked.error?.misconception && (
             <div className="space-y-1.5 rounded-xl p-4" style={{ background: acc(0.09) }}>
               <p className="text-[13px] font-semibold" style={{ color: text(0.8) }}>
-                Ye galti kyun hoti hai
+                Why this mistake happens
               </p>
               <p className="text-[14px]" style={{ color: text(0.75) }}>
                 <Maths>{marked.error.misconception.whyWrong}</Maths>
@@ -308,7 +308,7 @@ export function PracticeView({ topicId }: { topicId: string }) {
 
           <details>
             <summary className="cursor-pointer text-[13px]" style={{ color: text(0.55) }}>
-              Poora hal dekho
+              See the full solution
             </summary>
             <div className="mt-2">
               <TutorMessage body={marked.solution} />
@@ -317,9 +317,9 @@ export function PracticeView({ topicId }: { topicId: string }) {
 
           {marked.mastery && (
             <p className="text-[12px]" style={{ color: text(0.45) }}>
-              Is topic pe {Math.round(marked.mastery.score)}/100 · {marked.mastery.band}
+              {Math.round(marked.mastery.score)}/100 on this topic · {marked.mastery.band}
               {marked.mastery.nextReview
-                ? ` · agla revision ${marked.mastery.nextReview}`
+                ? ` · next revision ${marked.mastery.nextReview}`
                 : ""}
             </p>
           )}
@@ -347,7 +347,7 @@ export function PracticeView({ topicId }: { topicId: string }) {
           </Button>
         ) : (
           <Button type="button" onClick={() => void next()} className="px-5">
-            Agla sawal
+            Next question
             <ArrowRight className="ml-1.5 h-4 w-4" />
           </Button>
         )}

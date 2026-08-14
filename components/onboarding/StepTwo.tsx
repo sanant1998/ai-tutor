@@ -56,7 +56,7 @@ export function StepTwo() {
         aria-label="Subjects"
         className="mt-8 grid gap-3.5 sm:grid-cols-2"
       >
-        {subjectsForClass(state.classLevel ?? 10).map((subject) => (
+        {subjectsForClass(state.classLevel ?? 10, state.countryId).map((subject) => (
           <SubjectCard
             key={subject.id}
             subject={subject}

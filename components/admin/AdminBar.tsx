@@ -1,16 +1,20 @@
 "use client";
 
-/* Getting out of the admin consoles.
+/* Who is signed in, and how to stop being signed in.
  *
  * ---------------------------------------------------------------------------
- * THERE WAS NO WAY OUT
+ * WHY IT EXISTS AT ALL
  *
  * The consoles do not use the app shell — they are their own screens, on their
- * own light surface — and the sidebar is where the sign-out lives. So an admin
- * who opened /admin could reach five consoles and nothing else: no way back to
- * the app, and no way to end the session except clearing cookies. On a shared
- * office machine that is the whole of account security, and it is exactly the
- * argument components/app/SignOutButton.tsx makes for itself.
+ * own light surface — and the sidebar is where the student app's sign-out
+ * lives. So an admin who opened /admin could reach every console and had no way
+ * to end the session except clearing cookies. On a shared office machine that
+ * is the whole of account security, and it is exactly the argument
+ * components/app/SignOutButton.tsx makes for itself.
+ *
+ * It used to carry a "Back to the app" link as well. The module rail is the way
+ * around the admin area now, and a link out of it sat at the top of every
+ * console competing with the thing the console was for.
  *
  * ---------------------------------------------------------------------------
  * IT DOES NOT USE text() OR acc()
@@ -26,8 +30,7 @@
  * is the correct choice rather than a shortcut. */
 
 import { useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 
 import { signOut } from "@/lib/repository";
 
@@ -51,27 +54,27 @@ export function AdminBar({ email }: { email: string }) {
     }
   }
 
+  /* A bar, not a centred row.
+   *
+   * It used to centre itself on `max-w-5xl` while every console centres on its
+   * own width — so "Back to the app" and the sign-out sat at two positions that
+   * matched neither each other nor the page title underneath them. The padding
+   * here is the same as the content column's in app/admin/layout.tsx, which is
+   * what actually makes them line up: one gutter, declared twice, rather than
+   * two different centrings fighting. */
   return (
-    <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-5 pt-5 text-[13px]">
-      <Link
-        href="/dashboard"
-        className="inline-flex items-center gap-1.5 font-medium text-[#4b5565] transition-colors hover:text-[#14171c]"
-      >
-        <ArrowLeft className="h-3.5 w-3.5" />
-        Back to the app
-      </Link>
-
+    <div className="flex items-center justify-end gap-4 border-b border-[#e9eaee] bg-white px-5 py-3 text-[13px] sm:px-8">
       <span className="flex items-center gap-3">
-        <span className="hidden text-[#6b7280] sm:inline">{email}</span>
+        <span className="hidden text-[13px] text-[#4b5565] sm:inline">{email}</span>
 
         <button
           type="button"
           onClick={handleSignOut}
           disabled={busy}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-black/15 px-2.5 py-1.5 font-medium text-[#14171c] transition-colors hover:bg-black/5 disabled:opacity-60"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-[#dfe2e7] bg-white px-3 py-1.5 font-semibold text-[#14171c] transition-colors hover:bg-[#f5f6f8] disabled:opacity-60"
         >
-          <LogOut className="h-3.5 w-3.5" />
-          {busy ? "Sign out ho raha hai…" : "Sign out"}
+          <LogOut className="h-4 w-4" />
+          {busy ? "Signing out…" : "Sign out"}
         </button>
       </span>
     </div>

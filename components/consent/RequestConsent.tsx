@@ -156,13 +156,13 @@ export function RequestConsent({
   return (
     <main className="mx-auto max-w-lg px-5 py-10">
       <h1 className="font-display text-2xl font-extrabold tracking-[-0.03em]">
-        {firstName ? `${firstName}, ek` : "Ek"} chhota sa step bacha hai
+        {firstName ? `${firstName}, one` : "One"} small step is left
       </h1>
 
       <p className="mt-3 text-[15px] leading-relaxed opacity-75">
-        You are under 18, so before you start we need your parent’s permission
-        chahiye — ye kanoon hai. Unka number do, hum unhe ek message bhejenge.
-        Ek minute ka kaam hai.
+        You are under 18, so we need your parent’s permission before you start
+        — that is the law. Give us their number and we will send them a
+        message. It takes a minute.
       </p>
 
       {!sent ? (
@@ -170,7 +170,7 @@ export function RequestConsent({
           {!dobAlreadyGiven && (
             <label className="block">
               <span className="mb-1.5 block text-[14px] font-semibold">
-                Tumhari date of birth
+                Your date of birth
               </span>
               <input
                 type="date"
@@ -185,7 +185,7 @@ export function RequestConsent({
 
           <label className="block">
             <span className="mb-1.5 block text-[14px] font-semibold">
-              Parent ka WhatsApp number
+              Your parent’s WhatsApp number
             </span>
             <input
               value={phone}
@@ -211,7 +211,7 @@ export function RequestConsent({
           )}
 
           <Button type="submit" disabled={busy} className="w-full py-3">
-            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Message bhejo"}
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send the message"}
           </Button>
         </form>
       ) : (
@@ -234,7 +234,7 @@ export function RequestConsent({
 
           <form onSubmit={grantHere} className="space-y-3">
             <p className="text-[14px] opacity-70">
-              Parent paas me hain? Wo message wala code yahan daal dein.
+              Is your parent with you? They can enter the code from the message here.
             </p>
 
             <input

@@ -110,7 +110,7 @@ export function VoiceButton({ sessionId, onTranscript, onDraft, disabled }: Prop
         if (payload.confirm) onDraft(payload.transcript);
         else onTranscript(payload.transcript);
       } catch {
-        setError("Network problem. Type karke poochh lo.");
+        setError("Network problem. Type your question instead.");
       } finally {
         setState("idle");
       }
@@ -128,7 +128,7 @@ export function VoiceButton({ sessionId, onTranscript, onDraft, disabled }: Prop
         type="button"
         onClick={() => (state === "recording" ? stop() : void start())}
         disabled={disabled || state === "sending"}
-        aria-label={state === "recording" ? "Stop recording" : "Bolkar poochho"}
+        aria-label={state === "recording" ? "Stop recording" : "Ask out loud"}
         className="flex h-11 w-11 items-center justify-center rounded-xl transition-opacity disabled:opacity-50"
         style={{
           background: state === "recording" ? "#dc262622" : text(0.05),

@@ -84,7 +84,7 @@ export async function POST(request: Request) {
   }
 
   if (!body.title?.trim() || !body.body?.trim()) {
-    return fail("Title aur message dono chahiye.", 400);
+    return fail("Both a title and a message are required.", 400);
   }
 
   if (!body.orgId) return fail("orgId is required.", 400);
@@ -92,7 +92,7 @@ export async function POST(request: Request) {
   const audience = body.audience ?? "all";
 
   if (audience === "section" && !body.sectionId) {
-    return fail("Section chunna zaroori hai, warna notice kisi tak nahi pahunchega.", 400);
+    return fail("A section must be chosen, otherwise the notice reaches nobody.", 400);
   }
 
   const supabase = await createClient();
@@ -111,13 +111,13 @@ export async function POST(request: Request) {
 
   if (!isOrgAdmin) {
     if (!body.sectionId) {
-      return fail("Poore school ko notice sirf school admin bhej sakte hain.", 403);
+      return fail("Only a school admin can send a notice to the whole school.", 403);
     }
 
     const { data: teaches } = await supabase.rpc("teaches_section", { p_section: body.sectionId });
 
     if (teaches !== true) {
-      return fail("Ye section aapka nahi hai.", 403);
+      return fail("This section is not yours.", 403);
     }
   }
 
@@ -140,7 +140,7 @@ export async function POST(request: Request) {
   if (error) {
     /* The trigger from comms.sql fires here when the section belongs to
        another school, and its message says so in those words. */
-    return fail(`Notice nahi bheja ja saka: ${error.message}`, 400);
+    return fail(`The notice could not be sent: ${error.message}`, 400);
   }
 
   await recordAudit(

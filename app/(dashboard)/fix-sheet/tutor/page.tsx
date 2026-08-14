@@ -13,10 +13,10 @@ export default function TutorFixSheetPage() {
   return (
     <>
       <p className="mx-auto mb-4 max-w-3xl text-[13px] opacity-55 print:hidden">
-        Ye sheet un galtiyon se banti hai jo tutor ne pakdi hain — har line
-        kisi asli sawal se aayi hai. Jo chapters abhi tutor me nahi hain, unke
-        liye <a href="/fix-sheet" className="underline">purani fix sheet</a> use
-        karo.
+        This sheet is built from the mistakes the tutor caught — every line
+        comes from a real question you answered. For chapters the tutor does not
+        cover yet, use the{" "}
+        <a href="/fix-sheet" className="underline">other fix sheet</a>.
       </p>
 
       <TutorFixSheet />

@@ -99,7 +99,7 @@ export async function POST(request: Request) {
   }
 
   if (!body.assignmentId || !body.content?.trim()) {
-    return fail("Kuch likhe bina jama nahi kar sakte.", 400);
+    return fail("You cannot submit without writing something.", 400);
   }
 
   const supabase = await createClient();
@@ -125,7 +125,7 @@ export async function POST(request: Request) {
        in that section, and work that has already been marked. Both are
        correct refusals and neither should hint at the other. */
     return fail(
-      "Jama nahi ho paaya. Ho sakta hai ye assignment aapki class ka na ho, ya check ho chuka ho.",
+      "That could not be submitted. This assignment may not belong to your class, or it may already have been marked.",
       403,
     );
   }

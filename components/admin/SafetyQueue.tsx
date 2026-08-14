@@ -21,7 +21,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { AlertTriangle, Check, Loader2, X } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { Action, Quiet } from "@/components/admin/ui";
 
 type Flag = {
   id: string;
@@ -97,92 +97,121 @@ export function SafetyQueue() {
   };
 
   return (
-    <main className="mx-auto max-w-3xl px-5 py-10">
-      <div className="flex flex-wrap items-end justify-between gap-3">
+    <main className="mx-auto max-w-[1180px]">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] opacity-50">
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#667085]">
             Safety
           </p>
-          <h1 className="font-display mt-1 text-[1.8rem] font-extrabold tracking-[-0.03em]">
-            Review queue
+          {/* Renamed. "Review queue" is now the inbox at /admin/review, and two
+              screens with the same title is how somebody actions a flag on the
+              one they meant to browse. */}
+          <h1 className="mt-1 text-[1.9rem] font-extrabold tracking-[-0.03em] text-[#0d1015]">
+            Flagged messages
           </h1>
+          <p className="mt-1.5 text-[14px] text-[#4b5565]">
+            Every flag a person still has to decide about.
+          </p>
         </div>
 
-        <div className="flex gap-2 text-[13px]">
-          {["open", "actioned", "dismissed", "all"].map((option) => (
-            <button
-              key={option}
-              type="button"
-              onClick={() => setStatus(option)}
-              className={`rounded-lg px-3 py-1.5 ${
-                status === option ? "bg-black/10 dark:bg-white/15" : "opacity-60"
-              }`}
-            >
-              {option}
-            </button>
-          ))}
+        <div
+          role="tablist"
+          aria-label="Which flags to show"
+          className="flex items-center gap-0.5 rounded-xl border border-[#e4e6ea] bg-white p-1"
+        >
+          {["open", "actioned", "dismissed", "all"].map((option) => {
+            const active = status === option;
+
+            return (
+              <button
+                key={option}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => setStatus(option)}
+                className={`rounded-lg px-3.5 py-1.5 text-[13.5px] font-semibold capitalize transition-colors ${
+                  active ? "bg-[#eff4ff] text-[#2563eb]" : "text-[#4b5565] hover:bg-black/[0.035]"
+                }`}
+              >
+                {option}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* The number that comes before everything else. */}
+      {/* The number that comes before everything else. Green when it is zero
+          rather than a neutral grey box: "nothing urgent" is the answer this
+          screen exists to give, and a reviewer should be able to read it from
+          the doorway. */}
       <div
-        className="mt-6 rounded-xl border p-5"
-        style={{
-          borderColor: openUrgent > 0 ? "rgb(220 38 38 / 0.5)" : "rgb(128 128 128 / 0.2)",
-        }}
+        className={`mt-6 flex items-start gap-4 rounded-2xl border p-5 ${
+          openUrgent > 0 ? "border-[#fecaca] bg-[#fef4f4]" : "border-[#dcf0e3] bg-[#f4fbf6]"
+        }`}
       >
-        <p className="flex items-center gap-2 text-[15px] font-semibold">
-          {openUrgent > 0 && <AlertTriangle className="h-4 w-4 text-red-600" />}
-          {openUrgent === 0
-            ? "No urgent flags pending."
-            : `${openUrgent} urgent flag${openUrgent === 1 ? "" : "s"} waiting.`}
-        </p>
+        <span
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${
+            openUrgent > 0 ? "bg-[#fee2e2] text-[#dc2626]" : "bg-[#dcf0e3] text-[#15803d]"
+          }`}
+        >
+          {openUrgent > 0 ? <AlertTriangle className="h-5 w-5" /> : <Check className="h-5 w-5" />}
+        </span>
 
-        {openUrgent > 0 && (
-          <p className="mt-1.5 text-[13px] opacity-70">
-            Har ek ke peeche ek bachcha hai jisne kuch aisa likha jo pareshan
-            karta hai. Ye pehle dekho.
+        <div className="min-w-0">
+          <p
+            className={`text-[15px] font-bold ${
+              openUrgent > 0 ? "text-[#b91c1c]" : "text-[#166534]"
+            }`}
+          >
+            {openUrgent === 0
+              ? "No urgent flags pending."
+              : `${openUrgent} urgent flag${openUrgent === 1 ? "" : "s"} waiting.`}
           </p>
-        )}
+
+          <p className="mt-1 text-[13px] leading-[1.55] text-[#4b5565]">
+            {openUrgent > 0
+              ? "Behind each one is a child who wrote something troubling. Look at these first."
+              : "Nothing urgent is outstanding. Anything below has already been decided."}
+          </p>
+        </div>
       </div>
 
       {message && (
-        <p className="mt-4 rounded-xl bg-black/5 px-4 py-3 text-[14px] dark:bg-white/10">
+        <p className="mt-4 rounded-xl border border-[#d6e4ff] bg-[#f4f8ff] px-4 py-3 text-[14px] text-[#1e40af]">
           {message}
         </p>
       )}
 
       {loading ? (
-        <div className="mt-8 flex items-center gap-2 opacity-60">
+        <div className="mt-8 flex items-center gap-2 text-[#667085]">
           <Loader2 className="h-4 w-4 animate-spin" />
           <span className="text-[14px]">Loading…</span>
         </div>
       ) : flags.length === 0 ? (
-        <p className="mt-8 text-[14px] opacity-55">Nothing in this state.</p>
+        <p className="mt-6 rounded-2xl border border-[#e9eaee] bg-white p-6 text-[14px] text-[#667085]">
+          Nothing in this state.
+        </p>
       ) : (
         <div className="mt-6 space-y-3">
           {flags.map((flag) => (
             <article
               key={flag.id}
-              className="rounded-xl border p-5"
-              style={{
-                borderColor:
-                  flag.severity === "urgent"
-                    ? "rgb(220 38 38 / 0.4)"
-                    : "rgb(128 128 128 / 0.2)",
-              }}
+              className={`rounded-2xl border bg-white p-5 ${
+                flag.severity === "urgent" ? "border-[#fecaca]" : "border-[#e9eaee]"
+              }`}
             >
               <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h2 className="text-[15px] font-bold">
+                <h2 className="flex items-center gap-2 text-[15px] font-bold text-[#0d1015]">
                   {CATEGORY_LABEL[flag.category] ?? flag.category}
                   {flag.severity === "urgent" && (
-                    <span className="ml-2 text-[12px] font-semibold text-red-600">
-                      urgent
+                    <span className="rounded-full bg-[#fee2e2] px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-[0.06em] text-[#b91c1c]">
+                      Urgent
                     </span>
                   )}
                 </h2>
 
-                <span className="text-[12px] opacity-55">
+                <span className="text-[12px] text-[#667085]">
                   {flag.studentName || flag.studentId.slice(0, 8)} ·{" "}
                   {new Date(flag.createdAt).toLocaleString("en-IN")} · {flag.source}
                   {flag.score !== null ? ` · ${flag.score}` : ""}
@@ -192,17 +221,14 @@ export function SafetyQueue() {
               {/* The only place in the product a student's flagged words are
                   shown. See the note at the top of the route. */}
               {flag.excerpt && (
-                <blockquote
-                  className="mt-3 rounded-lg border-l-2 px-3 py-2 text-[14px]"
-                  style={{ borderColor: "rgb(128 128 128 / 0.4)" }}
-                >
+                <blockquote className="mt-3 rounded-lg border-l-[3px] border-[#cfd4dc] bg-[#f7f8fa] px-4 py-2.5 text-[14px] leading-[1.55] text-[#14171c]">
                   {flag.excerpt}
                 </blockquote>
               )}
 
               {flag.reviewNote && (
-                <p className="mt-2 text-[13px] opacity-70">
-                  <span className="font-semibold">Review:</span> {flag.reviewNote}
+                <p className="mt-2.5 text-[13px] text-[#4b5565]">
+                  <span className="font-semibold text-[#14171c]">Review:</span> {flag.reviewNote}
                 </p>
               )}
 
@@ -215,39 +241,41 @@ export function SafetyQueue() {
                     }
                     rows={2}
                     placeholder="What was done? (called the parent, told the school, false positive…)"
-                    className="w-full rounded-lg border border-black/10 bg-transparent p-2.5 text-[13px] dark:border-white/15"
+                    className="w-full rounded-lg p-3 text-[13px] outline-none transition-shadow placeholder:text-[#667085] focus:shadow-[0_0_0_3px_rgba(37,99,235,0.15)]"
                   />
 
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
+                  {/* Two different weights on purpose. "Actioned" is the
+                      decision that closes a flag with something having been
+                      done about it; "false positive" closes it with nothing
+                      having been done. They should not look equally easy. */}
+                  <div className="flex flex-wrap gap-2">
+                    <Action
                       onClick={() => void decide(flag.id, "actioned")}
                       disabled={busy === flag.id}
-                      className="px-3 py-1.5 text-[13px]"
+                      className="px-3.5 py-2 text-[13px]"
                     >
                       {busy === flag.id ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
                       ) : (
                         <>
-                          <Check className="mr-1.5 h-3.5 w-3.5" />
+                          <Check className="h-3.5 w-3.5" />
                           Actioned
                         </>
                       )}
-                    </Button>
+                    </Action>
 
-                    <Button
-                      type="button"
+                    <Quiet
                       onClick={() => void decide(flag.id, "dismissed")}
                       disabled={busy === flag.id}
-                      className="px-3 py-1.5 text-[13px]"
+                      className="px-3.5 py-2 text-[13px]"
                     >
-                      <X className="mr-1.5 h-3.5 w-3.5" />
+                      <X className="h-3.5 w-3.5" />
                       False positive
-                    </Button>
+                    </Quiet>
                   </div>
                 </div>
               ) : (
-                <p className="mt-3 text-[12px] opacity-50">
+                <p className="mt-3 text-[12px] text-[#667085]">
                   {flag.status}
                   {flag.handledAt
                     ? ` · ${new Date(flag.handledAt).toLocaleDateString("en-IN")}`
@@ -259,10 +287,10 @@ export function SafetyQueue() {
         </div>
       )}
 
-      <p className="mt-8 text-[13px] opacity-55">
-        Ye records 12 mahine baad apne aap delete ho jaate hain. Jo self-harm
-        wale flags hain, unpe parent ko pehle hi message chala jaata hai — is
-        screen ka kaam ye tay karna hai ki wo kaafi tha ya nahi.
+      <p className="mt-8 text-[12.5px] leading-[1.6] text-[#667085]">
+        These records delete themselves after 12 months. Self-harm flags have
+        already sent a message to a parent — this screen exists to decide
+        whether that was enough.
       </p>
     </main>
   );

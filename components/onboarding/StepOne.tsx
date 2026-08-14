@@ -6,17 +6,23 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, Check } from "lucide-react";
 
 import { GlassCard } from "@/components/primitives";
+import { writeStoredCountry } from "@/lib/country";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  COUNTRIES,
   DEFAULT_ONBOARDING,
-  EXAM_BOARDS,
+  examBoardsFor,
   readOnboarding,
-  CLASSES,
   classBand,
+  classLabel,
+  classShortLabel,
+  classesFor,
+  countryOfBoard,
   coveredSubjects,
   type BoardId,
+  type CountryId,
   type ExamBoard,
   type OnboardingState,
 } from "@/lib/onboarding";
@@ -77,6 +83,11 @@ export function StepOne() {
         setState((current) => {
           const next = {
             ...current,
+            /* The school's board decides the country too. A school that bought
+               seats has already answered this question by existing, and a
+               toggle that could disagree with it would be a way to break your
+               own class record. */
+            countryId: countryOfBoard(payload.school!.board),
             boardId: payload.school!.board as BoardId,
             classLevel: (payload.school!.classLevel ?? current.classLevel) as
               | OnboardingState["classLevel"],
@@ -106,8 +117,21 @@ export function StepOne() {
     setTheme(id);
   };
 
-  const selectedBoard = EXAM_BOARDS.find((board) => board.id === state.boardId);
-  const ready = Boolean(selectedBoard && state.classLevel);
+  const country = state.countryId;
+  const boards = examBoardsFor(country);
+  const selectedBoard = boards.find((board) => board.id === state.boardId);
+  const ready = Boolean(selectedBoard && state.classLevel !== null);
+
+  /* Whether this board has a sourced chapter list for ANY year. Today every US
+     curriculum answers no, because lib/syllabus.ts carries no US entries and
+     will not carry one that was not read off a published standards document.
+     Said out loud below rather than left as a grid of greyed-out chips: a
+     picker where nothing can be picked reads as a broken page. */
+  const boardHasAnything = selectedBoard
+    ? classesFor(country).some(
+        (level) => coveredSubjects(selectedBoard.id as BoardId, level).length > 0,
+      )
+    : true;
 
   const onContinue = () => {
     if (!ready) return;
@@ -122,6 +146,20 @@ export function StepOne() {
         ? { boardId }
         : { boardId, classLevel: null, subjectIds: [], unitIds: [] },
     );
+  };
+
+  /* Changing country invalidates everything below it. The board list is
+     different, the grades are different, and Class 8 CBSE Sanskrit means
+     nothing once the answer above it is "United States" — so it is cleared
+     rather than carried forward into a plan that cannot be built. */
+  const chooseCountry = (countryId: CountryId) => {
+    if (countryId === state.countryId) return;
+
+    /* Written back to the marketing site's copy as well, so a student who
+       corrects it here and then walks back to the landing page is not shown
+       the answer they just rejected. */
+    writeStoredCountry(countryId);
+    update({ countryId, boardId: null, classLevel: null, subjectIds: [], unitIds: [] });
   };
 
   return (
@@ -231,7 +269,7 @@ export function StepOne() {
             className="font-display text-[2.2rem] font-extrabold leading-[1.05] tracking-[-0.035em] sm:text-[2.9rem]"
             style={{ color: text() }}
           >
-            {school.name ? `${school.name} ne` : "Your school has"} sab set kar diya hai
+            {school.name ? `${school.name} has` : "Your school has"} set this up for you
           </h1>
           <p className="mt-3 text-[15px]" style={{ color: text(0.6) }}>
             Your board and class come from your school, so there is nothing to choose here.
@@ -252,7 +290,9 @@ export function StepOne() {
                   Class
                 </dt>
                 <dd className="mt-1 text-[15px] font-bold" style={{ color: text() }}>
-                  {state.classLevel ? `Class ${state.classLevel}` : "—"}
+                  {state.classLevel !== null
+                    ? classLabel(state.countryId, state.classLevel)
+                    : "—"}
                 </dd>
               </div>
               <div>
@@ -275,15 +315,57 @@ export function StepOne() {
 
       {!school && (
       <section aria-labelledby="board-heading">
+        {/* Country first, because it decides what the next question even is.
+            Asked here rather than detected: a guess from the browser's locale
+            is wrong often enough that a child would have to notice and undo
+            it, and this is two taps either way. */}
+        <p
+          id="country-label"
+          className="text-[11px] font-bold uppercase tracking-[0.2em]"
+          style={{ color: text(0.5) }}
+        >
+          Where do you go to school?
+        </p>
+
+        <div
+          role="radiogroup"
+          aria-labelledby="country-label"
+          className="mt-4 flex flex-wrap gap-2.5"
+        >
+          {COUNTRIES.map((option) => {
+            const active = mounted && option.id === country;
+
+            return (
+              <button
+                key={option.id}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                onClick={() => chooseCountry(option.id)}
+                className="rounded-2xl px-5 py-3 text-[15px] font-bold transition-transform hover:-translate-y-0.5"
+                style={{
+                  background: active ? acc(0.16) : text(0.04),
+                  border: `1px solid ${active ? acc(0.5) : text(0.1)}`,
+                  color: text(active ? 1 : 0.7),
+                }}
+              >
+                {option.name}
+              </button>
+            );
+          })}
+        </div>
+
         <h1
           id="board-heading"
-          className="font-display text-[2.2rem] font-extrabold leading-[1.05] tracking-[-0.035em] sm:text-[2.9rem]"
+          className="font-display mt-10 text-[2.2rem] font-extrabold leading-[1.05] tracking-[-0.035em] sm:text-[2.9rem]"
           style={{ color: text() }}
         >
-          Which exam board?
+          {country === "us" ? "Which standards?" : "Which exam board?"}
         </h1>
         <p className="mt-3 text-[15px]" style={{ color: text(0.6) }}>
-          We tailor every question, mark scheme and tip to your board.
+          {country === "us"
+            ? "Pick what your school follows. Every question, rubric and tip is written to it."
+            : "We tailor every question, mark scheme and tip to your board."}
         </p>
 
         <div
@@ -291,7 +373,7 @@ export function StepOne() {
           aria-labelledby="board-heading"
           className="mt-7 grid gap-3.5 sm:grid-cols-2"
         >
-          {EXAM_BOARDS.map((board) => (
+          {boards.map((board) => (
             <BoardCard
               key={board.id}
               board={board}
@@ -308,7 +390,7 @@ export function StepOne() {
               className="font-display mt-10 text-[1.6rem] font-extrabold tracking-[-0.025em]"
               style={{ color: text() }}
             >
-              Which class are you in?
+              {country === "us" ? "Which grade are you in?" : "Which class are you in?"}
             </h2>
             <p className="mt-2 text-[15px]" style={{ color: text(0.6) }}>
               Your chapters, plan and questions all come from this year&apos;s
@@ -320,7 +402,7 @@ export function StepOne() {
               aria-labelledby="class-heading"
               className="mt-5 flex flex-wrap gap-2.5"
             >
-              {CLASSES.map((level) => {
+              {classesFor(country).map((level) => {
                 /* A class with no sourced chapter list yet is shown, but
                    plainly marked — hiding it would look like the board is
                    unsupported, and inventing chapters is what this rebuild
@@ -341,10 +423,11 @@ export function StepOne() {
                     onClick={() =>
                       update({ classLevel: level, subjectIds: [], unitIds: [] })
                     }
+                    aria-label={classLabel(country, level)}
                     className="flex h-[64px] w-[64px] flex-col items-center justify-center rounded-2xl transition-transform disabled:cursor-not-allowed"
                     title={
                       readyCount === 0
-                        ? "Chapters for this class are not loaded yet"
+                        ? `Chapters for ${classLabel(country, level)} are not loaded yet`
                         : `${readyCount} subject${readyCount === 1 ? "" : "s"} ready`
                     }
                     style={{
@@ -355,7 +438,7 @@ export function StepOne() {
                     }}
                   >
                     <span className="font-display text-[1.25rem] font-extrabold leading-none">
-                      {level}
+                      {classShortLabel(country, level)}
                     </span>
                     <span
                       className="mt-1 font-mono text-[9px] uppercase tracking-[0.1em]"
@@ -368,7 +451,7 @@ export function StepOne() {
               })}
             </div>
 
-            {state.classLevel && classBand(state.classLevel) === "primary" && (
+            {!boardHasAnything && (
               <p
                 className="mt-4 rounded-xl p-3.5 text-[13.5px] leading-[1.55]"
                 style={{
@@ -377,9 +460,27 @@ export function StepOne() {
                   color: text(0.7),
                 }}
               >
-                For Class {state.classLevel} this works best with a parent —
-                the plan and reminders are written for whoever is sitting with
-                the child.
+                We do not have {selectedBoard?.name} chapters loaded yet, so
+                there is no grade to pick here right now. Every chapter list in
+                this app is read off the real published curriculum before it
+                goes in — we would rather show you nothing than a plan built on
+                invented chapters. Leave your email at signup and we will tell
+                you the day {selectedBoard?.name} is ready.
+              </p>
+            )}
+
+            {state.classLevel !== null && classBand(state.classLevel) === "primary" && (
+              <p
+                className="mt-4 rounded-xl p-3.5 text-[13.5px] leading-[1.55]"
+                style={{
+                  background: acc(0.08),
+                  border: `1px solid ${acc(0.22)}`,
+                  color: text(0.7),
+                }}
+              >
+                For {classLabel(country, state.classLevel)} this works best with
+                a parent — the plan and reminders are written for whoever is
+                sitting with the child.
               </p>
             )}
           </>
@@ -393,10 +494,14 @@ export function StepOne() {
       <div className="mt-8">
         <Button size="lg" onClick={onContinue} disabled={!ready}>
           {!selectedBoard
-            ? "Pick a board to continue"
-            : !state.classLevel
-              ? "Pick your class to continue"
-              : `Continue · ${selectedBoard.name} Class ${state.classLevel}`}
+            ? country === "us"
+              ? "Pick your standards to continue"
+              : "Pick a board to continue"
+            : state.classLevel === null
+              ? country === "us"
+                ? "Pick your grade to continue"
+                : "Pick your class to continue"
+              : `Continue · ${selectedBoard.name} ${classLabel(country, state.classLevel)}`}
           <ArrowRight className="h-[18px] w-[18px]" />
         </Button>
       </div>

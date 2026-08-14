@@ -11,17 +11,17 @@ export default function OfflinePage() {
   return (
     <main className="mx-auto max-w-md px-5 py-20">
       <h1 className="font-display text-2xl font-extrabold tracking-[-0.03em]">
-        Internet nahi hai
+        No internet connection
       </h1>
 
       <p className="mt-3 text-[15px] leading-relaxed opacity-75">
-        Connection wapas aate hi ye page khul jaayega. Jo padha hai wo saara
-        safe hai — kuch gaya nahi.
+        This page will open as soon as the connection is back. Everything you
+        have studied is safe — nothing has been lost.
       </p>
 
       <p className="mt-6 text-[14px] opacity-55">
-        Tutor ko internet chahiye, par tumhara fix sheet aur purane notes wapas
-        aate hi wahin milenge.
+        The tutor needs the internet, but your fix sheet and older notes will be
+        right where you left them once you are back online.
       </p>
     </main>
   );

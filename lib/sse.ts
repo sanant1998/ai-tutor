@@ -47,7 +47,7 @@ export function sse(
       } catch (error) {
         console.error("[sse] handler failed", error);
         send("error", {
-          message: "Kuch gadbad hui. Dobara try karo.",
+          message: "Something went wrong. Try again.",
         });
       } finally {
         closed = true;

@@ -51,7 +51,7 @@ export async function POST(request: Request) {
   if (!body.sectionId) return fail("sectionId is required.", 400);
 
   if (Boolean(body.chapterRef) === Boolean(body.topicRef)) {
-    return fail("Ek chapter ya ek topic — dono nahi, aur koi nahi bhi nahi.", 400);
+    return fail("One chapter or one topic — not both, and not neither.", 400);
   }
 
   const supabase = await createClient();
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
     p_section: body.sectionId,
   });
 
-  if (teaches !== true) return fail("Ye section aapka nahi hai.", 403);
+  if (teaches !== true) return fail("This section is not yours.", 403);
 
   const db = createAdminClient();
 
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
     .maybeSingle();
 
   if (error || !assignment) {
-    return fail(`Homework set nahi ho paaya: ${error?.message}`, 400);
+    return fail(`The homework could not be set: ${error?.message}`, 400);
   }
 
   /* Everybody in the class hears about it once. Homework set on a Friday and

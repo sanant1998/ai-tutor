@@ -53,7 +53,7 @@ export async function POST(
     .eq("id", testId)
     .maybeSingle();
 
-  if (!test || test.status !== "published") return fail("Ye test nahi mila.", 404);
+  if (!test || test.status !== "published") return fail("That test was not found.", 404);
 
   const now = Date.now();
 
@@ -62,7 +62,7 @@ export async function POST(
   }
 
   if (test.closes_at && new Date(test.closes_at as string).getTime() < now) {
-    return fail("Is test ka time nikal chuka hai.", 409);
+    return fail("The window for this test has closed.", 409);
   }
 
   const db = createAdminClient();
@@ -83,8 +83,8 @@ export async function POST(
   if (!live && (existing?.length ?? 0) >= allowed) {
     return fail(
       allowed === 1
-        ? "Ye test aap ek baar de chuke hain."
-        : `Is test ke ${allowed} attempts ho chuke hain.`,
+        ? "You have already sat this test once."
+        : `You have used all ${allowed} attempts on this test.`,
       409,
     );
   }
@@ -106,7 +106,7 @@ export async function POST(
         .maybeSingle()
     ).data?.id;
 
-  if (!attemptId) return fail("Attempt shuru nahi ho paaya.", 500);
+  if (!attemptId) return fail("The attempt could not be started.", 500);
 
   const { data: paper } = await db
     .from("test_questions")

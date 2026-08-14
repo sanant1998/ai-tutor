@@ -31,6 +31,7 @@
 import { useRef, useState } from "react";
 import { AlertTriangle, Check, FileText, Loader2, Upload } from "lucide-react";
 
+import { BOARDS as SYLLABUS_BOARDS } from "@/lib/syllabus";
 import { MAX_SCAN_PAGES } from "@/lib/content/limits";
 import { Button } from "@/components/ui/button";
 
@@ -48,11 +49,13 @@ type Imported = {
   note: string;
 };
 
-const BOARDS = [
-  { id: "cbse", name: "CBSE" },
-  { id: "icse", name: "ICSE" },
-  { id: "upboard", name: "UP Board" },
-];
+/* Derived rather than listed. This was a hand-kept copy of the three Indian
+   boards, which meant that adding a curriculum to lib/syllabus.ts left the one
+   screen that imports content for it unable to name it. */
+const BOARD_OPTIONS = SYLLABUS_BOARDS.map((board) => ({
+  id: board.id as string,
+  name: board.name,
+}));
 
 const SUBJECTS = [
   { id: "maths", name: "Mathematics" },
@@ -131,7 +134,7 @@ export function ImportChapter({ onUploaded }: { onUploaded: () => void }) {
         </label>
 
         {file && (
-          <span className="text-[12.5px] opacity-50">
+          <span className="text-[12.5px] text-[#667085]">
             {(file.size / 1024 / 1024).toFixed(1)} MB
           </span>
         )}
@@ -143,7 +146,7 @@ export function ImportChapter({ onUploaded }: { onUploaded: () => void }) {
           onChange={(event) => setBoard(event.target.value)}
           className="rounded-xl border border-black/10 bg-transparent px-3 py-2 text-[14px] dark:border-white/15"
         >
-          {BOARDS.map((option) => (
+          {BOARD_OPTIONS.map((option) => (
             <option key={option.id} value={option.id}>
               {option.name}
             </option>
@@ -235,7 +238,7 @@ export function ImportChapter({ onUploaded }: { onUploaded: () => void }) {
           {busy ? "Reading the chapter…" : "Read this chapter"}
         </Button>
 
-        <p className="text-[12.5px] opacity-45">
+        <p className="text-[12.5px] text-[#667085]">
           {busy
             ? "A minute or two. It is reading the whole chapter and writing a pack for each idea in it."
             : `A PDF of the chapter. A scan or photographed pages work too — those are read as images, which is slower and only covers the first ${MAX_SCAN_PAGES} pages.`}

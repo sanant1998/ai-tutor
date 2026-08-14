@@ -79,9 +79,9 @@ const STATE_COLOUR: Record<Student["state"], string> = {
 };
 
 const STATE_LABEL: Record<Student["state"], string> = {
-  red: "Dhyan chahiye",
-  amber: "Going well",
-  green: "Achha",
+  red: "Needs attention",
+  amber: "Coming along",
+  green: "Doing well",
 };
 
 export function TeacherView({ sectionId }: { sectionId: string }) {
@@ -154,7 +154,7 @@ export function TeacherView({ sectionId }: { sectionId: string }) {
     return (
       <div className="flex items-center gap-2 py-12" style={{ color: text(0.5) }}>
         <Loader2 className="h-4 w-4 animate-spin" />
-        <span className="text-[14px]">Class load ho rahi hai…</span>
+        <span className="text-[14px]">Loading the class…</span>
       </div>
     );
   }
@@ -185,7 +185,7 @@ export function TeacherView({ sectionId }: { sectionId: string }) {
           {sectionName || "Section"}
         </h1>
         <p className="mt-2 text-[14px]" style={{ color: text(0.6) }}>
-          {students.length} students · {needAttention} ko dhyan chahiye
+          {students.length} students · {needAttention} need attention
         </p>
       </header>
 
@@ -193,14 +193,14 @@ export function TeacherView({ sectionId }: { sectionId: string }) {
           does tomorrow morning. */}
       <section className="space-y-3">
         <h2 className="font-display text-lg font-extrabold" style={{ color: text() }}>
-          Poori class kahan atki hai
+          Where the whole class is stuck
         </h2>
 
         {heatmap.length === 0 ? (
           <Panel className="p-5">
             <p className="text-[14px]" style={{ color: text(0.6) }}>
-              Abhi kaafi data nahi hai. Students ke kuch topics karne ke baad ye
-              bhar jaayega.
+              Not enough data yet. This fills in once students have worked
+              through a few topics.
             </p>
           </Panel>
         ) : (
@@ -244,7 +244,7 @@ export function TeacherView({ sectionId }: { sectionId: string }) {
                       {row.commonBelief.belief}
                     </p>
                     <p className="mt-1 text-[13px]" style={{ color: text(0.62) }}>
-                      Kal class me yahi theek karein: {row.commonBelief.correction}
+                      Correct this in tomorrow’s class: {row.commonBelief.correction}
                     </p>
                   </div>
                 )}
@@ -266,7 +266,7 @@ export function TeacherView({ sectionId }: { sectionId: string }) {
             style={{ color: text() }}
           >
             <ClipboardList className="h-4 w-4" />
-            Test set karein
+            Set a test
           </h2>
 
           <Panel className="space-y-3 p-4">
@@ -277,7 +277,7 @@ export function TeacherView({ sectionId }: { sectionId: string }) {
                 className="rounded-xl border bg-transparent px-3 py-2 text-[14px]"
                 style={{ borderColor: text(0.15), color: text(0.9) }}
               >
-                <option value="">Chapter chunein…</option>
+                <option value="">Choose a chapter…</option>
                 {chapters.map((chapter) => (
                   <option key={chapter.ref} value={chapter.ref}>
                     {chapter.title}
@@ -289,7 +289,7 @@ export function TeacherView({ sectionId }: { sectionId: string }) {
                 value={draft.count}
                 onChange={(event) => setDraft({ ...draft, count: event.target.value })}
                 inputMode="numeric"
-                aria-label="Kitne questions"
+                aria-label="How many questions"
                 className="rounded-xl border bg-transparent px-3 py-2 text-[14px]"
                 style={{ borderColor: text(0.15), color: text(0.9) }}
               />
@@ -415,7 +415,7 @@ export function TeacherView({ sectionId }: { sectionId: string }) {
                       nobody opened — and the average hides both. */}
                   {test.submitted} of {test.attempts || students.length} finished
                   {test.attempts > test.submitted &&
-                    ` · ${test.attempts - test.submitted} adhoore chhoda`}
+                    ` · ${test.attempts - test.submitted} left unfinished`}
                 </p>
               </div>
             ))}
@@ -436,14 +436,14 @@ export function TeacherView({ sectionId }: { sectionId: string }) {
             style={{ color: text() }}
           >
             <Megaphone className="h-4 w-4" />
-            Class ko notice bhejein
+            Send the class a notice
           </h2>
 
           <Panel className="space-y-3 p-4">
             <input
               value={notice.title}
               onChange={(event) => setNotice({ ...notice, title: event.target.value })}
-              placeholder="Ek line — phone par padhi jaayegi"
+              placeholder="One line — it will be read on a phone"
               className="w-full rounded-xl border bg-transparent px-3 py-2 text-[14px]"
               style={{ borderColor: text(0.15), color: text(0.9) }}
             />
@@ -452,14 +452,14 @@ export function TeacherView({ sectionId }: { sectionId: string }) {
               value={notice.body}
               onChange={(event) => setNotice({ ...notice, body: event.target.value })}
               rows={2}
-              placeholder="Baaki baat"
+              placeholder="The rest of it"
               className="w-full rounded-xl border bg-transparent p-3 text-[14px]"
               style={{ borderColor: text(0.15), color: text(0.9) }}
             />
 
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-[12px]" style={{ color: text(0.5) }}>
-                Sirf is section ko. Poore school ko notice school admin bhejte hain.
+                This section only. Notices to the whole school are sent by the school admin.
               </p>
 
               <button
@@ -484,7 +484,7 @@ export function TeacherView({ sectionId }: { sectionId: string }) {
 
                     if (!response.ok) {
                       const payload = await response.json();
-                      setError(payload.error ?? "Notice nahi gaya.");
+                      setError(payload.error ?? "The notice was not sent.");
                       return;
                     }
 
@@ -498,7 +498,7 @@ export function TeacherView({ sectionId }: { sectionId: string }) {
                 className="rounded-xl px-4 py-2 text-[14px] font-bold disabled:opacity-50"
                 style={{ background: acc(0.14), color: text(0.9) }}
               >
-                {sending ? "Bhej rahe hain…" : "Bhejein"}
+                {sending ? "Sending…" : "Send"}
               </button>
             </div>
           </Panel>
@@ -515,7 +515,7 @@ export function TeacherView({ sectionId }: { sectionId: string }) {
             style={{ color: text() }}
           >
             <NotebookPen className="h-4 w-4" />
-            Homework dein
+            Set homework
           </h2>
 
           <Panel className="space-y-3 p-4">
@@ -526,7 +526,7 @@ export function TeacherView({ sectionId }: { sectionId: string }) {
                 className="rounded-xl border bg-transparent px-3 py-2 text-[14px]"
                 style={{ borderColor: text(0.15), color: text(0.9) }}
               >
-                <option value="">Chapter chunein…</option>
+                <option value="">Choose a chapter…</option>
                 {chapters.map((chapter) => (
                   <option key={chapter.ref} value={chapter.ref}>
                     {chapter.title}
@@ -538,7 +538,7 @@ export function TeacherView({ sectionId }: { sectionId: string }) {
                 type="date"
                 value={task.dueOn}
                 onChange={(event) => setTask({ ...task, dueOn: event.target.value })}
-                aria-label="Kab tak"
+                aria-label="Due date"
                 className="rounded-xl border bg-transparent px-3 py-2 text-[14px]"
                 style={{ borderColor: text(0.15), color: text(0.9) }}
               />
@@ -613,12 +613,12 @@ export function TeacherView({ sectionId }: { sectionId: string }) {
                 className="rounded-xl px-4 py-2 text-[14px] font-bold disabled:opacity-50"
                 style={{ background: acc(0.14), color: text(0.9) }}
               >
-                {setting ? "Building…" : "Homework dein"}
+                {setting ? "Building…" : "Set homework"}
               </button>
             </div>
 
             <p className="text-[12px]" style={{ color: text(0.5) }}>
-              Class ko turant dikh jayega aur unke dashboard par notification bhi jayega.
+              The class sees it straight away, and a notification appears on their dashboard.
             </p>
           </Panel>
         </section>
@@ -724,7 +724,7 @@ export function TeacherView({ sectionId }: { sectionId: string }) {
                         className="rounded-xl px-3 py-2 text-[13.5px] font-bold disabled:opacity-40"
                         style={{ background: acc(0.14), color: text(0.9) }}
                       >
-                        {marking === submission.id ? "Save…" : "Marks dein"}
+                        {marking === submission.id ? "Saving…" : "Save marks"}
                       </button>
                     </div>
                   </div>
@@ -786,7 +786,7 @@ export function TeacherView({ sectionId }: { sectionId: string }) {
                     {/* Where they came up from. A teacher meeting a class in
                         April wants to know whether these children came up
                         together or arrived from four different sections. */}
-                    {student.cameFrom && `${student.cameFrom} se · `}
+                    {student.cameFrom && `from ${student.cameFrom} · `}
                     {student.topicsDone} topics done ·{" "}
                     {student.lastActive
                       ? `last active ${daysAgo(student.lastActive)}`
@@ -821,7 +821,7 @@ export function TeacherView({ sectionId }: { sectionId: string }) {
 
 function daysAgo(iso: string) {
   const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
-  if (days <= 0) return "aaj";
-  if (days === 1) return "kal";
+  if (days <= 0) return "today";
+  if (days === 1) return "yesterday";
   return `${days} days ago`;
 }

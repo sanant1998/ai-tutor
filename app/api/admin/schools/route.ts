@@ -600,7 +600,7 @@ export async function POST(request: Request) {
      licence. */
   if (body.action === "plan_access") {
     if (!admin.visibility.superAdmin) {
-      return fail("Plan ki content access sirf platform team badal sakti hai.", 403);
+      return fail("Only the platform team can change a plan's content access.", 403);
     }
 
     if (body.removeAccessId) {
@@ -609,19 +609,19 @@ export async function POST(request: Request) {
         .delete()
         .eq("id", body.removeAccessId);
 
-      if (error) return fail(`Hata nahi paaye: ${error.message}`, 400);
+      if (error) return fail(`That could not be removed: ${error.message}`, 400);
 
       return NextResponse.json({ removed: true });
     }
 
-    if (!body.planCodeForAccess) return fail("Plan chunna zaroori hai.", 400);
+    if (!body.planCodeForAccess) return fail("A plan must be chosen.", 400);
 
     /* All three null is the row that says "everything", which is what an empty
        list already means — so it would add a row that changes nothing while
        looking like a restriction. */
     if (!body.accessBoard && !body.accessClassLevel && !body.accessSubjectId) {
       return fail(
-        "Kam se kam ek cheez chunein — board, class ya subject. Teeno khaali ka matlab wahi hai jo koi row na hone ka.",
+        "Choose at least one of board, class or subject. All three left blank means the same thing as having no row at all.",
         400,
       );
     }
@@ -635,7 +635,7 @@ export async function POST(request: Request) {
 
     if (error) {
       /* The unique index fires when the same combination is added twice. */
-      return fail(`Add nahi hua: ${error.message}`, 400);
+      return fail(`That was not added: ${error.message}`, 400);
     }
 
     await recordAudit(
@@ -665,7 +665,7 @@ export async function POST(request: Request) {
      nowhere to go, at the moment of the year nobody is watching a console. */
   if (body.action === "create_year") {
     if (!body.orgId || !body.label || !body.startsOn || !body.endsOn) {
-      return fail("Org, label, aur dono dates chahiye.", 400);
+      return fail("An org, a label and both dates are required.", 400);
     }
 
     if (!mayTouch(body.orgId)) return fail("That is not your organisation.", 403);
@@ -692,7 +692,7 @@ export async function POST(request: Request) {
       .maybeSingle();
 
     if (error || !year) {
-      return fail(`Year nahi bana: ${error?.message}`, 400);
+      return fail(`The year was not created: ${error?.message}`, 400);
     }
 
     if (body.makeCurrent) {

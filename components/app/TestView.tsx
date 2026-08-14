@@ -76,7 +76,7 @@ export function TestView({ testId }: { testId: string }) {
         if (!live) return;
 
         if (!response.ok) {
-          setError(payload.error ?? "Test khul nahi paaya.");
+          setError(payload.error ?? "This test could not be opened.");
           return;
         }
 
@@ -123,14 +123,14 @@ export function TestView({ testId }: { testId: string }) {
       const payload = await response.json();
 
       if (!response.ok) {
-        setError(payload.error ?? "Jama nahi ho paaya.");
+        setError(payload.error ?? "That could not be submitted.");
         return;
       }
 
       setResults(payload.questions ?? []);
       setScore({ score: payload.score, outOf: payload.outOf });
     } catch {
-      setError("Network problem — dobara try karein. Aapke jawab abhi bhi yahin hain.");
+      setError("Network problem — try again. Your answers are still here.");
     } finally {
       setSubmitting(false);
     }
@@ -147,7 +147,7 @@ export function TestView({ testId }: { testId: string }) {
     return (
       <div className="flex items-center gap-2 py-12" style={{ color: text(0.5) }}>
         <Loader2 className="h-4 w-4 animate-spin" />
-        <span className="text-[14px]">Test khul raha hai…</span>
+        <span className="text-[14px]">Opening the test…</span>
       </div>
     );
   }
@@ -160,7 +160,7 @@ export function TestView({ testId }: { testId: string }) {
           {error}
         </p>
         <Link href="/tests" className="text-[14px] underline" style={{ color: acc() }}>
-          Tests par wapas
+          Back to tests
         </Link>
       </Panel>
     );
@@ -178,7 +178,7 @@ export function TestView({ testId }: { testId: string }) {
             {score.score}/{score.outOf}
           </p>
           <p className="mt-1 text-[14px]" style={{ color: text(0.6) }}>
-            Aapke teacher ko ye result dikh gaya hai.
+            Your teacher can see this result.
           </p>
         </Panel>
 
@@ -221,7 +221,7 @@ export function TestView({ testId }: { testId: string }) {
         })}
 
         <Link href="/tests" className="inline-block text-[14px] underline" style={{ color: acc() }}>
-          Baaki tests
+          Other tests
         </Link>
       </div>
     );
@@ -247,7 +247,7 @@ export function TestView({ testId }: { testId: string }) {
           >
             <Clock className="h-4 w-4" />
             {remaining === 0
-              ? "Time poora"
+              ? "Time up"
               : `${Math.floor(remaining / 60_000)}:${String(Math.floor((remaining % 60_000) / 1000)).padStart(2, "0")}`}
           </span>
         )}
@@ -255,7 +255,7 @@ export function TestView({ testId }: { testId: string }) {
 
       {remaining === 0 && (
         <p className="rounded-xl px-4 py-3 text-[13.5px]" style={{ background: acc(0.1), color: text(0.8) }}>
-          Time khatam — par aapka kaam yahin hai. Jama kar dein.
+          Time is up — but your work is still here. Go ahead and submit it.
         </p>
       )}
 
@@ -322,7 +322,7 @@ export function TestView({ testId }: { testId: string }) {
                 onChange={(event) =>
                   setAnswers((current) => ({ ...current, [question.ref]: event.target.value }))
                 }
-                placeholder="Jawab"
+                placeholder="Answer"
                 className="w-full rounded-xl bg-transparent px-4 py-3 text-[15px]"
                 style={{ border: `1px solid ${text(0.15)}`, color: text(0.9) }}
               />
@@ -340,11 +340,11 @@ export function TestView({ testId }: { testId: string }) {
       <Panel className="flex flex-wrap items-center justify-between gap-3 p-4">
         <p className="text-[13.5px]" style={{ color: text(0.6) }}>
           {answered} of {questions.length} answered
-          {answered < questions.length && " — khaali chhode hue zero honge"}
+          {answered < questions.length && " — anything left blank scores zero"}
         </p>
 
         <Button type="button" disabled={submitting} onClick={() => void submit()}>
-          {submitting ? "Jama ho raha hai…" : "Jama karein"}
+          {submitting ? "Submitting…" : "Submit"}
         </Button>
       </Panel>
     </div>

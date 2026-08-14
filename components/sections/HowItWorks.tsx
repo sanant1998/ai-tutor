@@ -7,10 +7,13 @@ import { RevealItem, Reveal } from "@/components/Reveal";
 import { DrawnPath, Spotlight } from "@/components/motion";
 import { GlassCard, SectionHeading } from "@/components/primitives";
 import { Button } from "@/components/ui/button";
-import { HOW_SECTION, HOW_STEPS } from "@/lib/content";
+import { useCountry } from "@/components/CountryToggle";
+import { HOW_SECTION, HOW_STEPS, REGION } from "@/lib/content";
 import { acc, text } from "@/lib/theme";
 
 export function HowItWorks() {
+  const [country] = useCountry();
+
   return (
     <section id="how" className="relative py-20 sm:py-24 lg:py-28">
       <div className="mx-auto max-w-[1180px] px-5 sm:px-6">
@@ -64,7 +67,9 @@ export function HowItWorks() {
                     className="mt-3 text-[15px] leading-[1.65]"
                     style={{ color: text(0.6) }}
                   >
-                    {step.body}
+                    {/* Step one names the boards, so it comes from REGION.
+                        The other two are the same in any country. */}
+                    {step.body ?? REGION[country].firstStep}
                   </p>
                 </GlassCard>
                 </Spotlight>

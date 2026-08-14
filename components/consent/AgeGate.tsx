@@ -135,7 +135,7 @@ export function AgeGate({ firstName }: { firstName: string }) {
 
         <label className="block">
           <span className="mb-1.5 block text-[14px] font-semibold">
-            Aapki date of birth
+            Your date of birth
           </span>
           <input
             type="date"
@@ -157,7 +157,7 @@ export function AgeGate({ firstName }: { firstName: string }) {
         {adult && (
           <fieldset className="space-y-2">
             <legend className="mb-1 text-[14px] font-semibold">
-              Ye aapki marzi hai
+              These are optional
             </legend>
 
             {PURPOSES.filter((purpose) => !purpose.required).map((purpose) => (

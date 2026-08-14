@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(npm test*)",
+      "Bash(npx tsc *)",
+      "Bash(npx next *)",
+      "Bash(npx eslint *)",
+      "Bash(npx prettier *)",
+
+      "Bash(git status*)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git show *)",
+      "Bash(git branch*)",
+      "Bash(git check-ignore *)",
+
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(wc *)",
+      "Bash(grep *)",
+      "Bash(find *)",
+      "Bash(sed *)",
+      "Bash(sort *)",
+      "Bash(uniq *)",
+      "Bash(cut *)",
+      "Bash(tr *)",
+      "Bash(echo *)",
+      "Bash(printf *)",
+
+      "Bash(rm -rf .next)",
+      "Bash(rm -rf node_modules)",
+      "Bash(rm -rf .turbo)"
+    ],
+    "deny": [
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf ~*)",
+      "Bash(rm -rf $HOME*)",
+      "Bash(rm -rf ..*)",
+      "Bash(git push --force*)",
+      "Bash(git reset --hard*)",
+      "Bash(psql *)"
+    ]
+  }
+}

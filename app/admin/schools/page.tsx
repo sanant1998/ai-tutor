@@ -17,7 +17,7 @@ export default async function AdminSchoolsPage() {
     if (admin.status === 401) redirect("/login?next=/admin/schools");
 
     return (
-      <main className="mx-auto max-w-lg px-5 py-20">
+      <main className="max-w-lg">
         <h1 className="font-display text-2xl font-extrabold">Not found</h1>
         {admin.status === 503 && (
           <p className="mt-3 text-[14px] opacity-65">{admin.message}</p>

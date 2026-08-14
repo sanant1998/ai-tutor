@@ -177,7 +177,7 @@ export default async function TutorIndexPage() {
       {(assigned ?? []).length > 0 && (
         <Panel className="space-y-2 p-5">
           <p className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] opacity-45">
-            Teacher ne diya hai
+            Set by your teacher
           </p>
 
           {(assigned ?? []).map((row) => {
@@ -213,12 +213,12 @@ export default async function TutorIndexPage() {
       {due.length > 0 && (
         <Panel className="space-y-3 p-5">
           <p className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] opacity-45">
-            Aaj dohraana hai
+            Revise today
           </p>
 
           <p className="text-[14px] opacity-65">
-            Ye topics tumne pehle kiye the. Aaj wahi din hai jab dohraane se sabse
-            zyada yaad rehta hai.
+            You studied these topics earlier. Today is the day revising them
+            sticks best.
           </p>
 
           <div className="flex flex-wrap gap-2">
@@ -241,7 +241,7 @@ export default async function TutorIndexPage() {
       {cards.length === 0 ? (
         <Panel className="p-6">
           <p className="text-[15px] opacity-70">
-            Abhi koi topic seed nahi hua. <code>node scripts/seed-content.ts</code> chalao.
+            No topics have been seeded yet. Run <code>node scripts/seed-content.ts</code>.
           </p>
         </Panel>
       ) : (
@@ -270,7 +270,7 @@ export default async function TutorIndexPage() {
                     style={{ background: "rgb(var(--acc-rgb) / 0.16)" }}
                   >
                     <Play className="h-3.5 w-3.5" />
-                    {card.score > 0 ? "Jaari rakho" : "Start"}
+                    {card.score > 0 ? "Continue" : "Start"}
                   </Link>
 
                   {/* Practice was reachable only from the end of a session
@@ -290,7 +290,7 @@ export default async function TutorIndexPage() {
               ) : (
                 <p className="mt-1 inline-flex items-center gap-2 text-[13px] opacity-55">
                   <Lock className="h-3.5 w-3.5" />
-                  Pehle {card.blockedBy.join(", ")} me {LIMITS.unlockScore}+ karo
+                  Score {LIMITS.unlockScore}+ in {card.blockedBy.join(", ")} first
                 </p>
               )}
             </Panel>

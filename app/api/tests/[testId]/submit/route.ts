@@ -64,10 +64,10 @@ export async function POST(
     .maybeSingle();
 
   if (!attempt || attempt.test_id !== testId || attempt.student_id !== user.value) {
-    return fail("Ye attempt nahi mila.", 404);
+    return fail("That attempt was not found.", 404);
   }
 
-  if (attempt.submitted_at) return fail("Ye attempt pehle hi jama ho chuka hai.", 409);
+  if (attempt.submitted_at) return fail("This attempt has already been submitted.", 409);
 
   const { data: paper } = await db
     .from("test_questions")
@@ -77,7 +77,7 @@ export async function POST(
     .eq("test_id", testId)
     .order("sort_order");
 
-  if (!paper || paper.length === 0) return fail("Is test me koi question nahi hai.", 409);
+  if (!paper || paper.length === 0) return fail("This test has no questions.", 409);
 
   const answers = body.answers ?? {};
 

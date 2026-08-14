@@ -10,6 +10,7 @@
    name real-sounding students and were inherited from the previous build. */
 
 import { BRAND } from "@/lib/brand";
+import { COACHING_YEARLY, PLANS as BILLING, rupees } from "@/lib/billing/prices";
 import { limitLine } from "@/lib/plans";
 
 export const NAV_LINKS = [
@@ -21,10 +22,120 @@ export const NAV_LINKS = [
 ] as const;
 
 /* --------------------------------------------------------------------------
+   Region
+
+   Everything on this page that names a school system. The header toggle picks
+   one of these two; useCountry() in components/CountryToggle.tsx is what reads
+   it, and every section that says "CBSE" or "Grade 8" goes through here rather
+   than hard-coding one country's version.
+
+   The US half is deliberately thinner in its claims. Nothing is open for those
+   standards yet — see lib/syllabus.ts, which has no US chapter lists — so this
+   copy says what is listed and what is coming, never what is covered. A
+   landing page that promises a Texan parent the same thing it promises a CBSE
+   parent is a page that lies on the very next screen.
+
+   Type-only import: erased at compile time, so this module still pulls no
+   syllabus data into the client bundle. */
+import type { CountryId } from "@/lib/syllabus";
+
+export const REGION: Record<
+  CountryId,
+  {
+    heroBadge: string;
+    heroTrust: string;
+    stats: { value: string; label: string }[];
+    planTasks: { label: string; state: "done" | "active" | "todo" }[];
+    trustItems: string[];
+    firstStep: string;
+    testimonialsSub: string;
+    footerTagline: string;
+    faqCoverage: string;
+    pricingNote: string;
+  }
+> = {
+  in: {
+    /* "CBSE, ICSE and UP Board" and "3 boards covered" until the cards below
+       started being derived from the real chapter lists — at which point the
+       badge sat directly above an ICSE card reading "not open yet". ICSE has
+       no sourced syllabus in lib/syllabus.ts and never has. Corrected to what
+       is actually open rather than the other way round. */
+    heroBadge: "Now covering CBSE and UP Board, Class 8 to 10",
+    heroTrust: "Built on NCERT chapters",
+    stats: [
+      { value: "2", label: "boards open" },
+      { value: "8–10", label: "classes open" },
+    ],
+    planTasks: [
+      { label: "Science: Ch 5 — Life Processes", state: "done" },
+      { label: "Maths: Ch 4 — Quadratic Equations", state: "done" },
+      { label: "Science: Ch 11 — Electricity", state: "active" },
+      { label: "Maths: Ch 6 — Triangles", state: "todo" },
+    ],
+    trustItems: [
+      "CBSE",
+      "ICSE",
+      "UP Board",
+      "Class 1–10",
+      "NCERT chapters",
+      "Maths",
+      "Science",
+      "Social Science",
+      "English",
+      "Hindi",
+    ],
+    firstStep:
+      "Board, class, subject and the date you sit the paper. CBSE, ICSE or UP Board — mapped to this year's textbook chapters.",
+    testimonialsSub: "Across three boards, including the parts that are still a work in progress.",
+    footerTagline: "One calm revision hub for CBSE, ICSE and UP Board.",
+    pricingNote: `The first chapter of every subject is free, in full — no card and no countdown. Paid plans are billed in rupees by UPI Autopay and can be cancelled any time. Coaching costs about ${COACHING_YEARLY} a year, for comparison.`,
+    faqCoverage:
+      "CBSE, ICSE and UP Board, for Class 1 to 10. Chapter lists are read off the real prescribed textbook — the NCERT books for CBSE and UP Board, CISCE's own syllabus for ICSE — and re-checked when a book is replaced, which several were for the 2026-27 session. Subjects open class by class rather than all at once; the signup screen shows exactly which are ready for your class today.",
+  },
+  us: {
+    heroBadge: "Common Core, NGSS and state standards — opening soon",
+    heroTrust: "Written to published standards",
+    stats: [
+      { value: "5", label: "standards listed" },
+      { value: "K–12", label: "grades" },
+    ],
+    planTasks: [
+      { label: "Science: Forces and Motion", state: "done" },
+      { label: "Math: Quadratic Functions", state: "done" },
+      { label: "Science: Energy Transfer", state: "active" },
+      { label: "Math: Congruent Triangles", state: "todo" },
+    ],
+    trustItems: [
+      "Common Core",
+      "NGSS",
+      "California",
+      "Texas TEKS",
+      "New York",
+      "Florida B.E.S.T.",
+      "Grades K–12",
+      "Math",
+      "Science",
+      "Social Studies",
+      "English Language Arts",
+    ],
+    firstStep:
+      "State, grade, subject and your test date. Common Core and NGSS, or your own state's standards.",
+    testimonialsSub:
+      "From the students we have now — including the parts that are still a work in progress.",
+    footerTagline: "One calm revision hub for Common Core, NGSS and state standards.",
+    pricingNote:
+      "We have not set US pricing yet, and there is nothing to buy until the standards open. Sign up and you will hear from us the day yours is ready — no card, and nothing to cancel.",
+    faqCoverage:
+      "Not yet — this is the honest answer. Common Core, NGSS, California, Texas TEKS, New York and Florida B.E.S.T. are the frameworks we are working through, and none of them are open today. Every list in this app is read off the published curriculum document before it goes in, and we would rather show a US student nothing than a plan built on chapters nobody set. Sign up and we will tell you the day yours is ready.",
+  },
+};
+
+/* --------------------------------------------------------------------------
    Hero
    -------------------------------------------------------------------------- */
 export const HERO = {
-  badge: "Now covering CBSE, ICSE and UP Board",
+  /* badge, the first trust chip, the first two stats and the plan tasks all
+     name a school system, so they live in REGION above. */
   headline: {
     lead: "Revision that knows what you",
     /* Set in marker pen with a hand-drawn underline. */
@@ -38,7 +149,6 @@ export const HERO = {
      neither could be substantiated. A number goes back only when there is a
      real one to quote. */
   trust: [
-    { icon: "students" as const, label: "Built on NCERT chapters" },
     { icon: "check" as const, label: "Free to start" },
     { icon: "lock" as const, label: "Data stays private" },
   ],
@@ -60,8 +170,6 @@ export const HERO = {
     "Redox equations",
   ],
   stats: [
-    { value: "3", label: "boards covered" },
-    { value: "1–10", label: "classes" },
     { value: "~30s", label: "to mark a full mock" },
     { value: "24/7", label: "help on call" },
   ],
@@ -70,30 +178,11 @@ export const HERO = {
     action: "View full plan",
     progressLabel: "3 / 4 tasks completed",
     progress: 75,
-    tasks: [
-      { label: "Science: Ch 5 — Life Processes", state: "done" as const },
-      { label: "Maths: Ch 4 — Quadratic Equations", state: "done" as const },
-      { label: "Science: Ch 11 — Electricity", state: "active" as const },
-      { label: "Maths: Ch 6 — Triangles", state: "todo" as const },
-    ],
   },
 };
 
-/* --------------------------------------------------------------------------
-   Trust strip
-   -------------------------------------------------------------------------- */
-export const TRUST_ITEMS = [
-  "CBSE",
-  "ICSE",
-  "UP Board",
-  "Class 1–10",
-  "NCERT chapters",
-  "Maths",
-  "Science",
-  "Social Science",
-  "English",
-  "Hindi",
-] as const;
+/* The trust-strip marquee is REGION[country].trustItems — it is a list of
+   board and subject names, so there is no country-neutral version of it.
 
 /* --------------------------------------------------------------------------
    Bento feature grid
@@ -222,11 +311,13 @@ export const HOW_SECTION = {
   sub: "No onboarding call, no card, no setting up a spreadsheet you will abandon by Thursday.",
 };
 
-export const HOW_STEPS = [
+/* Typed rather than `as const` so that step one may legitimately omit `body`.
+   Its answer names the boards, so it comes from REGION at render time. */
+export const HOW_STEPS: { n: string; title: string; body?: string }[] = [
   {
     n: "01",
     title: "Tell it your exam",
-    body: "Board, class, subject and the date you sit the paper. CBSE, ICSE or UP Board — mapped to this year's textbook chapters.",
+    /* Region-dependent: REGION[country].firstStep names the actual boards. */
   },
   {
     n: "02",
@@ -238,7 +329,7 @@ export const HOW_STEPS = [
     title: "Revise, submit, improve",
     body: "Work through it, submit questions and mocks, and watch the plan bend around your results.",
   },
-] as const;
+];
 
 /* --------------------------------------------------------------------------
    Comparison
@@ -272,44 +363,31 @@ export const COMPARE_SECTION = {
 /* --------------------------------------------------------------------------
    Boards
    -------------------------------------------------------------------------- */
+/* The cards themselves are NOT listed here. They are derived from
+   lib/syllabus.ts, which is the only place a board is allowed to exist, so
+   this page cannot advertise one the product does not have. What lives here is
+   the framing around them, which does differ by country: the US has no exam
+   boards to map to, it has published standards. */
 export const BOARDS = {
-  eyebrow: "Find your exam",
-  heading: "Mapped to your specification, not a generic syllabus",
-  sub: "Every topic, note and mark scheme is tied to the board you actually sit — and reviewed each exam cycle.",
-  groups: [
-    {
-      region: "International",
-      boards: [
-        {
-          name: "Edexcel",
-          detail: "IGCSE and International A Level",
-          subjects: "Maths · Physics · Chemistry · Biology",
-        },
-        {
-          name: "Cambridge (CIE)",
-          detail: "IGCSE and International A Level",
-          subjects: "Maths · Physics · Chemistry · Biology",
-        },
-      ],
-    },
-    {
+  eyebrow: "Find your syllabus",
+  heading: "Mapped to your syllabus, not a generic one",
+  byCountry: {
+    in: {
       region: "India",
-      boards: [
-        {
-          name: "CBSE",
-          detail: "Grades 10 to 12",
-          subjects: "Sciences · Maths · Business · Economics",
-        },
-        {
-          name: "NEET and JEE",
-          detail: "Entrance preparation",
-          subjects: "Physics · Chemistry · Biology · Maths",
-        },
-      ],
+      sub: "Every chapter, question and mark scheme is tied to the board you actually sit — read off the real textbook, not a summary of it.",
+      footnote:
+        "More classes and subjects go in every term. Cannot see yours? Tell us and it goes on the list.",
     },
-  ],
-  footnote:
-    "More boards and subjects are added every term. Cannot see yours? Tell us and it goes on the list.",
+    us: {
+      region: "United States",
+      sub: "Every question and rubric is written to the standards your school follows — Common Core and NGSS, or your own state's.",
+      /* Said plainly rather than implied. Nothing is loaded for these yet, and
+         a card that looks identical to a working CBSE one would be a promise
+         the product cannot keep on the next screen. */
+      footnote:
+        "We are still sourcing chapter lists for the US, so these are not open yet. Every list in this app is read off the published curriculum before it goes in — sign up and we will tell you the day yours is ready.",
+    },
+  },
   cta: "Start free",
 };
 
@@ -362,7 +440,7 @@ export type Testimonial = {
 export const TESTIMONIALS_SECTION = {
   eyebrow: "From the cohort",
   heading: "What students actually say",
-  sub: "Across three boards, including the parts that are still a work in progress.",
+  /* sub is REGION[country].testimonialsSub — it counts boards. */
 };
 
 /* Emptied deliberately.
@@ -386,16 +464,20 @@ export const PRICING_SECTION = {
   eyebrow: "Plans & pricing",
   heading: "Pick the plan that matches your run-up.",
   sub: `Notes sites give you notes and questions. ${BRAND.name} gives you a complete daily plan, AI marking, and a roadmap that thinks for you.`,
-  note: "Every paid plan opens with a 3-day free trial. Your local currency is worked out at checkout. Cancel in two clicks, no contract.",
+  /* The note is region-dependent — REGION[country].pricingNote. It described
+     "a 3-day free trial" and a local-currency checkout, and billing implements
+     neither: there is no trial in lib/billing/, and Razorpay charges rupees to
+     everyone. What is actually free is the first chapter of a subject — see
+     the top of lib/billing/access.ts, which argues for it over a trial. */
 };
 
-/* The launch banner above the plan cards. */
-export const LAUNCH_OFFER = {
-  kicker: "🔥 Launch offer — first 100 users only",
-  headline: "50% off your first month",
-  code: "REVISE50",
-  suffix: "at checkout",
-};
+/* The launch banner is gone rather than corrected.
+ *
+ * It advertised "50% off your first month — code REVISE50", and nothing in
+ * lib/billing/ has ever known that code: there is no coupon field on the
+ * subscription, no offer_id, no discount branch. A student typing it into
+ * Razorpay would be charged the full ₹399 and would be right to call that a
+ * lie. Put it back the day the code exists in checkout. */
 
 export type Plan = {
   id: string;
@@ -415,19 +497,31 @@ export type Plan = {
   comingSoon?: boolean;
 };
 
-/* Prices are the USD figures the live pricing page shows. The FAQ quotes the
-   same Pro monthly ($10.89), so the two agree. */
-export const PLANS: Plan[] = [
+/* Quoted from lib/billing/prices.ts — the same amounts Razorpay charges.
+ *
+ * These were hand-typed USD figures carried over from the previous site: "$0",
+ * "$5.44 / first month" struck through from "$10.89", "or $81.42 / year", and
+ * a third "Advanced" tier at "$35.40 / month". None of it was real. Checkout
+ * has exactly two plans, both in rupees, and there is no Advanced product to
+ * sell — so a visitor could read a dollar price, click through, and be handed
+ * a ₹399 UPI mandate for a plan with a different name.
+ *
+ * The Advanced card is removed rather than repriced. It was marked
+ * `comingSoon`, which is a promise with no date attached and nothing behind
+ * it; bring it back when there is a plan definition for it. */
+export const PLANS_BY_COUNTRY: Record<CountryId, Plan[]> = {
+  in: [
   {
     id: "starter",
     name: "Starter",
     icon: "sparkle",
-    price: "$0",
+    price: "₹0",
     period: "forever",
     tagline: `Get a real taste of ${BRAND.name}.`,
     /* These lines are generated from the limits the server actually enforces,
        so the card cannot drift from the paywall. */
     features: [
+      "The first chapter of every subject, in full",
       "Roadmap across every subject you pick",
       `${limitLine("free", "questions")} — 10 questions each`,
       `${limitLine("free", "mark")}, with mark scheme and model answer`,
@@ -441,48 +535,65 @@ export const PLANS: Plan[] = [
     id: "pro",
     name: "Pro",
     icon: "zap",
-    price: "$5.44",
-    wasPrice: "$10.89",
-    period: "/ first month",
-    discountBadge: "50% off — code REVISE50",
-    altPrice: "or $81.42 / year",
-    altBadge: "Save 38%",
+    price: rupees(BILLING.monthly.amount),
+    period: "/ month",
+    altPrice: `or ${rupees(BILLING.annual.amount)} / year`,
+    altBadge: "Two months free",
     tagline: "The plan most students pick. Built for exam season.",
     features: [
-      "Everything in Starter",
+      "Everything in Starter, plus every chapter",
       `${limitLine("pro", "questions")} — 400 questions a day`,
       limitLine("pro", "mark"),
       limitLine("pro", "notes"),
       `${limitLine("pro", "mocks")} with examiner-style feedback`,
       "Priority generation during exam season",
     ],
-    cta: "Start 3-day trial",
+    cta: "Start with UPI",
     featured: true,
   },
-  {
-    id: "advanced",
-    name: "Advanced",
-    icon: "crown",
-    price: "$35.40",
-    period: "/ month",
-    tagline: "For top-grade hunters and full-on offer holders.",
-    features: [
-      "Everything in Pro",
-      "Unlimited AI tutor — no message cap",
-      "Deep-dive notes (longer, more worked examples)",
-      "Adaptive mock papers tuned to your weak spots",
-      "Predicted-paper generator (exam-season exclusive)",
-      "Full AI exam strategy report",
-    ],
-    cta: "Coming soon",
-    comingSoon: true,
-  },
-];
+  ],
+
+  /* One card, and it quotes no price.
+   *
+   * lib/billing/prices.ts has no US plan set — Razorpay bills rupees, and
+   * nothing here charges dollars. Showing ₹399 to a visitor in Ohio would be
+   * a number their card will never be charged; converting it to "about $4.80"
+   * would be a rate we do not use and a payment we cannot take. So the card
+   * says what is true, and asks for an email instead of a card.
+   *
+   * It matches the Boards section, which already tells a US visitor that their
+   * standards are not open. A page that says "not open yet" above and "$4.80 a
+   * month" below is a page arguing with itself. */
+  us: [
+    {
+      id: "us-waitlist",
+      name: "Pro",
+      icon: "zap",
+      price: "—",
+      period: "pricing set at launch",
+      tagline: "Not open in the US yet.",
+      features: [
+        "Common Core, NGSS and state standards, once the chapter lists are sourced",
+        "Everything the India build already does: roadmap, AI marking, tutor",
+        "US pricing and billing are not set up yet, so there is nothing to charge",
+        "Sign up and we will tell you the day your standards open",
+      ],
+      /* Not `comingSoon`: that renders a disabled button, and the whole
+         point of this card is that the visitor CAN act — signing up is how
+         they get told when their standards open. */
+      cta: "Get notified",
+      featured: true,
+    },
+  ],
+};
 
 /* --------------------------------------------------------------------------
    FAQ
    -------------------------------------------------------------------------- */
-export type Faq = { q: string; a: string; needsReview?: boolean };
+/* `a: null` means the answer depends on the country and comes from REGION.
+   Exactly one entry uses it — the one that lists what is covered — and the Faq
+   section substitutes REGION[country].faqCoverage for it. */
+export type Faq = { q: string; a: string | null; needsReview?: boolean };
 
 export const FAQ_SECTION = {
   eyebrow: "The specifics",
@@ -497,7 +608,11 @@ export const FAQS: Faq[] = [
   },
   {
     q: "Which exam boards and subjects does it cover?",
-    a: "Edexcel (IGCSE and International A Level), Cambridge (IGCSE and A Level) and CBSE (Grades 10-12), plus NEET and JEE preparation. Subjects span Maths, Physics, Chemistry and Biology, with Business and Economics for CBSE. Every topic is mapped to your board's current specification and reviewed each exam cycle, and more boards and subjects are added every term.",
+    /* The answer is REGION[country].faqCoverage. Until the toggle existed this
+       one still described the removed international build — Edexcel,
+       Cambridge, CBSE "grades 10-12", NEET and JEE — none of which the
+       product has covered since the move to the Indian model. */
+    a: null,
   },
   {
     q: "Is PaperPath free?",
@@ -505,7 +620,12 @@ export const FAQS: Faq[] = [
   },
   {
     q: "How much does Pro cost, and is there a discount?",
-    a: "Pro is AED 39.99 per month before VAT, or AED 299 per year — roughly a 38% saving. Your local currency is detected automatically at checkout, so depending on where you are that is about £8.50, $10.89 or ₹920 a month. New users get 50% off the first month with code REVISE50, bringing it to AED 19.99, and every Pro plan starts with a 3-day free trial you can cancel before it ends without being charged. An Advanced plan at AED 129.99 per month is coming soon.",
+    /* Was: "AED 39.99 per month before VAT, or AED 299 per year... about
+       £8.50, $10.89 or ₹920 a month... 50% off with code REVISE50... a 3-day
+       free trial... An Advanced plan at AED 129.99 coming soon." Every figure
+       and every offer in that sentence was untrue of the running product.
+       Quoted from lib/billing/prices.ts now, so it cannot drift again. */
+    a: `Pro is ${rupees(BILLING.monthly.amount)} a month, or ${rupees(BILLING.annual.amount)} a year — two months free. Billing is in rupees through UPI Autopay, which renews on its own and can be stopped any time. There is no free trial and no discount code, because there is something better: the first chapter of every subject is free in full — every concept, every question, the fix sheet — so you can judge the teaching before paying rather than racing a countdown. Coaching costs about ${COACHING_YEARLY} a year for comparison.`,
   },
   {
     q: "Why pay when free notes sites already exist?",
@@ -525,15 +645,18 @@ export const FAQS: Faq[] = [
   },
   {
     q: "Does it create study notes?",
-    a: "Yes. Topic notes are generated automatically as part of your roadmap. The free plan covers 3 topics per week, Pro unlocks unlimited notes for every topic and unit, and Advanced adds deep-dive notes with more worked examples.",
+    a: `Yes. Topic notes are generated automatically as part of your roadmap. Starter covers ${limitLine("free", "notes")}; Pro raises that to ${limitLine("pro", "notes")}.`,
   },
   {
-    q: "What's the difference between the Pro and Advanced plans?",
-    a: "Pro is built for regular exam-season revision: unlimited subjects, unlimited AI-marked questions and mock papers, and a 200-message-per-day AI tutor. Advanced adds an uncapped AI tutor, adaptive mock papers targeted at your weak topics, a predicted-paper generator, and a personalised AI exam-strategy report based on your diagnostic results and target grade. Advanced is coming soon.",
+    /* Was "What's the difference between the Pro and Advanced plans?" — there
+       is no Advanced plan, so the question could only be answered by
+       describing one. Replaced with the difference that does exist. */
+    q: "What is the difference between Starter and Pro?",
+    a: `Starter gives you the first chapter of every subject in full, plus ${limitLine("free", "questions")} and ${limitLine("free", "mocks")}. Pro opens every remaining chapter and raises the daily limits — ${limitLine("pro", "questions")}, ${limitLine("pro", "mocks")} and ${limitLine("pro", "tutor")}. Those are the numbers the server actually enforces, not marketing rounding.`,
   },
   {
     q: "Can I revise more than one subject at a time?",
-    a: "On the free Starter plan you get a roadmap for one subject. Pro and Advanced support unlimited subjects and multiple active exams at once, with an urgency timer that adjusts as each exam date approaches.",
+    a: "Yes. Your roadmap covers every subject you pick and every exam date you enter, on either plan — what Pro changes is how much of each subject is open and how much you can do in a day.",
   },
   {
     q: "Does it have accessibility, reading and focus options?",
@@ -541,7 +664,7 @@ export const FAQS: Faq[] = [
   },
   {
     q: "What if I sign up and do not use it?",
-    a: "Cancel anytime in two clicks — no contracts and no awkward emails. The 3-day free trial means you can build your roadmap and mark a real mock paper before you pay anything.",
+    a: "Cancel any time — no contract, no awkward email. And you do not have to sign up to find out: the first chapter of every subject is free in full, so you can build a roadmap, sit a real chapter and mark a mock before any money is involved.",
   },
   /* The three answers below were not present in the captured page and were
      written to match the surrounding voice. Review before launch. */
@@ -557,7 +680,7 @@ export const FAQS: Faq[] = [
   },
   {
     q: "Who is PaperPath best for?",
-    a: "Students sitting Edexcel, Cambridge or CBSE exams who know they need to revise but lose the evening deciding how. If you are already scoring full marks with a system that works, you do not need us. If you are staring at forty tabs wondering where to start, that is exactly who this was built for.",
+    a: "Students in Class 8 to 10 who know they need to revise but lose the evening deciding how. If you are already scoring full marks with a system that works, you do not need us. If you are staring at forty tabs wondering where to start, that is exactly who this was built for.",
     needsReview: true,
   },
 ];
@@ -574,7 +697,7 @@ export const CTA = {
 
 export const FOOTER = {
   brand: "PaperPath",
-  tagline: "One calm revision hub for Edexcel, Cambridge and CBSE.",
+  /* tagline is REGION[country].footerTagline — it names boards. */
   columns: [
     {
       title: "Product",

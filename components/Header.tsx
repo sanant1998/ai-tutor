@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 
 import { AppearanceMenu } from "@/components/AppearanceMenu";
+import { CountryToggle } from "@/components/CountryToggle";
 import { Underline } from "@/components/doodles";
 import { scrollToSection } from "@/components/SmoothScroll";
 import { useStillness } from "@/components/Reveal";
@@ -73,6 +74,14 @@ export function Header() {
         </nav>
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
+          {/* Before the appearance control, because it changes what the page
+              says rather than how it looks. Hidden on phones, where it would
+              crowd out the menu button — the mobile sheet below carries it at
+              full width instead, on the same breakpoint as "Log in". */}
+          <div className="hidden sm:block">
+            <CountryToggle />
+          </div>
+
           <AppearanceMenu />
 
           <Link
@@ -121,7 +130,11 @@ export function Header() {
               </button>
             ))}
 
-            <div className="mt-2 flex gap-2 border-t pt-3" style={{ borderColor: "var(--line)" }}>
+            <div className="mt-2 border-t px-1 pt-3" style={{ borderColor: "var(--line)" }}>
+              <CountryToggle full />
+            </div>
+
+            <div className="mt-2 flex gap-2">
               <Button asChild variant="glass" className="flex-1">
                 <Link href="/login">Log in</Link>
               </Button>

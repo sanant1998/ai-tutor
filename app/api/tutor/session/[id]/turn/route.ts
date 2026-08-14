@@ -78,7 +78,7 @@ export async function POST(
 
   const session = await loadSession(id, user.value);
   if (!session) return fail("Session not found.", 404);
-  if (session.status === "completed") return fail("Ye session khatam ho chuka hai.", 409);
+  if (session.status === "completed") return fail("This session has already ended.", 409);
 
   /* --- 1. Safety -------------------------------------------------------
      The reply text for every non-allow outcome is fixed in gate.ts. No model

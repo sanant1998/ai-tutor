@@ -26,7 +26,7 @@ export default async function AdminContentPage() {
     if (admin.status === 401) redirect("/login?next=/admin/content");
 
     return (
-      <main className="mx-auto max-w-lg px-5 py-20">
+      <main className="max-w-lg">
         <h1 className="font-display text-2xl font-extrabold">Not found</h1>
         {/* The configuration case is worth stating — a maintainer staring at a
             404 on their own deployment should not have to read the source to

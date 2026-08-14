@@ -70,12 +70,12 @@ export async function processingAllowed(userId: string): Promise<ConsentCheck> {
       ok: false,
       status: 403,
       message:
-        "Is account ki consent wapas le li gayi hai. Purana kaam padha ja sakta hai, nayi padhai ke liye parent ko dobara consent dena hoga.",
+        "Consent for this account has been withdrawn. Past work can still be read, but studying again needs a parent to give consent once more.",
     };
   }
 
   if (profile?.account_state === "suspended") {
-    return { ok: false, status: 403, message: "Ye account suspended hai." };
+    return { ok: false, status: 403, message: "This account is suspended." };
   }
 
   /* A teacher has no parent.
@@ -128,6 +128,6 @@ export async function processingAllowed(userId: string): Promise<ConsentCheck> {
     ok: false,
     status: 403,
     message:
-      "Padhai shuru karne se pehle parent ki consent chahiye. Unke phone pe link bheja gaya hai.",
+      "A parent has to give consent before studying can start. A link has been sent to their phone.",
   };
 }

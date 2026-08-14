@@ -18,7 +18,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: `${BRAND.name} — one-to-one tutoring`,
     short_name: BRAND.name,
     description:
-      "Ek concept, ek chhota session. Samjho, check karo, aur atko to alag tareeke se dobara.",
+      "One concept, one short session. Understand it, check it, and if you get stuck, try it a different way.",
     start_url: "/dashboard",
     display: "standalone",
     orientation: "portrait",
@@ -49,7 +49,7 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
     shortcuts: [
       { name: "Aaj ka plan", url: "/dashboard" },
-      { name: "Padhna shuru karo", url: "/tutor" },
+      { name: "Start studying", url: "/tutor" },
       { name: "Fix sheet", url: "/fix-sheet/tutor" },
     ],
   };

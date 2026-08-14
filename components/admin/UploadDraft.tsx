@@ -178,7 +178,7 @@ export function UploadDraft({
           <h2 className="text-[15px] font-bold">
             {mode === "chapter" ? "Upload a chapter" : "Paste one concept or question"}
           </h2>
-          <p className="mt-0.5 text-[13px] opacity-55">
+          <p className="mt-0.5 text-[13px] text-[#667085]">
             Goes into your organisation&rsquo;s review queue. Nothing here publishes.
           </p>
         </div>
@@ -243,7 +243,7 @@ export function UploadDraft({
           />
         </label>
 
-        <span className="text-[12.5px] opacity-45">or paste below</span>
+        <span className="text-[12.5px] text-[#667085]">or paste below</span>
       </div>
 
       <textarea
@@ -294,7 +294,7 @@ export function UploadDraft({
           {busy ? "Checking…" : "Add to queue"}
         </Button>
 
-        <p className="text-[12.5px] opacity-45">
+        <p className="text-[12.5px] text-[#667085]">
           Validated before it is stored — you will see what is wrong with it.
         </p>
       </div>

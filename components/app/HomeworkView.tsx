@@ -37,11 +37,11 @@ type Assignment = {
 function dueIn(dueOn: string): string {
   const days = Math.round((new Date(dueOn).getTime() - Date.now()) / 86_400_000);
 
-  if (days === 0) return "aaj";
-  if (days === 1) return "kal";
-  if (days > 1) return `${days} din me`;
-  if (days === -1) return "kal tak tha";
-  return `${Math.abs(days)} din late`;
+  if (days === 0) return "due today";
+  if (days === 1) return "due tomorrow";
+  if (days > 1) return `due in ${days} days`;
+  if (days === -1) return "was due yesterday";
+  return `${Math.abs(days)} days late`;
 }
 
 export function HomeworkView() {
@@ -81,7 +81,7 @@ export function HomeworkView() {
       const payload = await response.json();
 
       if (!response.ok) {
-        setMessage(payload.error ?? "Jama nahi ho paaya.");
+        setMessage(payload.error ?? "That could not be submitted.");
         return;
       }
 
@@ -95,7 +95,7 @@ export function HomeworkView() {
     return (
       <div className="flex items-center gap-2 py-12" style={{ color: text(0.5) }}>
         <Loader2 className="h-4 w-4 animate-spin" />
-        <span className="text-[14px]">Homework dekh rahe hain…</span>
+        <span className="text-[14px]">Loading your homework…</span>
       </div>
     );
   }
@@ -120,7 +120,7 @@ export function HomeworkView() {
       {assignments.length === 0 && (
         <Panel className="p-6">
           <p className="text-[14px]" style={{ color: text(0.6) }}>
-            Abhi koi homework nahi hai. Teacher jab denge, yahan aa jayega.
+            No homework right now. Whatever your teacher sets will show up here.
           </p>
         </Panel>
       )}
@@ -176,7 +176,7 @@ export function HomeworkView() {
                     setDrafts((current) => ({ ...current, [assignment.id]: event.target.value }))
                   }
                   rows={5}
-                  placeholder="Apna jawab yahan likhein"
+                  placeholder="Write your answer here"
                   className="w-full rounded-xl bg-transparent p-3 text-[14px]"
                   style={{ border: `1px solid ${text(0.15)}`, color: text(0.9) }}
                 />
@@ -184,8 +184,8 @@ export function HomeworkView() {
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="text-[12.5px]" style={{ color: text(0.5) }}>
                     {submitted
-                      ? "Jama ho chuka hai — check hone se pehle badal sakte hain."
-                      : "Check hone ke baad badal nahi sakte."}
+                      ? "Submitted — you can still change it until it is marked."
+                      : "You cannot change it once it has been marked."}
                   </p>
 
                   <Button
@@ -194,10 +194,10 @@ export function HomeworkView() {
                     onClick={() => void submit(assignment.id)}
                   >
                     {busy === assignment.id
-                      ? "Jama ho raha hai…"
+                      ? "Submitting…"
                       : submitted
-                        ? "Update karein"
-                        : "Jama karein"}
+                        ? "Update"
+                        : "Submit"}
                   </Button>
                 </div>
               </>

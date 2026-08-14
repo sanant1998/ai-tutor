@@ -165,10 +165,10 @@ export function Paywall({
       <Panel className="space-y-2 p-6">
         <p className="flex items-center gap-2 text-[15px] font-semibold" style={{ color: text(0.9) }}>
           <Check className="h-4 w-4" />
-          Ho gaya — poora syllabus khul gaya.
+          Done — the full syllabus is open.
         </p>
         <p className="text-[14px]" style={{ color: text(0.6) }}>
-          Receipt aapke email pe aa jayegi. Chalo padhai pe wapas chalte hain.
+          A receipt will reach your email. Let’s get back to studying.
         </p>
       </Panel>
     );
@@ -179,11 +179,11 @@ export function Paywall({
       <Panel className="space-y-2 p-6">
         <p className="flex items-center gap-2 text-[15px]" style={{ color: text(0.85) }}>
           <Loader2 className="h-4 w-4 animate-spin" />
-          Payment confirm ho raha hai…
+          Confirming the payment…
         </p>
         <p className="text-[13px]" style={{ color: text(0.55) }}>
-          Ye page band mat karein. Bank se confirmation aate hi access khul
-          jaayega.
+          Please do not close this page. Access opens as soon as the bank
+          confirms.
         </p>
       </Panel>
     );
@@ -201,12 +201,12 @@ export function Paywall({
 
         <div>
           <h2 className="font-display text-xl font-extrabold tracking-[-0.02em]" style={{ color: text() }}>
-            Pehla chapter poora free tha
+            The first chapter was entirely free
           </h2>
           <p className="mt-1.5 text-[15px]" style={{ color: text(0.7) }}>
-            {chapterTitle ? `"${chapterTitle}"` : "Ye chapter"} uske aage ka
-            hai. Poora syllabus kholne ke liye plan lena hoga — jo padha, wo
-            saara safe hai.
+            {chapterTitle ? `"${chapterTitle}"` : "This chapter"} comes after
+            it. Opening the full syllabus needs a plan — everything already
+            studied stays safe.
           </p>
         </div>
       </div>
@@ -237,9 +237,9 @@ export function Paywall({
       </div>
 
       <ul className="space-y-1.5 text-[14px]" style={{ color: text(0.7) }}>
-        <li>· Saare chapters, saare topics, unlimited practice</li>
-        <li>· Har hafte parent ko WhatsApp pe progress report</li>
-        <li>· Fix sheet — jo galtiyan baar-baar hoti hain, sirf unki practice</li>
+        <li>· Every chapter, every topic, unlimited practice</li>
+        <li>· A weekly progress report to a parent on WhatsApp</li>
+        <li>· Fix sheet — practice aimed only at the mistakes that keep repeating</li>
       </ul>
 
       {message && (
@@ -253,12 +253,12 @@ export function Paywall({
       </Button>
 
       <p className="text-[12px]" style={{ color: text(0.45) }}>
-        UPI Autopay mandate banega — har mahine apne aap kat jaayega, aur kabhi
-        bhi band kar sakte hain. Coaching ₹12,000 saal ka leti hai; ye ₹
+        This sets up a UPI Autopay mandate — it renews on its own each month, and
+        you can stop it any time. Coaching costs about ₹12,000 a year; this is ₹
         {plans.find((plan) => plan.key === "annual")?.amount
           ? (plans.find((plan) => plan.key === "annual")!.amount / 100).toLocaleString("en-IN")
           : "3,990"}{" "}
-        saal ka hai.
+        a year.
       </p>
     </Panel>
   );

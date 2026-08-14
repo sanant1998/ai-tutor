@@ -7,10 +7,14 @@ import { Reveal, RevealItem } from "@/components/Reveal";
 import { BorderBeam, Spotlight } from "@/components/motion";
 import { GlassCard, Mesh, SectionHeading } from "@/components/primitives";
 import { Button } from "@/components/ui/button";
-import { PLANS, PRICING_SECTION, type Plan } from "@/lib/content";
+import { useCountry } from "@/components/CountryToggle";
+import { PLANS_BY_COUNTRY, PRICING_SECTION, REGION, type Plan } from "@/lib/content";
 import { acc, text } from "@/lib/theme";
 
 export function Pricing() {
+  const [country] = useCountry();
+  const plans = PLANS_BY_COUNTRY[country];
+
   return (
     <section id="pricing" className="relative overflow-hidden py-20 sm:py-24 lg:py-28">
       <Mesh variant="soft" />
@@ -22,8 +26,15 @@ export function Pricing() {
           sub={PRICING_SECTION.sub}
         />
 
-        <div className="mt-14 grid items-stretch gap-4 lg:grid-cols-3">
-          {PLANS.map((plan, index) => (
+        {/* Two plans in India, not three — the "Advanced" card was priced in
+            dollars for a product that has no such plan. One card in the US,
+            which has no billing at all yet. See lib/content.ts. */}
+        <div
+          className={`mt-14 grid items-stretch gap-4 ${
+            plans.length > 1 ? "sm:grid-cols-2" : "mx-auto max-w-md"
+          }`}
+        >
+          {plans.map((plan, index) => (
             <RevealItem key={plan.id} index={index}>
               <Spotlight className="h-full" tone={plan.featured ? "acc" : "acc2"}>
                 <PlanCard plan={plan} />
@@ -37,7 +48,7 @@ export function Pricing() {
             className="mx-auto mt-8 max-w-2xl text-center text-[14px] leading-[1.6]"
             style={{ color: text(0.5) }}
           >
-            {PRICING_SECTION.note}
+            {REGION[country].pricingNote}
           </p>
         </Reveal>
       </div>

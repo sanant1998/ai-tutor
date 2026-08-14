@@ -10,6 +10,7 @@
 import { ownershipFor } from "@/lib/localOwner";
 import {
   ONBOARDING_STORAGE_KEY,
+  countryOfBoard,
   readOnboarding,
   saveOnboarding,
   type OnboardingState,
@@ -196,6 +197,12 @@ export async function loadOnboarding(): Promise<OnboardingState> {
     const remote: OnboardingState = {
       name: profile?.first_name ?? "",
       lastName: profile?.last_name ?? "",
+      /* Derived from the stored board rather than stored alongside it. A board
+         belongs to exactly one country, so a `country` column would be a
+         second copy of the same fact and the only thing it could ever add is a
+         disagreement. Falls back to the local answer while the board is still
+         unchosen — that is the only moment the two can differ. */
+      countryId: data.board_id ? countryOfBoard(data.board_id) : local.countryId,
       boardId: data.board_id ?? null,
       classLevel: (data.class_level ?? null) as OnboardingState["classLevel"],
       subjectIds: data.subject_ids ?? [],

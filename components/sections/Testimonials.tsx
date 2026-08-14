@@ -4,7 +4,9 @@ import { Star } from "lucide-react";
 
 import { Reveal } from "@/components/Reveal";
 import { GlassCard, SectionHeading, toneColor } from "@/components/primitives";
+import { useCountry } from "@/components/CountryToggle";
 import {
+  REGION,
   TESTIMONIALS_ROW_1,
   TESTIMONIALS_ROW_2,
   TESTIMONIALS_SECTION,
@@ -13,6 +15,8 @@ import {
 import { text } from "@/lib/theme";
 
 export function Testimonials() {
+  const [country] = useCountry();
+
   /* Hidden while there are no real testimonials to show. An empty praise
      section is worse than none; a fabricated one is worse still. */
   if (TESTIMONIALS_ROW_1.length + TESTIMONIALS_ROW_2.length === 0) return null;
@@ -23,7 +27,7 @@ export function Testimonials() {
         <SectionHeading
           eyebrow={TESTIMONIALS_SECTION.eyebrow}
           heading={TESTIMONIALS_SECTION.heading}
-          sub={TESTIMONIALS_SECTION.sub}
+          sub={REGION[country].testimonialsSub}
         />
       </Reveal>
 

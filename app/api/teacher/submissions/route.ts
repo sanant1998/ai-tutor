@@ -35,7 +35,7 @@ export async function GET(request: Request) {
   const supabase = await createClient();
 
   const { data: teaches } = await supabase.rpc("teaches_section", { p_section: sectionId });
-  if (teaches !== true) return fail("Ye section aapka nahi hai.", 403);
+  if (teaches !== true) return fail("This section is not yours.", 403);
 
   const { data: assignments } = await supabase
     .from("assignments")
@@ -124,7 +124,7 @@ export async function POST(request: Request) {
     .eq("id", body.submissionId)
     .maybeSingle();
 
-  if (!submission) return fail("Ye submission nahi mila.", 404);
+  if (!submission) return fail("That submission was not found.", 404);
 
   const { data: assignment } = await db
     .from("assignments")
@@ -132,19 +132,19 @@ export async function POST(request: Request) {
     .eq("id", submission.assignment_id)
     .maybeSingle();
 
-  if (!assignment) return fail("Ye submission nahi mila.", 404);
+  if (!assignment) return fail("That submission was not found.", 404);
 
   const { data: teaches } = await supabase.rpc("teaches_section", {
     p_section: assignment.section_id,
   });
 
-  if (teaches !== true) return fail("Ye submission nahi mila.", 404);
+  if (teaches !== true) return fail("That submission was not found.", 404);
 
   const max = Number(assignment.max_marks ?? 0);
   const marks = Number(body.marks ?? 0);
 
   if (max > 0 && (marks < 0 || marks > max)) {
-    return fail(`Marks 0 se ${max} ke beech hone chahiye.`, 400);
+    return fail(`Marks must be between 0 and ${max}.`, 400);
   }
 
   const { error } = await db
@@ -158,7 +158,7 @@ export async function POST(request: Request) {
     })
     .eq("id", body.submissionId);
 
-  if (error) return fail(`Marks save nahi hue: ${error.message}`, 400);
+  if (error) return fail(`The marks were not saved: ${error.message}`, 400);
 
   const { data: section } = await db
     .from("sections")

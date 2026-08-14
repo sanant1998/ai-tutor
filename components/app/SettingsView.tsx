@@ -134,8 +134,8 @@ export function SettingsView() {
         <Card icon={<Languages className="h-[18px] w-[18px]" />} title="Teaching language">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-[14px]" style={{ color: text(0.65) }}>
-              Tutor kis bhasha me padhaye. Agle session se lagoo hoga — beech
-              me badalne se baat-cheet ka sira toot jaata hai.
+              Which language the tutor teaches in. It applies from your next
+              session — switching mid-conversation loses the thread.
             </p>
             <LanguagePicker align="left" />
           </div>

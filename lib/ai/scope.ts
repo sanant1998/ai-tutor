@@ -7,7 +7,7 @@
    generating questions for a chapter that is not on the student's syllabus. */
 
 import { EXAM_BOARDS, SUBJECTS, unitsFor } from "@/lib/onboarding";
-import { CLASSES, type ClassLevel } from "@/lib/syllabus";
+import { classesFor, subjectsFor, type ClassLevel } from "@/lib/syllabus";
 
 export type Scope = {
   board: string;
@@ -53,13 +53,18 @@ export function resolveScope(
   const subject = SUBJECTS.find((entry) => entry.id === asString(request.subjectId));
   if (!board || !subject || board.comingSoon) return null;
 
+  /* Which years exist depends on the board's country: 1-10 for an Indian
+     board, K-12 for a US one. Validated against the board that was actually
+     sent, so "CBSE Grade 12" is rejected as firmly as an unknown board is. */
   const level = Number(request.classLevel);
-  if (!CLASSES.includes(level as ClassLevel)) return null;
+  if (!classesFor(board.country).includes(level as ClassLevel)) return null;
   const classLevel = level as ClassLevel;
 
   /* The subject has to be taught in that class, and the chapter has to be one
      the sourced syllabus actually lists for that board and class. */
-  if (!subject.classes.includes(classLevel)) return null;
+  if (!subjectsFor(classLevel, board.country).some((entry) => entry.id === subject.id)) {
+    return null;
+  }
 
   const chapters = unitsFor(board.id, classLevel, subject.id);
   if (chapters.length === 0) return null;

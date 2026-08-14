@@ -127,7 +127,7 @@ export function NoticeBoard() {
             <button
               type="button"
               onClick={() => void dismiss(alert.id)}
-              aria-label="Hata dein"
+              aria-label="Dismiss"
               className="shrink-0 rounded-lg p-1"
               style={{ color: text(0.4) }}
             >

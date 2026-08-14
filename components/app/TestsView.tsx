@@ -69,7 +69,7 @@ export function TestsView() {
     return (
       <div className="flex items-center gap-2 py-12" style={{ color: text(0.5) }}>
         <Loader2 className="h-4 w-4 animate-spin" />
-        <span className="text-[14px]">Tests dekh rahe hain…</span>
+        <span className="text-[14px]">Loading your tests…</span>
       </div>
     );
   }
@@ -84,15 +84,15 @@ export function TestsView() {
           Tests
         </h1>
         <p className="mt-2 text-[14px]" style={{ color: text(0.6) }}>
-          Ye aapke teacher ne set kiye hain. Practice aur mock papers alag hain — wo aapke apne
-          hain, ye class ke.
+          These are set by your teacher. Practice and mock papers are separate — those are your
+          own, these belong to the class.
         </p>
       </header>
 
       {tests.length === 0 && (
         <Panel className="p-6">
           <p className="text-[14px]" style={{ color: text(0.6) }}>
-            Abhi koi test set nahi hua. Jab teacher koi test denge, wo yahan aa jayega.
+            No tests set yet. Whenever your teacher sets one, it will show up here.
           </p>
         </Panel>
       )}
@@ -128,19 +128,19 @@ export function TestsView() {
                 answers the question they were about to ask. */}
             {test.notYetOpen && test.opensAt && (
               <p className="text-[13px]" style={{ color: text(0.6) }}>
-                {when(test.opensAt)} se khulega.
+                Opens {when(test.opensAt)}.
               </p>
             )}
 
             {test.closed && test.closesAt && (
               <p className="text-[13px]" style={{ color: text(0.6) }}>
-                {when(test.closesAt)} ko band ho gaya.
+                Closed on {when(test.closesAt)}.
               </p>
             )}
 
             {used && !test.closed && (
               <p className="text-[13px]" style={{ color: text(0.6) }}>
-                Ye aap de chuke hain.
+                You have already sat this one.
               </p>
             )}
 
@@ -151,7 +151,7 @@ export function TestsView() {
                 style={{ background: acc(0.14), color: text(0.9) }}
               >
                 <ClipboardList className="h-4 w-4" />
-                {test.closesAt ? `Shuru karein — ${when(test.closesAt)} tak` : "Shuru karein"}
+                {test.closesAt ? `Start — open until ${when(test.closesAt)}` : "Start"}
               </Link>
             )}
           </Panel>

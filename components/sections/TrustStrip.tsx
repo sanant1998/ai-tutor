@@ -1,10 +1,15 @@
-import { TRUST_ITEMS } from "@/lib/content";
+"use client";
+
+import { useCountry } from "@/components/CountryToggle";
+import { REGION } from "@/lib/content";
 import { text } from "@/lib/theme";
 
 /* Quiet marquee of boards and subjects. Content is duplicated so the -50%
    keyframe loops seamlessly. */
 export function TrustStrip() {
-  const reel = [...TRUST_ITEMS, ...TRUST_ITEMS];
+  const [country] = useCountry();
+  const items = REGION[country].trustItems;
+  const reel = [...items, ...items];
 
   return (
     <section

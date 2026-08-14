@@ -21,6 +21,7 @@ import { AlertTriangle, Check, Loader2, RefreshCw, X } from "lucide-react";
 
 import { Maths, TutorMessage } from "@/components/app/Maths";
 import { UploadDraft } from "@/components/admin/UploadDraft";
+import { Info, Quiet } from "@/components/admin/ui";
 import { Button } from "@/components/ui/button";
 
 type Issue = { severity: "error" | "warn"; where: string; message: string };
@@ -39,7 +40,27 @@ type Draft = {
   payload?: Record<string, unknown>;
 };
 
-const STATUSES = ["draft", "in_review", "approved", "published", "rejected"] as const;
+/* What a reviewer actually sorts by.
+ *
+ * The filter was the five raw values of content_drafts.status, which is the
+ * database's vocabulary rather than the reviewer's: "draft" and "in_review"
+ * are both "nobody has looked at this yet", and "approved", "published" and
+ * "rejected" are all "somebody has". Three buttons answer the only question
+ * being asked — what still needs me — and the raw status is still printed on
+ * every row for anyone who needs the precise one.
+ *
+ * Grouped on the client rather than in the route: the queue is capped at a
+ * hundred rows, so one fetch of everything is cheaper than three round trips
+ * and keeps the counts on this page consistent with each other. */
+const UNREVIEWED = ["draft", "in_review"];
+
+const VIEWS = [
+  { id: "all", label: "All" },
+  { id: "unreviewed", label: "Unreviewed" },
+  { id: "reviewed", label: "Reviewed" },
+] as const;
+
+type View = (typeof VIEWS)[number]["id"];
 
 export function ContentConsole({
   reviewer,
@@ -58,7 +79,7 @@ export function ContentConsole({
   canAuthor: boolean;
 }) {
   const [drafts, setDrafts] = useState<Draft[]>([]);
-  const [filter, setFilter] = useState<string>("in_review");
+  const [view, setView] = useState<View>("unreviewed");
   const [selected, setSelected] = useState<Draft | null>(null);
   const [editor, setEditor] = useState("");
   const [notes, setNotes] = useState("");
@@ -67,9 +88,7 @@ export function ContentConsole({
   const [counts, setCounts] = useState<{ modelDrafted: number; total: number } | null>(null);
 
   const load = useCallback(async () => {
-    const response = await fetch(
-      `/api/admin/content${filter === "all" ? "" : `?status=${filter}`}`,
-    );
+    const response = await fetch("/api/admin/content");
     const payload = await response.json();
 
     if (!response.ok) {
@@ -79,7 +98,7 @@ export function ContentConsole({
 
     setDrafts(payload.drafts ?? []);
     setCounts(payload.counts ?? null);
-  }, [filter]);
+  }, []);
 
   useEffect(() => {
     void load();
@@ -158,17 +177,29 @@ export function ContentConsole({
     parseError = (error as Error).message;
   }
 
+  /* Grouped here so the list, the count and the empty state can never
+     disagree about what is on screen. */
+  const shown = drafts.filter((draft) =>
+    view === "all"
+      ? true
+      : view === "unreviewed"
+        ? UNREVIEWED.includes(draft.status)
+        : !UNREVIEWED.includes(draft.status),
+  );
+
+  const unreviewed = drafts.filter((draft) => UNREVIEWED.includes(draft.status)).length;
+
   return (
-    <main className="mx-auto max-w-[1400px] px-5 py-8">
-      <header className="mb-6 flex flex-wrap items-end justify-between gap-3">
+    <main className="mx-auto max-w-[1400px]">
+      <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] opacity-50">
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#667085]">
             Content
           </p>
-          <h1 className="font-display mt-1 text-[1.8rem] font-extrabold tracking-[-0.03em]">
+          <h1 className="mt-1 text-[1.9rem] font-extrabold tracking-[-0.03em] text-[#0d1015]">
             Review queue
           </h1>
-          <p className="mt-1 text-[13px] opacity-55">
+          <p className="mt-1.5 text-[14px] text-[#4b5565]">
             Reviewing as {reviewer}
             {!superAdmin &&
               ` · ${orgIds.length === 1 ? "your organisation" : `${orgIds.length} organisations`}`}
@@ -179,45 +210,84 @@ export function ContentConsole({
         </div>
 
         <div className="flex items-center gap-2">
-          <select
-            value={filter}
-            onChange={(event) => setFilter(event.target.value)}
-            className="rounded-xl border border-black/10 bg-transparent px-3 py-2 text-[14px] dark:border-white/15"
+          <div
+            role="tablist"
+            aria-label="Which drafts to show"
+            className="flex items-center gap-0.5 rounded-xl border border-[#e4e6ea] bg-white p-1"
           >
-            <option value="all">All</option>
-            {STATUSES.map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
-          </select>
+            {VIEWS.map((option) => {
+              const active = option.id === view;
 
-          <Button type="button" onClick={() => void load()} className="px-3">
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setView(option.id)}
+                  className={`rounded-lg px-4 py-1.5 text-[13.5px] font-semibold transition-colors ${
+                    active
+                      ? "bg-[#eff4ff] text-[#2563eb]"
+                      : "text-[#4b5565] hover:bg-black/[0.035]"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <Quiet onClick={() => void load()} aria-label="Refresh" className="px-2.5 py-2">
             <RefreshCw className="h-4 w-4" />
-          </Button>
+          </Quiet>
         </div>
       </header>
 
       {message && (
-        <p className="mb-4 rounded-xl bg-black/5 px-4 py-3 text-[14px] dark:bg-white/10">
+        <p className="mt-5 rounded-xl border border-[#d6e4ff] bg-[#f4f8ff] px-4 py-3 text-[14px] text-[#1e40af]">
           {message}
         </p>
       )}
 
+      <p className="mt-6 flex items-center gap-2 text-[14px] text-[#4b5565]">
+        Showing
+        <span className="rounded-full bg-[#eff4ff] px-2.5 py-0.5 text-[13px] font-bold text-[#2563eb]">
+          {shown.length}
+        </span>
+        {view === "all" ? "drafts" : view === "unreviewed" ? "unreviewed" : "reviewed"}
+        {view !== "unreviewed" && unreviewed > 0 && (
+          <span className="text-[#667085]">· {unreviewed} still unreviewed</span>
+        )}
+      </p>
+
+      <div className="mt-4">
+        <Info>
+          <p>
+            Review everything people report or flag. A model catches some of it; a person sees
+            all of it. Start with what is not reviewed, and if the model was unsure, the call is
+            yours.
+          </p>
+        </Info>
+      </div>
+
       {/* Its own row rather than a header control: collapsed it is one button,
           and open it is a full-width editor. Inside the header's flex group the
           expanded panel would be squeezed into a column. */}
-      <div className="mb-5">
+      <div className="mb-5 mt-5">
         <UploadDraft canAuthor={canAuthor} onUploaded={() => void load()} />
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[280px_1fr]">
-        <aside className="space-y-2">
-          {drafts.length === 0 && (
-            <p className="text-[14px] opacity-55">Nothing in this state.</p>
+      <div className="grid gap-5 lg:grid-cols-[300px_1fr]">
+        <aside className="space-y-2.5">
+          {shown.length === 0 && (
+            <p className="rounded-2xl border border-[#e9eaee] bg-white p-5 text-[14px] text-[#667085]">
+              {view === "unreviewed"
+                ? "Nothing waiting. Every draft has been looked at."
+                : "Nothing in this state."}
+            </p>
           )}
 
-          {drafts.map((draft) => {
+          {shown.map((draft) => {
             const errors = (draft.issues ?? []).filter(
               (issue) => issue.severity === "error",
             ).length;
@@ -227,19 +297,19 @@ export function ContentConsole({
                 key={draft.id}
                 type="button"
                 onClick={() => void open(draft)}
-                className={`w-full rounded-xl border p-3 text-left transition-opacity hover:opacity-80 ${
+                className={`w-full rounded-2xl border bg-white p-4 text-left transition-colors ${
                   selected?.id === draft.id
-                    ? "border-black/30 dark:border-white/30"
-                    : "border-black/10 dark:border-white/10"
+                    ? "border-[#2563eb] shadow-[0_0_0_3px_rgba(37,99,235,0.12)]"
+                    : "border-[#e9eaee] hover:border-[#cfd4dc]"
                 }`}
               >
-                <p className="text-[14px] font-semibold">
+                <p className="font-mono text-[13.5px] font-bold text-[#0d1015]">
                   {draft.entity_id ?? `new ${draft.entity_type}`}
                 </p>
-                <p className="mt-0.5 text-[12px] opacity-55">
+                <p className="mt-1 text-[12.5px] text-[#4b5565]">
                   {draft.entity_type} · {draft.status} · v{draft.version}
                 </p>
-                <p className="mt-1 text-[11px] opacity-45">
+                <p className="mt-1 text-[11.5px] text-[#667085]">
                   {draft.generated_by}
                   {/* Only the vendor sees a mixed queue, and only the vendor
                       can publish into the shared base — so the distinction
@@ -249,7 +319,7 @@ export function ContentConsole({
                     ` · ${draft.org_id ? `org ${draft.org_id.slice(0, 8)}` : "shared base"}`}
                 </p>
                 {errors > 0 && (
-                  <p className="mt-1 flex items-center gap-1 text-[12px] text-red-600 dark:text-red-400">
+                  <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-[#fee2e2] px-2.5 py-1 text-[11.5px] font-bold text-[#b91c1c]">
                     <AlertTriangle className="h-3 w-3" />
                     {errors} error{errors === 1 ? "" : "s"}
                   </p>
@@ -338,15 +408,15 @@ export function ContentConsole({
               </Button>
             </div>
 
-            <p className="text-[12px] opacity-50">
+            <p className="text-[12px] text-[#667085]">
               Publishing writes a new version. Content already published is never
               edited in place — a session in progress keeps the material it
               started with.
             </p>
           </section>
         ) : (
-          <section className="rounded-xl border border-black/10 p-8 dark:border-white/10">
-            <p className="text-[14px] opacity-60">
+          <section className="rounded-2xl border border-[#e9eaee] bg-white p-8">
+            <p className="text-[14px] text-[#4b5565]">
               Pick a draft to review. Anything with a validation error cannot be
               published until it is fixed.
             </p>
@@ -368,7 +438,7 @@ function Preview({ payload }: { payload: Record<string, unknown> }) {
 
     return (
       <div className="space-y-3">
-        <p className="text-[11px] font-bold uppercase tracking-[0.14em] opacity-45">
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#667085]">
           {String(payload.level ?? "")} · {String(payload.qtype ?? "")}
         </p>
 
@@ -404,7 +474,7 @@ function Preview({ payload }: { payload: Record<string, unknown> }) {
 
       {Boolean(payload.hook) && (
         <div className="rounded-xl bg-black/5 p-3 dark:bg-white/10">
-          <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.14em] opacity-45">
+          <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.14em] text-[#667085]">
             Hook
           </p>
           <TutorMessage body={String(payload.hook)} />
@@ -413,13 +483,13 @@ function Preview({ payload }: { payload: Record<string, unknown> }) {
 
       {misconceptions.length > 0 && (
         <div>
-          <p className="mb-1.5 text-[11px] font-bold uppercase tracking-[0.14em] opacity-45">
+          <p className="mb-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-[#667085]">
             Misconceptions ({misconceptions.length})
           </p>
           <ul className="space-y-2">
             {misconceptions.map((misconception) => (
               <li key={misconception.id} className="text-[13px]">
-                <span className="font-mono opacity-50">{misconception.id}</span>{" "}
+                <span className="font-mono text-[#667085]">{misconception.id}</span>{" "}
                 <Maths>{misconception.wrong_belief}</Maths>
                 <span className="opacity-65">
                   <Maths>{` → ${misconception.correction}`}</Maths>

@@ -5,7 +5,8 @@ import { Check, Crown, Sparkles, Zap } from "lucide-react";
 
 import { Panel } from "@/components/app/ui";
 import { Button } from "@/components/ui/button";
-import { LAUNCH_OFFER, PLANS, PRICING_SECTION, type Plan } from "@/lib/content";
+import { useCountry } from "@/components/CountryToggle";
+import { PLANS_BY_COUNTRY, PRICING_SECTION, REGION, type Plan } from "@/lib/content";
 import { acc, acc2, text } from "@/lib/theme";
 
 const ICONS = {
@@ -15,6 +16,9 @@ const ICONS = {
 } as const;
 
 export function PricingView() {
+  const [country] = useCountry();
+  const plans = PLANS_BY_COUNTRY[country];
+
   return (
     <div>
       <div className="mx-auto max-w-3xl text-center">
@@ -38,39 +42,17 @@ export function PricingView() {
         </p>
       </div>
 
-      <div
-        className="mx-auto mt-9 max-w-2xl rounded-2xl px-6 py-6 text-center"
-        style={{
-          border: `1px dashed ${acc(0.5)}`,
-          background: `linear-gradient(120deg, ${acc(0.1)}, ${acc2(0.1)})`,
-        }}
-      >
-        <p
-          className="font-mono text-[11px] font-bold uppercase tracking-[0.16em]"
-          style={{ color: acc2() }}
-        >
-          {LAUNCH_OFFER.kicker}
-        </p>
-        <p
-          className="font-display mt-3 text-[1.7rem] font-extrabold tracking-[-0.03em]"
-          style={{ color: text() }}
-        >
-          {LAUNCH_OFFER.headline}
-        </p>
-        <p className="mt-3 text-[14px]" style={{ color: text(0.65) }}>
-          Use code{" "}
-          <span
-            className="rounded-md px-2 py-1 font-mono text-[13px] font-bold"
-            style={{ background: acc(0.14), color: acc() }}
-          >
-            {LAUNCH_OFFER.code}
-          </span>{" "}
-          {LAUNCH_OFFER.suffix}
-        </p>
-      </div>
+      {/* The launch-offer banner stood here, advertising "50% off your first
+          month — code REVISE50". Checkout has never implemented that code, so
+          the banner was an instruction to type something that does nothing.
+          See lib/content.ts where the copy was removed. */}
 
-      <div className="mt-9 grid items-stretch gap-4 lg:grid-cols-3">
-        {PLANS.map((plan) => (
+      <div
+        className={`mt-9 grid items-stretch gap-4 ${
+          plans.length > 1 ? "sm:grid-cols-2" : "mx-auto max-w-md"
+        }`}
+      >
+        {plans.map((plan) => (
           <PlanCard key={plan.id} plan={plan} />
         ))}
       </div>
@@ -79,7 +61,7 @@ export function PricingView() {
         className="mx-auto mt-7 max-w-2xl text-center text-[13.5px] leading-[1.6]"
         style={{ color: text(0.5) }}
       >
-        {PRICING_SECTION.note}
+        {REGION[country].pricingNote}
       </p>
     </div>
   );

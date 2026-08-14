@@ -6,13 +6,15 @@ import { Plus } from "lucide-react";
 
 import { Reveal, useStillness } from "@/components/Reveal";
 import { GlassCard, SectionHeading } from "@/components/primitives";
-import { FAQS, FAQ_SECTION } from "@/lib/content";
+import { useCountry } from "@/components/CountryToggle";
+import { FAQS, FAQ_SECTION, REGION } from "@/lib/content";
 import { acc, text } from "@/lib/theme";
 
 export function Faq() {
   /* The first answer is open on arrival, so the pattern is obvious. */
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   const still = useStillness();
+  const [country] = useCountry();
 
   return (
     <section id="faq" className="relative py-20 sm:py-24 lg:py-28">
@@ -82,7 +84,9 @@ export function Faq() {
                           className="px-6 pb-6 text-[15px] leading-[1.7]"
                           style={{ color: text(0.62) }}
                         >
-                          {faq.a}
+                          {/* A null answer is the coverage question, whose
+                              answer names boards and so lives in REGION. */}
+                          {faq.a ?? REGION[country].faqCoverage}
                         </p>
                       </motion.div>
                     )}

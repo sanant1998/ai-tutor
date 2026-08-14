@@ -12,10 +12,8 @@
  * ---------------------------------------------------------------------------
  * AMOUNTS ARE IN PAISE, ALWAYS
  *
- * Razorpay takes integer paise. ₹399 is 39900. Passing 399 charges ₹3.99 and
- * the mistake is invisible until a bank statement arrives, so nothing in this
- * file handles a rupee float — the plans below are declared in paise and the
- * only conversion is for display.
+ * Declared in lib/billing/prices.ts and re-exported below, so the pricing
+ * pages quote the same numbers this file charges.
  *
  * ---------------------------------------------------------------------------
  * WHAT THIS FILE DOES NOT DO
@@ -28,46 +26,18 @@ import "server-only";
 
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-export type PlanKey = "monthly" | "annual";
+/* Imported for use below, and re-exported so existing importers of this module
+   keep working. The amounts themselves live in ./prices, which the pricing
+   pages can also read — see the comment at the top of that file for why they
+   could not read them here. */
+import { PLANS, type PlanKey } from "@/lib/billing/prices";
 
-export type PlanDefinition = {
-  key: PlanKey;
-  label: string;
-  /* Paise. */
-  amount: number;
-  period: "monthly" | "yearly";
-  interval: number;
-  /* How many cycles the mandate is authorised for. */
-  totalCount: number;
-  note: string;
-};
-
-export const PLANS: Record<PlanKey, PlanDefinition> = {
-  monthly: {
-    key: "monthly",
-    label: "Monthly",
-    amount: 39900,
-    period: "monthly",
-    interval: 1,
-    totalCount: 12,
-    note: "Cancel any time",
-  },
-  annual: {
-    key: "annual",
-    label: "Annual",
-    /* Two months free. Priced against the ₹12,000/year the incumbents charge,
-       which is the comparison a parent actually makes. */
-    amount: 399000,
-    period: "yearly",
-    interval: 1,
-    totalCount: 3,
-    note: "Two months free — ₹3,990 a year",
-  },
-};
-
-export function rupees(paise: number) {
-  return `₹${(paise / 100).toLocaleString("en-IN")}`;
-}
+export {
+  PLANS,
+  rupees,
+  type PlanDefinition,
+  type PlanKey,
+} from "@/lib/billing/prices";
 
 export function isConfigured() {
   return Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET);

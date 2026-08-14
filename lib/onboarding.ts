@@ -15,24 +15,37 @@ export const ONBOARDING_STORAGE_KEY = "mmr-onboarding";
 
 export const ONBOARDING_TOTAL_STEPS = 5;
 
+import { readStoredCountry } from "@/lib/country";
 import {
   BOARDS,
+  DEFAULT_COUNTRY,
   chaptersFor,
+  countryOfBoard,
   isCovered,
   subjectsFor,
   type BoardId,
   type ClassLevel,
+  type CountryId,
   type Subject,
 } from "@/lib/syllabus";
 
 export {
   BOARDS,
   CLASSES,
+  COUNTRIES,
+  DEFAULT_COUNTRY,
+  boardsFor,
   classBand,
+  classLabel,
+  classShortLabel,
+  classesFor,
+  countryOfBoard,
   coveredSubjects,
   isCovered,
   type BoardId,
   type ClassLevel,
+  type Country,
+  type CountryId,
 } from "@/lib/syllabus";
 
 /* --------------------------------------------------------------------------
@@ -45,6 +58,7 @@ export {
    -------------------------------------------------------------------------- */
 export type ExamBoard = {
   id: string;
+  country: CountryId;
   name: string;
   detail: string;
   /* Shown in monospace under the name. */
@@ -54,10 +68,18 @@ export type ExamBoard = {
 
 export const EXAM_BOARDS: ExamBoard[] = BOARDS.map((board) => ({
   id: board.id,
+  country: board.country,
   name: board.name,
   detail: board.detail,
   specCodes: board.basis,
 }));
+
+/* What a picker should offer once a country has been chosen. EXAM_BOARDS is
+   every board in both countries and is the right list only for looking one up
+   by id — showing all of it would put CBSE in front of a student in Ohio. */
+export function examBoardsFor(country: CountryId): ExamBoard[] {
+  return EXAM_BOARDS.filter((board) => board.country === country);
+}
 
 /* --------------------------------------------------------------------------
    Subjects
@@ -124,6 +146,10 @@ export type OnboardingState = {
   /* `name` is the first name — it is what the app greets you by. */
   name: string;
   lastName: string;
+  /* Answered before the board, because it decides which boards exist. Never
+     null: India is the default, so a student who never sees the toggle gets
+     exactly the app that existed before it. */
+  countryId: CountryId;
   boardId: string | null;
   /* Which class they are in. Everything else depends on it. */
   classLevel: ClassLevel | null;
@@ -141,6 +167,7 @@ export type OnboardingState = {
 export const DEFAULT_ONBOARDING: OnboardingState = {
   name: "",
   lastName: "",
+  countryId: DEFAULT_COUNTRY,
   boardId: null,
   classLevel: null,
   subjectIds: [],
@@ -160,7 +187,7 @@ export function unitKey(subjectId: string, unitId: string) {
    class, and backed by a sourced chapter list for their board. */
 export function availableSubjects(state: OnboardingState): Subject[] {
   if (!state.boardId || !state.classLevel) return [];
-  return subjectsFor(state.classLevel).filter((subject) =>
+  return subjectsFor(state.classLevel, countryOfBoard(state.boardId)).filter((subject) =>
     isCovered(state.boardId as BoardId, state.classLevel as ClassLevel, subject.id),
   );
 }
@@ -169,7 +196,7 @@ export function availableSubjects(state: OnboardingState): Subject[] {
    out, so the picker is honest about what is not ready instead of hiding it. */
 export function pendingSubjects(state: OnboardingState): Subject[] {
   if (!state.boardId || !state.classLevel) return [];
-  return subjectsFor(state.classLevel).filter(
+  return subjectsFor(state.classLevel, countryOfBoard(state.boardId)).filter(
     (subject) =>
       !isCovered(state.boardId as BoardId, state.classLevel as ClassLevel, subject.id),
   );
@@ -188,9 +215,19 @@ export function totalStudyHours(state: OnboardingState) {
 
 export function readOnboarding(): OnboardingState {
   if (typeof window === "undefined") return DEFAULT_ONBOARDING;
+
+  /* What the visitor tapped on the marketing site before they had an account.
+     Only ever a starting value: everything below can overrule it, and a chosen
+     board always does. */
+  const fromLanding = readStoredCountry();
+
   try {
     const raw = window.localStorage.getItem(ONBOARDING_STORAGE_KEY);
-    if (!raw) return DEFAULT_ONBOARDING;
+    if (!raw) {
+      return fromLanding
+        ? { ...DEFAULT_ONBOARDING, countryId: fromLanding }
+        : DEFAULT_ONBOARDING;
+    }
 
     const stored = JSON.parse(raw) as Partial<OnboardingState> & {
       boardId?: string | null;
@@ -202,7 +239,21 @@ export function readOnboarding(): OnboardingState {
     const known = EXAM_BOARDS.some((board) => board.id === stored.boardId);
     if (stored.boardId && !known) return DEFAULT_ONBOARDING;
 
-    return { ...DEFAULT_ONBOARDING, ...stored };
+    /* Three answers, most authoritative first.
+     *
+     * A chosen board settles it — a board belongs to exactly one country, so
+     * deriving it here is what stops a stored board and a stored country from
+     * ever contradicting each other. Failing that, an answer given in
+     * onboarding itself. Failing that, the tap on the marketing site.
+     *
+     * Answers saved before the toggle existed have no countryId at all, and
+     * every one of them is Indian — the board they already chose says so, and
+     * the first branch handles them without a migration. */
+    const countryId = stored.boardId
+      ? countryOfBoard(stored.boardId)
+      : (stored.countryId ?? fromLanding ?? DEFAULT_COUNTRY);
+
+    return { ...DEFAULT_ONBOARDING, ...stored, countryId };
   } catch {
     return DEFAULT_ONBOARDING;
   }

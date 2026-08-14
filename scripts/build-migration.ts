@@ -35,46 +35,12 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { ORDER } from "./migration-order.ts";
+
 const ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
 
-/* Dependency order, not alphabetical. Each entry says what breaks if it runs
-   too early, because that is the only thing anyone needs to know before
-   reordering this list. */
-const ORDER: { file: string; needs: string }[] = [
-  { file: "tutor.sql", needs: "schema.sql — adds columns to its `attempts` table" },
-  { file: "compliance.sql", needs: "schema.sql for profiles, tutor.sql for the retention job's tables" },
-  {
-    file: "roles.sql",
-    needs:
-      "compliance.sql, which adds profiles.role — this closes it to ('student','teacher') and migrates the old 'parent' rows",
-  },
-  { file: "schools.sql", needs: "tutor.sql for topics and topic_mastery" },
-  { file: "billing.sql", needs: "schools.sql — can_access_chapter reads org_members" },
-  { file: "ratelimit.sql", needs: "nothing, but compliance.sql's purge calls into it" },
-  { file: "analytics.sql", needs: "tutor.sql for llm_calls and error_events" },
-  {
-    file: "tenancy.sql",
-    needs:
-      "schools.sql (extends org_members) and billing.sql (replaces can_access_chapter) — it rewrites what came before",
-  },
-  {
-    file: "schoolops.sql",
-    needs:
-      "tenancy.sql for is_org_admin and my_org_ids — and it replaces teaches_section, so it must come after the copy in tenancy.sql",
-  },
-  {
-    file: "licensing.sql",
-    needs:
-      "schoolops.sql for boards and grades, and tenancy.sql — LAST word on can_access_chapter, which three files now touch",
-  },
-  { file: "assessment.sql", needs: "schoolops.sql for the corrected teaches_section, tutor.sql for bank_questions" },
-  { file: "comms.sql", needs: "tenancy.sql for is_org_admin, schools.sql for sections" },
-  {
-    file: "onboarding.sql",
-    needs:
-      "all of the above — it creates an org, a licence, a year and an audit row in one transaction, so it is genuinely last",
-  },
-];
+/* The order, and the exclusions, live in one place so that the runner and
+   this bundle cannot disagree about them. */
 
 function main() {
   const parts: string[] = [

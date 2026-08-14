@@ -48,7 +48,7 @@ export function SignOutButton() {
       style={{ color: text(0.55) }}
     >
       <LogOut className="h-4 w-4" />
-      {busy ? "Sign out ho raha hai…" : "Sign out"}
+      {busy ? "Signing out…" : "Sign out"}
     </button>
   );
 }

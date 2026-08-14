@@ -3,10 +3,13 @@
 import Link from "next/link";
 
 import { scrollToSection } from "@/components/SmoothScroll";
-import { FOOTER } from "@/lib/content";
+import { useCountry } from "@/components/CountryToggle";
+import { FOOTER, REGION } from "@/lib/content";
 import { text } from "@/lib/theme";
 
 export function Footer() {
+  const [country] = useCountry();
+
   return (
     <footer className="border-t" style={{ borderColor: "var(--line)" }}>
       <div className="mx-auto max-w-[1180px] px-5 py-14 sm:px-6">
@@ -22,7 +25,7 @@ export function Footer() {
               className="mt-3 max-w-xs text-[14.5px] leading-[1.6]"
               style={{ color: text(0.55) }}
             >
-              {FOOTER.tagline}
+              {REGION[country].footerTagline}
             </p>
           </div>
 

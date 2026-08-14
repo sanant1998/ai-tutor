@@ -74,12 +74,11 @@ export default async function TeacherIndexPage() {
       {rows.length === 0 ? (
         <Panel className="space-y-3 p-6">
           <p className="text-[15px] opacity-75">
-            Aapke account se koi class judi nahi hai.
+            No class is linked to your account.
           </p>
           <p className="text-[14px] opacity-60">
-            School ya coaching ke liye ye feature seats pe chalta hai — ek admin
-            aapko section assign karega. Abhi tak set up nahi hua hai to hume
-            batayein.
+            For a school or coaching centre this runs on seats — an admin
+            assigns you a section. If that has not been set up yet, let us know.
           </p>
         </Panel>
       ) : (

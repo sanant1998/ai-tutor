@@ -121,7 +121,7 @@ export function PrivacyView({ userId }: { userId: string }) {
     return (
       <div className="flex items-center gap-2 py-16" style={{ color: text(0.5) }}>
         <Loader2 className="h-4 w-4 animate-spin" />
-        <span className="text-[14px]">Load ho raha hai…</span>
+        <span className="text-[14px]">Loading…</span>
       </div>
     );
   }
@@ -139,7 +139,7 @@ export function PrivacyView({ userId }: { userId: string }) {
           className="font-display mt-2 text-[2rem] font-extrabold tracking-[-0.035em]"
           style={{ color: text() }}
         >
-          Aapka data, aapke control me
+          Your data, under your control
         </h1>
       </header>
 
@@ -154,16 +154,16 @@ export function PrivacyView({ userId }: { userId: string }) {
       {consent.accountState === "read_only" && (
         <Panel className="p-4">
           <p className="text-[14px]" style={{ color: text(0.75) }}>
-            Ye account abhi read-only hai — purana kaam padha ja sakta hai, nayi
-            padhai band hai. Chalu karne ke liye parent ko dobara anumati deni
-            hogi.
+            This account is read-only for now — past work can still be read, but
+            new study is paused. To switch it back on, a parent has to give
+            consent again.
           </p>
         </Panel>
       )}
 
       <section className="space-y-3">
         <h2 className="font-display text-lg font-extrabold" style={{ color: text() }}>
-          Kis-kis cheez ki anumati di gayi hai
+          What consent has been given for
         </h2>
 
         {consent.purposes.map((purpose) => (
@@ -205,8 +205,8 @@ export function PrivacyView({ userId }: { userId: string }) {
         ))}
 
         <p className="text-[12px]" style={{ color: text(0.45) }}>
-          Zaroori anumati wapas lene par account read-only ho jaayega — data
-          delete nahi hoga. Policy version {consent.policyVersion}.
+          Withdrawing a required consent turns the account read-only — it does
+          not delete any data. Policy version {consent.policyVersion}.
         </p>
       </section>
 
@@ -218,11 +218,11 @@ export function PrivacyView({ userId }: { userId: string }) {
         <Panel className="flex items-start justify-between gap-4 p-4">
           <div>
             <p className="text-[15px] font-semibold" style={{ color: text(0.9) }}>
-              Poora data download karo
+              Download all your data
             </p>
             <p className="mt-1 text-[13px]" style={{ color: text(0.62) }}>
-              Ek JSON file — progress, saare attempts, tutor se hui baat-cheet,
-              consent ka record aur invoices.
+              One JSON file — progress, every attempt, your conversations with
+              the tutor, the consent record and invoices.
             </p>
           </div>
 
@@ -236,11 +236,11 @@ export function PrivacyView({ userId }: { userId: string }) {
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-[15px] font-semibold" style={{ color: text(0.9) }}>
-                Sab kuch delete karo
+                Delete everything
               </p>
               <p className="mt-1 text-[13px]" style={{ color: text(0.62) }}>
-                Processing turant band, aur 30 din baad data hamesha ke liye
-                hata diya jaayega. Us se pehle cancel kar sakte hain.
+                Processing stops immediately, and after 30 days the data is
+                removed for good. You can cancel any time before that.
               </p>
             </div>
 
@@ -261,10 +261,10 @@ export function PrivacyView({ userId }: { userId: string }) {
           {confirmDelete && (
             <div className="space-y-2 rounded-xl p-3" style={{ background: acc(0.09) }}>
               <p className="text-[14px]" style={{ color: text(0.85) }}>
-                Pakka? Padhai ka poora record, tutor se hui saari baat-cheet aur
-                progress — sab chala jaayega. Tax invoices kanoonan rakhne
-                padte hain; unme naam, raqam aur tareekh hoti hai, padhai ka
-                kuch nahi.
+                Are you sure? The entire study record, every conversation with
+                the tutor and all progress will go. Tax invoices have to be kept
+                by law; they hold a name, an amount and a date, and nothing
+                about your studies.
               </p>
 
               <div className="flex gap-2">
@@ -286,7 +286,7 @@ export function PrivacyView({ userId }: { userId: string }) {
                   onClick={() => setConfirmDelete(false)}
                   className="px-3 py-1.5 text-[13px]"
                 >
-                  Rehne do
+                  Keep it
                 </Button>
               </div>
             </div>
@@ -296,13 +296,13 @@ export function PrivacyView({ userId }: { userId: string }) {
 
       <section className="space-y-2 border-t pt-4" style={{ borderColor: text(0.1) }}>
         <h2 className="text-[14px] font-semibold" style={{ color: text(0.8) }}>
-          Shikayat
+          Grievances
         </h2>
 
         {grievanceConfigured() ? (
           <p className="text-[13px]" style={{ color: text(0.62) }}>
-            {GRIEVANCE_OFFICER.name} — {GRIEVANCE_OFFICER.email}. Jawab{" "}
-            {GRIEVANCE_OFFICER.respondsWithinDays} din ke andar.
+            {GRIEVANCE_OFFICER.name} — {GRIEVANCE_OFFICER.email}. Replies within{" "}
+            {GRIEVANCE_OFFICER.respondsWithinDays} days.
           </p>
         ) : (
           <p className="text-[13px] text-[var(--warn)]">
